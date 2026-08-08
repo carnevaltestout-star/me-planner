@@ -106,3 +106,17 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
   codebase, just a different `tauri android build` output instead of desktop bundling.
 - **[Branching model]** `master` → `dev` → `feature/*`. Feature branches merge to `dev` only
   after explicit approval; `dev` merges to `master` at release points.
+- **[Repo skeleton merged]** `feature/repo-skeleton` merged to `dev`. Hand-authored (no
+  Node/npm or Rust/cargo toolchain available in the dev sandbox at setup time) rather than
+  scaffolded via `npm create tauri-app` / `cargo` — config has not been verified to actually
+  `npm install` / build. Confirm this before relying on it. `src-tauri/icons/` is empty;
+  real icon assets are needed before a bundle build will work. `App.tsx` is a bare placeholder
+  on purpose — layout/nav and theming are separate backlog items, not part of the skeleton.
+- **[Backlog order]** Flat backlog for the 8 tabs + global requirements, one feature branch/mockup
+  cycle each: (1) global shell & tab nav, (2) global theme system, (3-4) Diary [entry form,
+  history view], (5-6) Planner [week/day view, add/edit/move tasks], (7) Principles, (8-9)
+  Vocabulary [list CRUD, quiz mode], (10) Attachments, (11-13) Trackers [period, mood,
+  contentment — period first to establish the chart pattern], (14-15) Goals [card grid,
+  list view toggle], (16-17) Book Reviews [list CRUD, cover upload]. Diary was moved ahead of
+  Planner per explicit request even though Planner is the default/home tab; global shell/nav
+  and theming stay first since every tab depends on them.
