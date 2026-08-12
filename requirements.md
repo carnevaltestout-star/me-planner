@@ -1,20 +1,28 @@
 # Me - Planner
 
 ## What this is
-A personal, ADHD-friendly planning and self-reflection app. One user (me, the product owner).
+A personal, ADHD-friendly planning and self-reflection and self-management pp app. One user (me, the product owner).
 Not a generic productivity tool — prioritizes balance between structure and spontaneity,
 and gentle self-tracking over rigid systems.
 
 ## Workflow rule (IMPORTANT)
+Only install necessary packages, check if new feature can be developed with existing package, if not, download new one.
+
 Before implementing any new feature/tab, send a GUI mockup (ASCII/wireframe description or
 an HTML/React preview) for approval first. Do NOT write production code for a feature until
 the mockup is approved.
+After developing a feature, do a thorough testing, also in mobile view. If for example the save, edit, etc doesnt work, redo the feature
+or do a bugfix.
+- Prefer clean, readable code over clever code: clear names, small functions, no dead code or commented-out blocks.
+- Never hardcode secrets, API keys, or tokens — use environment variables and confirm they're gitignored.
+- Add or update tests for any behavior change; don't mark something done if tests fail or are skipped.
 
 Branching: classic `master` → `dev` → `feature` model. Clone `dev` from `master` before
 starting work. Create a new branch per feature; merge into `dev` only after explicit approval.
 
 ## Global requirements
 - Editable color theme options (user can customize palette, not just light/dark toggle)
+- also retro theme toggle,in nerdy cute 90s 8 bit style, find free icon and font packages for it
 - Clean, calm visual style — avoid clutter (ADHD-friendly = low cognitive load)
 
 ## Tech Stack
@@ -51,7 +59,7 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
 - Goal: encourage balance between self-management and spontaneity (tone/copy should reflect this, not feel like a chore log)
 
 ### 3. Principles
-- User-editable list of personal principles, written essay-style (not bullet points)
+- User-editable list of personal principles, bullet points with editable subtext underneath
 - Full CRUD: add, edit, delete, reorder
 
 ### 4. Vocabulary
@@ -64,18 +72,30 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
 
 ### 6. Trackers
 - Period tracker
+- Habit tracker
 - Mood tracker
 - Overall contentment tracker
+- Productivity
 - (Likely daily check-in style, visualized over time — confirm chart style in mockup phase)
 
 ### 7. Goals
-- Card grid view, switchable to a to-do list view (same data, two display modes)
-- Time horizons: Month, Quarter
+- Card grid view, switchable to to-dos
+- Time horizons: Month, Quarter, Yearly
+- Switch between Goals and and To-dos Month, quartely, Yearly
 
 ### 8. Book Reviews
 - List of books with thoughts/review text
 - Filterable and sortable
 - Cover image upload per entry (icon/thumbnail)
+
+
+### 9. Statistics
+- Dashboard of cards showing tracked data over time (mood, habit completion, productivity,
+  contentment, etc. — sourced from the Trackers tabs)
+- Each card covers a time range (e.g. last few weeks/months)
+- Per-card chart type toggle: line chart / area chart (confirm any further chart types in the
+  mockup phase)
+
 
 ## Conventions
 - **Language:** TypeScript everywhere in the UI layer (strict mode on).
@@ -112,11 +132,28 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
   `npm install` / build. Confirm this before relying on it. `src-tauri/icons/` is empty;
   real icon assets are needed before a bundle build will work. `App.tsx` is a bare placeholder
   on purpose — layout/nav and theming are separate backlog items, not part of the skeleton.
-- **[Backlog order]** Flat backlog for the 8 tabs + global requirements, one feature branch/mockup
-  cycle each: (1) global shell & tab nav, (2) global theme system, (3-4) Diary [entry form,
-  history view], (5-6) Planner [week/day view, add/edit/move tasks], (7) Principles, (8-9)
-  Vocabulary [list CRUD, quiz mode], (10) Attachments, (11-13) Trackers [period, mood,
-  contentment — period first to establish the chart pattern], (14-15) Goals [card grid,
-  list view toggle], (16-17) Book Reviews [list CRUD, cover upload]. Diary was moved ahead of
-  Planner per explicit request even though Planner is the default/home tab; global shell/nav
-  and theming stay first since every tab depends on them.
+- **[Backlog order — superseded, see next entry]** ~~Flat backlog for the 8 tabs + global
+  requirements...~~
+- **[Requirements updated 2026-08-12]** User revised requirements.md directly. Changes with
+  scope impact: retro 8-bit theme toggle added to the global theming requirement (needs a
+  pixel font + icon set — will bring options during the theming task rather than pick
+  silently); Principles changed from essay-style to bullet points with editable subtext;
+  Trackers gained Habit and Productivity types; Goals and To-dos share one switchable view
+  with the same three horizon categories — Month / Quarter / Yearly (previously Month/Quarter,
+  Goals-only); new Statistics tab added (cross-tracker dashboard, cards with a per-card
+  line/area chart toggle, see its section above). Also added durable workflow rules: only add
+  an npm package when the feature genuinely can't be built with what's already installed;
+  test every feature thoroughly after building it, including mobile viewport, and redo/bugfix
+  before calling it done if save/edit/etc. is broken; clean code with no dead code or
+  commented-out blocks; never hardcode secrets; add/update tests for behavior changes.
+- **[Backlog order, current]** One feature branch/mockup cycle per item: (1) global shell &
+  tab nav — done, in review, (2) global theme system incl. retro 8-bit toggle, (3-4) Diary
+  [entry form, history view], (5-6) Planner [week/day view, add/edit/move tasks], (7)
+  Principles [bullet + subtext CRUD/reorder], (8-9) Vocabulary [list CRUD, quiz mode], (10)
+  Attachments, (11-15) Trackers [period, mood, contentment, habit, productivity — period
+  first to establish the chart pattern, rest unordered], (16-17) Goals [card grid CRUD with
+  Month/Quarter/Yearly horizons, to-do list view toggle sharing the same horizons], (18-19)
+  Book Reviews [list CRUD, cover upload], (20) Statistics [cross-tracker dashboard — depends
+  on the trackers existing, hence last]. Diary stays ahead of Planner per earlier explicit
+  request even though Planner is the spec's default/home tab; global shell/nav and theming
+  stay first since every tab depends on them.
