@@ -6,27 +6,37 @@ import StarfieldBackground from "@/components/retro-gimmicks/starfield-backgroun
 import PetBunny from "@/components/retro-gimmicks/pet-bunny";
 import PawDividerRail from "@/components/retro-gimmicks/paw-divider-rail";
 import IdleBunny from "@/components/retro-gimmicks/idle-bunny";
+import { RETRO_NAV_ICONS } from "@/components/retro-gimmicks/retro-nav-icons";
+import { useTheme } from "@/components/theme-provider/theme-context";
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
+  const theme = useTheme();
+
   return (
     <nav className="flex flex-col gap-0.5" aria-label="Tabs">
-      {navItems.map(({ path, label, icon: Icon }) => (
-        <NavLink
-          key={path}
-          to={path}
-          onClick={onNavigate}
-          className={({ isActive }) =>
-            `flex items-center gap-2.5 rounded-theme px-2.5 py-2 text-sm font-theme ${
-              isActive
-                ? "bg-accent-soft font-semibold text-accent"
-                : "text-ink-muted hover:bg-surface-alt hover:text-ink"
-            }`
-          }
-        >
-          <Icon className="h-[19px] w-[19px] flex-shrink-0" />
-          <span>{label}</span>
-        </NavLink>
-      ))}
+      {navItems.map(({ path, label, icon: Icon }) => {
+        const DisplayIcon = theme.retro ? RETRO_NAV_ICONS[path] ?? Icon : Icon;
+        return (
+          <NavLink
+            key={path}
+            to={path}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              `flex items-center gap-2.5 rounded-theme px-2.5 py-2 text-sm font-theme ${
+                isActive
+                  ? "bg-accent-soft font-semibold text-accent"
+                  : "text-ink-muted hover:bg-surface-alt hover:text-ink"
+              }`
+            }
+          >
+            <DisplayIcon
+              className="h-[19px] w-[19px] flex-shrink-0"
+              style={theme.retro ? { imageRendering: "pixelated" } : undefined}
+            />
+            <span>{label}</span>
+          </NavLink>
+        );
+      })}
     </nav>
   );
 }

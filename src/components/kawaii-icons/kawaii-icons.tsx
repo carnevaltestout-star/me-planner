@@ -17,7 +17,7 @@ const BITMAPS: Record<string, Bitmap> = {
   bunnySleeping: ["00000000", "00000000", "01111000", "11111100", "11111111", "11111111", "01111110", "00000000"],
 };
 
-function pixelGlyph(bitmap: Bitmap, props: SVGProps<SVGSVGElement>) {
+export function pixelGlyph(bitmap: Bitmap, props: SVGProps<SVGSVGElement>) {
   const cell = 20 / 8;
   const rects: string[] = [];
   bitmap.forEach((row, y) => {
@@ -69,7 +69,7 @@ export function SleepingBunnyIcon(props: SVGProps<SVGSVGElement>) {
   return pixelGlyph(BITMAPS.bunnySleeping, props);
 }
 
-type IconComponent = (props: SVGProps<SVGSVGElement>) => JSX.Element;
+export type IconComponent = (props: SVGProps<SVGSVGElement>) => JSX.Element;
 
 // Mirrors public/mockups/theme-system.html's iconPacks list. "classic" has no
 // entry here — callers fall back to each tab's own functional icon.
