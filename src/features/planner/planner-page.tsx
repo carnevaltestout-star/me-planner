@@ -133,11 +133,6 @@ export default function PlannerPage() {
 
       <PlannerGrid view={view} anchor={anchor} events={events} onCellClick={handleCellClick} onBlockClick={handleBlockClick} />
 
-      <p className="text-center text-xs text-ink-muted">
-        Grid runs the full 24 hours — starts scrolled to 7am by default. Click an empty slot to add an event, click an
-        existing one to edit or delete it.
-      </p>
-
       {modal && modalInitial && (
         <EventModal
           mode={modal.mode}
