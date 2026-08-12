@@ -146,8 +146,19 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
   test every feature thoroughly after building it, including mobile viewport, and redo/bugfix
   before calling it done if save/edit/etc. is broken; clean code with no dead code or
   commented-out blocks; never hardcode secrets; add/update tests for behavior changes.
+- **[App shell & nav merged]** `feature/app-shell-nav` merged to `dev`. Sidebar (desktop,
+  ≥768px) collapsing to a slide-in drawer (mobile) reusing the same `NavList`; used
+  `HashRouter` (not `BrowserRouter`) because Tauri's bundled production build has no server to
+  rewrite deep links on refresh. Nav order follows the spec's tab order (Planner stays the
+  visual default/home tab) independent of build order. Tab icons are small hand-authored
+  inline-SVG components in `components/tab-icons/` — no icon library dependency. A
+  settings/theme icon is reserved in the sidebar footer and topbar but is non-functional until
+  the theming task. Colors used are a temporary neutral + muted-sage placeholder, not a real
+  palette decision. Also installed Node 22 via `nvm` in the dev sandbox (system `apt` only had
+  Node 12, too old for Vite 6) to actually run and smoke-test the app; `npm install` succeeded
+  and `package-lock.json` is now committed.
 - **[Backlog order, current]** One feature branch/mockup cycle per item: (1) global shell &
-  tab nav — done, in review, (2) global theme system incl. retro 8-bit toggle, (3-4) Diary
+  tab nav — merged, (2) global theme system incl. retro 8-bit toggle, (3-4) Diary
   [entry form, history view], (5-6) Planner [week/day view, add/edit/move tasks], (7)
   Principles [bullet + subtext CRUD/reorder], (8-9) Vocabulary [list CRUD, quiz mode], (10)
   Attachments, (11-15) Trackers [period, mood, contentment, habit, productivity — period
