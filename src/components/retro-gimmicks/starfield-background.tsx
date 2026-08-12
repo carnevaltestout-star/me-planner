@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useTheme } from "@/components/theme-provider/theme-context";
-import { resolvesToDark } from "@/lib/theme/apply-theme";
+import { getActivePalette, resolvesToDark } from "@/lib/theme/apply-theme";
 
 interface Star {
   x: number;
@@ -23,6 +23,7 @@ export default function StarfieldBackground() {
   const theme = useTheme();
   const active = theme.retro && theme.gimmicks.starfield;
   const isDark = resolvesToDark(theme.mode);
+  const activeBg = getActivePalette(theme).bg;
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -34,7 +35,7 @@ export default function StarfieldBackground() {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     // Dark mode gets a proper night sky; light mode keeps whatever
     // background color is customized and just scatters pink stars on it.
-    const backgroundFill = isDark ? NIGHT_SKY_COLOR : theme.colors.bg;
+    const backgroundFill = isDark ? NIGHT_SKY_COLOR : activeBg;
     let stars: Star[] = [];
     let shootingStars: ShootingStar[] = [];
     let animId = 0;
@@ -104,7 +105,7 @@ export default function StarfieldBackground() {
       window.removeEventListener("resize", resize);
       if (animId) cancelAnimationFrame(animId);
     };
-  }, [active, isDark, theme.colors.bg]);
+  }, [active, isDark, activeBg]);
 
   if (!active) return null;
 
