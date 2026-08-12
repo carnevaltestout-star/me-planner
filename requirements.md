@@ -96,6 +96,11 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
 - Per-card chart type toggle: line chart / area chart (confirm any further chart types in the
   mockup phase)
 
+### 10. Finance Overview
+- Scope intentionally left empty for now — ask the user for details once tabs 1-9 are built,
+  not before.
+
+
 
 ## Conventions
 - **Language:** TypeScript everywhere in the UI layer (strict mode on).
@@ -168,3 +173,9 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
   on the trackers existing, hence last]. Diary stays ahead of Planner per earlier explicit
   request even though Planner is the spec's default/home tab; global shell/nav and theming
   stay first since every tab depends on them.
+- **[Finance Overview tab added, 2026-08-12]** New 10th tab, scope intentionally left blank —
+  do not ask for details until backlog items 1-20 are done. Added as backlog item (21),
+  unordered/undetailed until then. Note: the merged app shell's nav (`nav-items.ts`) currently
+  only lists the original 8 tabs; both Statistics and Finance Overview still need to be added
+  there (same placeholder-page pattern as the other unbuilt tabs) — asked the user, awaiting
+  a decision on whether to do that now or as part of their own backlog items later.
