@@ -16,6 +16,7 @@ export default {
       },
       borderRadius: {
         theme: "var(--radius-theme)",
+        "theme-sm": "var(--radius-theme-sm)",
       },
       boxShadow: {
         theme: "var(--shadow-theme)",
