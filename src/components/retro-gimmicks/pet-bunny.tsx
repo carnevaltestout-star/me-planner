@@ -10,17 +10,30 @@ const STEP_RANGE_PX = 22;
 const WANDER_RADIUS_PX = 40;
 const ICON_SIZE_PX = 32;
 const EDGE_MARGIN_PX = 16;
-const MOOD_MIN_MS = 10000;
-const MOOD_MAX_MS = 15000;
-const MOOD_DISPLAY_MS = 1400;
-const MOODS = ["😴", "⚔️", "😆", "💕"];
+const MOOD_MIN_MS = 7000;
+const MOOD_MAX_MS = 12000;
+const MOOD_DISPLAY_MS = 1600;
+const MOODS = [
+  "⸜(｡˃ ᵕ ˂ )⸝♡",
+  "uwu",
+  "（>.<）",
+  "•⩊•",
+  "❤︎",
+  "v ⊹ ࣪ ˖",
+  "(„• ֊ •„)੭",
+  "(˶ᵔ ᵕ ᵔ˶) ‹3",
+  "૮꒰ ˶• ༝ •˶꒱ა ♡",
+  "(„• ֊ •„)",
+  "(⸝⸝> ᴗ•⸝⸝)",
+  "≽(•⩊ •マ≼",
+];
 
 // Asleep by default. A click wakes it and keeps it awake for 2 minutes,
 // extended by every further click. While awake it behaves like a little
 // desktop pet (vscode-pets style): walk a short distance, sit for a
 // moment, walk again, on repeat, facing the direction it's moving, and
 // stays clamped to the visible viewport so it can never wander off-screen.
-// Every 10-15s it also flashes a little mood (yawn/sword/laugh/hearts). No
+// Every 7-12s it also flashes a little kaomoji emote. No
 // click for 2 minutes -> back to sleep. All movement/moods are skipped
 // under prefers-reduced-motion — it just stays asleep.
 export default function PetBunny() {
@@ -153,7 +166,11 @@ export default function PetBunny() {
       aria-hidden="true"
     >
       {mood && (
-        <span className="gimmick-mood-pop absolute -top-5 left-1/2 -translate-x-1/2 text-sm" aria-hidden="true">
+        <span
+          className="gimmick-mood-pop absolute -top-5 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs"
+          style={{ color: "var(--color-accent)" }}
+          aria-hidden="true"
+        >
           {mood}
         </span>
       )}
