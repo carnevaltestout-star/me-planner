@@ -6,6 +6,7 @@ export default function VocabularyPage() {
     <EmptyTabPlaceholder
       icon={VocabularyIcon}
       description="Your word list, plus a quiz mode to practice recall."
+      kawaiiIndex={3}
     />
   );
 }

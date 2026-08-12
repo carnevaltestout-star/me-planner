@@ -1,3 +1,59 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Base tokens are set at runtime by src/lib/theme/apply-theme.ts; derived
+   tokens live here so ThemeSettings only needs to store the 5 base colors. */
+:root {
+  --color-canvas: #fbf8f6;
+  --color-surface: #ffffff;
+  --color-ink: #362e38;
+  --color-accent: #8b6ba8;
+  --color-border: #e4d9e3;
+
+  --color-surface-alt: color-mix(in srgb, var(--color-surface) 85%, var(--color-accent) 15%);
+  --color-ink-muted: color-mix(in srgb, var(--color-ink) 60%, var(--color-canvas) 40%);
+  --color-accent-soft: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface) 82%);
+  --color-accent-contrast: color-mix(in srgb, var(--color-surface) 92%, white 8%);
+
+  --radius-theme: 10px;
+  --shadow-theme: none;
+  --font-header: inherit;
+}
+
+:root[data-retro="true"] {
+  --radius-theme: 0px;
+  --shadow-theme: 3px 3px 0 var(--color-border);
+  --font-header: ui-monospace, "Courier New", monospace;
+}
+
+/* Lets the starfield gimmick show through — main goes fully transparent so
+   the night sky isn't washed out; chrome (nav/topbar) stays mostly solid
+   for legibility but lets a hint of it through too. */
+:root[data-gimmick-starfield="true"] [data-theme-surface="main"] {
+  background: transparent;
+}
+:root[data-gimmick-starfield="true"] [data-theme-surface="chrome"] {
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+}
+
+@keyframes idle-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+@keyframes hop-arc {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@keyframes mood-pop {
+  0% { transform: translate(-50%, 4px) scale(0.6); opacity: 0; }
+  20% { transform: translate(-50%, -2px) scale(1.1); opacity: 1; }
+  80% { transform: translate(-50%, -2px) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -6px) scale(0.9); opacity: 0; }
+}
+.gimmick-idle-bob { animation: idle-bob 1.6s ease-in-out infinite; }
+.gimmick-hop-arc { animation: hop-arc 0.9s ease-in-out 1; }
+.gimmick-mood-pop { animation: mood-pop 1.4s ease-in-out 1; }
+@media (prefers-reduced-motion: reduce) {
+  .gimmick-idle-bob, .gimmick-hop-arc, .gimmick-mood-pop { animation: none; }
+}

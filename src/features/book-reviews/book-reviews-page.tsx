@@ -6,6 +6,7 @@ export default function BookReviewsPage() {
     <EmptyTabPlaceholder
       icon={BookReviewsIcon}
       description="Books, thoughts, covers — filterable and sortable."
+      kawaiiIndex={7}
     />
   );
 }

@@ -6,6 +6,7 @@ export default function DiaryPage() {
     <EmptyTabPlaceholder
       icon={DiaryIcon}
       description="Five gentle daily prompts live here — the first tab being built."
+      kawaiiIndex={1}
     />
   );
 }

@@ -6,6 +6,7 @@ export default function PrinciplesPage() {
     <EmptyTabPlaceholder
       icon={PrinciplesIcon}
       description="Your essay-style principles, editable and reorderable."
+      kawaiiIndex={2}
     />
   );
 }

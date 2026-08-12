@@ -6,6 +6,7 @@ export default function GoalsPage() {
     <EmptyTabPlaceholder
       icon={GoalsIcon}
       description="Card grid or list view — month and quarter goals."
+      kawaiiIndex={6}
     />
   );
 }

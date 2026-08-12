@@ -3,8 +3,26 @@ export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
-      // Theme palette gets wired up as CSS variables (see src/index.css) once
-      // the theming task is mocked up and approved — left empty for now.
+      colors: {
+        canvas: "var(--color-canvas)",
+        surface: "var(--color-surface)",
+        "surface-alt": "var(--color-surface-alt)",
+        border: "var(--color-border)",
+        ink: "var(--color-ink)",
+        "ink-muted": "var(--color-ink-muted)",
+        accent: "var(--color-accent)",
+        "accent-soft": "var(--color-accent-soft)",
+        "accent-contrast": "var(--color-accent-contrast)",
+      },
+      borderRadius: {
+        theme: "var(--radius-theme)",
+      },
+      boxShadow: {
+        theme: "var(--shadow-theme)",
+      },
+      fontFamily: {
+        theme: "var(--font-header)",
+      },
     },
   },
   plugins: [],
