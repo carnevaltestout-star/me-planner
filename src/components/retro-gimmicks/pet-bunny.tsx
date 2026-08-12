@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/components/theme-provider/theme-context";
 import { BunnyIcon, SleepingBunnyIcon } from "@/components/kawaii-icons/kawaii-icons";
 
-const AWAKE_WINDOW_MS = 2 * 60 * 1000;
+const AWAKE_WINDOW_MS = 4 * 60 * 1000;
 const WALK_DURATION_MS = 900;
 const SIT_MIN_MS = 1200;
 const SIT_MAX_MS = 3200;
@@ -38,16 +38,17 @@ const MOODS = [
   "be awkward with confidence"
 ];
 
-// Asleep by default. A click wakes it and keeps it awake for 2 minutes,
+// Asleep on first load. A click wakes it and keeps it awake for 4 minutes,
 // extended by every further click. While awake it behaves like a little
 // desktop pet (vscode-pets style): walk a short distance, sit for a
 // moment, walk again, on repeat, facing the direction it's moving, and
 // stays clamped to the visible viewport so it can never wander off-screen.
-// No click for 2 minutes -> back to sleep, though it keeps napping right
-// there rather than vanishing. Mood pop-ups (kaomoji/quotes) run on their
-// own continuous 7-12s loop the whole time this gimmick is on, awake or
-// asleep. Walking/hopping is skipped under prefers-reduced-motion; the mood
-// text itself still shows (it's not motion), just without the pop animation.
+// No click for 4 minutes -> back to sleep, though it keeps napping right
+// there rather than vanishing. Mood pop-ups run on their own continuous
+// 7-12s loop the whole time this gimmick is on: random kaomoji/quotes while
+// awake, just "Zzz" while asleep. Walking/hopping is skipped under
+// prefers-reduced-motion; the mood text itself still shows (it's not
+// motion), just without the pop animation.
 export default function PetBunny() {
   const theme = useTheme();
   const active = theme.retro && theme.gimmicks.bouncingBuddy;
@@ -127,7 +128,8 @@ export default function PetBunny() {
     }
 
     function showMood() {
-      setMood(MOODS[Math.floor(Math.random() * MOODS.length)]);
+      const text = isAwakeRef.current ? MOODS[Math.floor(Math.random() * MOODS.length)] : "Zzz";
+      setMood(text);
       const displayFor = MOOD_DISPLAY_MIN_MS + Math.random() * (MOOD_DISPLAY_MAX_MS - MOOD_DISPLAY_MIN_MS);
       window.setTimeout(() => setMood(null), displayFor);
       scheduleMood();
