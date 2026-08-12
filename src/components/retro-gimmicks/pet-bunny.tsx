@@ -31,9 +31,10 @@ const MOODS = [
   "You can blush and still be a badass",
   "F*ck perfect, show up",
   "You're (probably) not under surveillance, relax",
-  "keep walking",
+  "keep walking <3",
   "we all die eventually, just do it",
-  "no risk no champagne babeeey"
+  "no risk no champagne babeeey",
+  "be awkward with confidence"
 ];
 
 // Asleep by default. A click wakes it and keeps it awake for 2 minutes,
@@ -41,9 +42,11 @@ const MOODS = [
 // desktop pet (vscode-pets style): walk a short distance, sit for a
 // moment, walk again, on repeat, facing the direction it's moving, and
 // stays clamped to the visible viewport so it can never wander off-screen.
-// Every 7-12s it also flashes a little kaomoji emote. No
-// click for 2 minutes -> back to sleep. All movement/moods are skipped
-// under prefers-reduced-motion — it just stays asleep.
+// No click for 2 minutes -> back to sleep, though it keeps napping right
+// there rather than vanishing. Mood pop-ups (kaomoji/quotes) run on their
+// own continuous 7-12s loop the whole time this gimmick is on, awake or
+// asleep. Walking/hopping is skipped under prefers-reduced-motion; the mood
+// text itself still shows (it's not motion), just without the pop animation.
 export default function PetBunny() {
   const theme = useTheme();
   const active = theme.retro && theme.gimmicks.bouncingBuddy;
@@ -89,9 +92,7 @@ export default function PetBunny() {
       isAwakeRef.current = false;
       setAwake(false);
       setWalking(false);
-      setMood(null);
       window.clearTimeout(walkTimeoutRef.current);
-      window.clearTimeout(moodTimeoutRef.current);
     }
 
     function step() {
@@ -125,7 +126,6 @@ export default function PetBunny() {
     }
 
     function showMood() {
-      if (!isAwakeRef.current) return;
       setMood(MOODS[Math.floor(Math.random() * MOODS.length)]);
       window.setTimeout(() => setMood(null), MOOD_DISPLAY_MS);
       scheduleMood();
@@ -140,10 +140,7 @@ export default function PetBunny() {
         posRef.current = homePosition();
         applyTransform();
         setAwake(true);
-        if (!prefersReducedMotion) {
-          step();
-          scheduleMood();
-        }
+        if (!prefersReducedMotion) step();
       }
     }
 
@@ -155,6 +152,9 @@ export default function PetBunny() {
     applyTransform();
     window.addEventListener("click", onClick);
     window.addEventListener("resize", onResize);
+    // Moods run continuously regardless of awake/asleep, for as long as this
+    // gimmick is on — not gated on activity like the walking is.
+    scheduleMood();
     return () => {
       window.removeEventListener("click", onClick);
       window.removeEventListener("resize", onResize);
