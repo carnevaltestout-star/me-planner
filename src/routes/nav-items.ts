@@ -5,6 +5,7 @@ import {
   DiaryIcon,
   FinanceIcon,
   GoalsIcon,
+  LearningIcon,
   PlannerIcon,
   PrinciplesIcon,
   StatisticsIcon,
@@ -31,4 +32,5 @@ export const navItems: NavItem[] = [
   { path: "/book-reviews", label: "Book Reviews", icon: BookReviewsIcon },
   { path: "/statistics", label: "Statistics", icon: StatisticsIcon },
   { path: "/finance-overview", label: "Finance Overview", icon: FinanceIcon },
+  { path: "/learning", label: "Learning", icon: LearningIcon },
 ];
