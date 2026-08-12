@@ -120,6 +120,9 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
   a real need shows up (single user, low complexity).
 - **Naming:** PascalCase for components, camelCase for functions/variables, kebab-case for
   file names matching component folders.
+- **Component architecture:** modular, MVC-style separation within each component/feature —
+  keep data/state logic, view rendering, and event handling in distinct, single-responsibility
+  pieces rather than one large mixed file. Applies to every component going forward.
 
 ## Notes / Decisions Log
 - **[Tech stack chosen]** Tauri v2 + React + TypeScript + Tailwind + SQLite, decided to satisfy
