@@ -1,0 +1,30 @@
+export type PlannerView = "week" | "day";
+export type RepeatRule = "none" | "daily" | "weekly" | "monthly";
+
+export interface PlannerEvent {
+  id: string;
+  dateKey: string; // YYYY-MM-DD — the series' own anchor date
+  title: string;
+  notes: string;
+  start: number; // decimal hour, e.g. 9.5 = 9:30
+  end: number;
+  repeat: RepeatRule;
+  color: string;
+  exceptions: string[]; // dateKeys excluded from an otherwise-repeating series
+}
+
+export const EVENT_COLORS = [
+  "#8b6ba8", // lavender (default, matches the app accent)
+  "#e0567a", // rose
+  "#d99a3d", // amber
+  "#5b8a72", // sage
+  "#3d9c9c", // teal
+  "#4b8fc2", // sky
+  "#9a4fa0", // plum
+  "#6b7280", // slate
+];
+
+export type NewEventDraft = Pick<PlannerEvent, "dateKey" | "start" | "end"> & {
+  occurrenceDate: string;
+};
+export type EditEventDraft = PlannerEvent & { occurrenceDate: string };

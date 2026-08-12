@@ -17,12 +17,14 @@
   --color-accent-contrast: color-mix(in srgb, var(--color-surface) 92%, white 8%);
 
   --radius-theme: 10px;
+  --radius-theme-sm: 6px;
   --shadow-theme: none;
   --font-header: inherit;
 }
 
 :root[data-retro="true"] {
   --radius-theme: 0px;
+  --radius-theme-sm: 0px;
   --shadow-theme: 3px 3px 0 var(--color-border);
   --font-header: ui-monospace, "Courier New", monospace;
 }
