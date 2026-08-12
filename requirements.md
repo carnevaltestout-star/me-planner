@@ -222,3 +222,11 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
   own content (it got typed onto the old file, under a duplicate/wrong tab number). Lesson: for
   any long-lived feature branch, merge `dev` into it periodically (or merge the branch into
   `dev` sooner) rather than letting `requirements.md` diverge silently across branches.
+- **[Theme system merged, 2026-08-12]** `feature/theme-system` merged into `dev` — see the
+  "substantially implemented" entry above for what it covers (palettes, mode, retro,
+  gimmicks). `public/mockups/theme-system.html` and the gear icon's temporary
+  "open the mockup" wiring were removed as part of the merge; the gear icon in the sidebar and
+  topbar is now an inert placeholder labeled "panel coming soon" — there is still no in-app
+  settings UI to actually change the theme yet, only the underlying engine (Context, storage,
+  CSS variables). Building that real settings panel isn't its own backlog item yet; it should
+  probably become one before the theme is genuinely user-editable end to end.
