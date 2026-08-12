@@ -100,6 +100,12 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
 - Scope intentionally left empty for now — ask the user for details once tabs 1-9 are built,
   not before.
 
+### 11. Learning
+- Upload anything you've been feeding your brain: links (as cleartext), documents, images
+- Search bar to filter through everything
+- Sort/filter by a topic flag/tag
+- Scheduled to be built last, after every other tab
+
 
 
 ## Conventions
@@ -178,7 +184,23 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
   stay first since every tab depends on them.
 - **[Finance Overview tab added, 2026-08-12]** New 10th tab, scope intentionally left blank —
   do not ask for details until backlog items 1-20 are done. Added as backlog item (21),
-  unordered/undetailed until then. Note: the merged app shell's nav (`nav-items.ts`) currently
-  only lists the original 8 tabs; both Statistics and Finance Overview still need to be added
-  there (same placeholder-page pattern as the other unbuilt tabs) — asked the user, awaiting
-  a decision on whether to do that now or as part of their own backlog items later.
+  unordered/undetailed until then.
+- **[Learning tab added, 2026-08-12]** New 11th tab: upload links (cleartext)/documents/images,
+  search bar, sort/filter by topic flag. Explicitly scheduled to be built **last**, after every
+  other tab — backlog item (22).
+- **[Statistics / Finance Overview / Learning added to nav]** All three now have real
+  `nav-items.ts` entries, routes, and placeholder pages (same empty-state pattern as the
+  original 8) — resolves the earlier open question about the nav being behind the spec.
+- **[Theme system substantially implemented, still on `feature/theme-system`, not yet merged]**
+  `ThemeProvider` (React Context) applies palette/mode/retro/icon-pack as CSS variables,
+  persisted to `localStorage` and synced live via the `storage` event so
+  `public/mockups/theme-system.html`'s Save button can drive the real running app —
+  `public/mockups/` stays dev-only and gets deleted before this merges. Retro gimmicks, each
+  independently toggleable: starfield background (dark night sky only in dark mode; light mode
+  keeps the customized background color; stars/shooting-stars are pink, not white — white was
+  invisible against light palettes), a paw/star pixel-pattern sidebar divider, and a pet bunny
+  that sleeps by default, wakes on click for a 2-minute sliding window, and while awake
+  wanders near the bottom-right corner (clamped to the viewport so it can never go off-screen)
+  with periodic mood pop-ups (yawn/sword/laugh/hearts), vscode-pets-style. A second small idle
+  bunny sits next to the "Me planner" brand mark. Everything respects
+  `prefers-reduced-motion`.
