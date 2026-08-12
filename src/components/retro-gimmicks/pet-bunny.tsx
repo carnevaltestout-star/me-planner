@@ -51,7 +51,6 @@ export default function PetBunny() {
   const [walking, setWalking] = useState(false);
   const [facingLeft, setFacingLeft] = useState(false);
   const [mood, setMood] = useState<string | null>(null);
-  const [moodAlign, setMoodAlign] = useState<"left" | "center" | "right">("center");
   const trackRef = useRef<HTMLDivElement>(null);
   const isAwakeRef = useRef(false);
   const posRef = useRef({ x: 0, y: 0 });
@@ -128,13 +127,6 @@ export default function PetBunny() {
     function showMood() {
       if (!isAwakeRef.current) return;
       setMood(MOODS[Math.floor(Math.random() * MOODS.length)]);
-      // Longer text (the quote-style moods) needs room either side of the
-      // bunny to stay fully on-screen — center by default, but hug whichever
-      // edge the bunny is currently close to instead of overflowing it.
-      const edgeZone = 90;
-      if (posRef.current.x < edgeZone) setMoodAlign("left");
-      else if (posRef.current.x > window.innerWidth - ICON_SIZE_PX - edgeZone) setMoodAlign("right");
-      else setMoodAlign("center");
       window.setTimeout(() => setMood(null), MOOD_DISPLAY_MS);
       scheduleMood();
     }
@@ -183,13 +175,7 @@ export default function PetBunny() {
     >
       {mood && (
         <span
-          className={`gimmick-mood-pop absolute -top-5 max-w-[150px] text-center text-xs leading-snug ${
-            moodAlign === "left"
-              ? "left-0"
-              : moodAlign === "right"
-                ? "right-0"
-                : "left-1/2 -translate-x-1/2"
-          }`}
+          className="gimmick-mood-pop absolute right-full top-1/2 mr-2 -translate-y-1/2 whitespace-nowrap text-xs"
           style={{ color: "var(--color-accent)" }}
           aria-hidden="true"
         >
