@@ -1,0 +1,865 @@
+<title>Me — Planner: Week/Day View (Mockup)</title>
+<style>
+  :root {
+    --color-canvas: #fbf8f6;
+    --color-surface: #ffffff;
+    --color-ink: #362e38;
+    --color-accent: #8b6ba8;
+    --color-border: #e4d9e3;
+    --color-surface-alt: color-mix(in srgb, var(--color-surface) 85%, var(--color-accent) 15%);
+    --color-ink-muted: color-mix(in srgb, var(--color-ink) 60%, var(--color-canvas) 40%);
+    --color-accent-soft: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface) 82%);
+    --color-accent-contrast: color-mix(in srgb, var(--color-surface) 92%, white 8%);
+  }
+  * { box-sizing: border-box; }
+  :root[data-retro="true"] {
+    --color-radius: 0px;
+    --color-radius-sm: 0px;
+    --color-shadow: 3px 3px 0 var(--color-border);
+  }
+  :root { --color-radius: 12px; --color-radius-sm: 6px; --color-shadow: none; }
+  body {
+    margin: 0; background: var(--color-canvas); color: var(--color-ink);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  .banner {
+    padding: 0.65rem 1rem; background: var(--color-surface-alt); border-bottom: 1px solid var(--color-border);
+    font-size: 0.8rem; color: var(--color-ink-muted);
+  }
+  .banner strong { color: var(--color-ink); }
+
+  .app {
+    max-width: 1100px; margin: 0 auto; padding: 1.25rem 1rem 3rem;
+    display: flex; flex-direction: column; gap: 1rem;
+  }
+
+  .toolbar {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;
+  }
+  .toolbar-left { display: flex; align-items: center; gap: 0.6rem; }
+  .today-btn {
+    border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-ink);
+    border-radius: 999px; padding: 0.35rem 0.85rem; font-size: 0.82rem; cursor: pointer;
+  }
+  .today-btn:hover { background: var(--color-surface-alt); }
+  .chevron-pair {
+    display: inline-flex; border: 1px solid var(--color-border); border-radius: 999px; overflow: hidden;
+  }
+  .chevron-pair button {
+    border: none; background: var(--color-surface); color: var(--color-ink); width: 30px; height: 30px;
+    cursor: pointer; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .chevron-pair button:first-child { border-right: 1px solid var(--color-border); }
+  .chevron-pair button:hover { background: var(--color-surface-alt); }
+
+  .range-picker { position: relative; }
+  .range-label {
+    font-size: 0.95rem; font-weight: 600; border: none; background: none; color: var(--color-ink);
+    cursor: pointer; padding: 0.3rem 0.4rem; border-radius: 8px; font-family: inherit;
+  }
+  .range-label:hover { background: var(--color-surface-alt); }
+
+  .mini-cal {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; width: 230px;
+    background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--color-radius);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12); padding: 0.7rem; display: none;
+  }
+  .mini-cal.open { display: block; }
+  .mini-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+  .mini-cal-head span { font-size: 0.82rem; font-weight: 600; }
+  .mini-cal-head button {
+    border: none; background: none; color: var(--color-ink-muted); cursor: pointer; font-size: 0.85rem;
+    width: 22px; height: 22px; border-radius: 6px;
+  }
+  .mini-cal-head button:hover { background: var(--color-surface-alt); }
+  .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .mini-cal-dow { font-size: 0.6rem; text-align: center; color: var(--color-ink-muted); padding-bottom: 2px; }
+  .mini-cal-day {
+    border: none; background: none; font-size: 0.72rem; color: var(--color-ink); border-radius: 6px;
+    height: 24px; cursor: pointer;
+  }
+  .mini-cal-day:hover { background: var(--color-surface-alt); }
+  .mini-cal-day.muted { color: var(--color-ink-muted); opacity: 0.5; }
+  .mini-cal-day.today { font-weight: 700; color: var(--color-accent); }
+  .mini-cal-day.selected { background: var(--color-accent); color: var(--color-accent-contrast); font-weight: 600; }
+
+  .segmented {
+    display: inline-flex; border: 1.5px solid var(--color-border); border-radius: 999px; overflow: hidden;
+  }
+  .segmented button {
+    border: none; background: var(--color-surface); color: var(--color-ink-muted); cursor: pointer;
+    padding: 0.4rem 1rem; font-size: 0.82rem;
+  }
+  .segmented button[aria-pressed="true"] { background: var(--color-accent); color: var(--color-accent-contrast); font-weight: 600; }
+
+  .grid-wrap {
+    border: 1px solid var(--color-border); border-radius: var(--color-radius); background: var(--color-surface);
+    overflow: hidden; box-shadow: var(--color-shadow);
+  }
+  .day-headers {
+    display: grid; border-bottom: 1px solid var(--color-border);
+  }
+  .day-headers .gutter { border-right: 1px solid var(--color-border); }
+  .day-header {
+    padding: 0.6rem 0.4rem; text-align: center; border-right: 1px solid var(--color-border);
+    font-size: 0.78rem; color: var(--color-ink-muted);
+  }
+  .day-header:last-child { border-right: none; }
+  .day-header .dow { text-transform: uppercase; letter-spacing: 0.03em; font-size: 0.68rem; }
+  .day-header .num {
+    display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px;
+    border-radius: 999px; margin-top: 0.2rem; font-weight: 600; color: var(--color-ink);
+  }
+  .day-header.today .num { background: var(--color-accent); color: var(--color-accent-contrast); }
+
+  .scroll-area { max-height: 620px; overflow-y: auto; position: relative; }
+  .hour-grid { display: grid; position: relative; }
+  .gutter-col { border-right: 1px solid var(--color-border); }
+  .hour-label {
+    height: 56px; padding: 0 0.5rem; text-align: right; font-size: 0.72rem; color: var(--color-ink-muted);
+    position: relative; top: -0.5em;
+  }
+  .day-col { border-right: 1px solid var(--color-border); position: relative; }
+  .day-col:last-child { border-right: none; }
+  .day-col.today { background: color-mix(in srgb, var(--color-accent) 5%, transparent); }
+  .day-col.weekend { background: color-mix(in srgb, var(--color-ink) 3%, transparent); }
+  .day-col.weekend.today { background: color-mix(in srgb, var(--color-accent) 7%, transparent); }
+  .hour-cell { height: 56px; border-bottom: 1px solid var(--color-border); }
+  .hour-cell.major { border-bottom-color: color-mix(in srgb, var(--color-border) 60%, var(--color-ink) 40%); }
+
+  .block {
+    position: absolute; border-radius: var(--color-radius-sm); overflow: hidden;
+    background: var(--color-accent-soft); border-left: 3px solid var(--color-accent);
+    padding: 0.12rem 0.4rem 0; font-size: 0.7rem; color: var(--color-ink); cursor: pointer;
+    display: flex; flex-direction: column; justify-content: flex-start;
+  }
+  .block .title { font-weight: 600; display: block; line-height: 1.15; }
+  .block .time { color: var(--color-ink-muted); font-size: 0.6rem; line-height: 1.15; }
+  .day-view .block { font-size: 0.8rem; padding: 0.2rem 0.6rem 0; border-left-width: 4px; }
+  .day-view .block .time { font-size: 0.7rem; }
+
+  .now-line {
+    position: absolute; left: 0; right: 0; height: 2px; background: #e0217a; z-index: 5; pointer-events: none;
+  }
+  .now-line::before {
+    content: ""; position: absolute; left: -4px; top: -4px; width: 10px; height: 10px; border-radius: 50%;
+    background: #e0217a;
+  }
+
+  .hint {
+    font-size: 0.78rem; color: var(--color-ink-muted); text-align: center;
+  }
+
+  .new-event-btn {
+    border: 1px solid var(--color-accent); background: var(--color-accent); color: var(--color-accent-contrast);
+    border-radius: var(--color-radius-sm); padding: 0.4rem 0.9rem; font-size: 0.82rem; font-weight: 600;
+    cursor: pointer;
+  }
+  .new-event-btn:hover { filter: brightness(1.05); }
+
+  .hour-cell:hover { background: color-mix(in srgb, var(--color-accent) 6%, transparent); cursor: pointer; }
+
+  .modal-scrim {
+    display: none; position: fixed; inset: 0; z-index: 50; background: rgba(20, 15, 25, 0.35);
+    align-items: center; justify-content: center; padding: 1rem;
+  }
+  .modal-scrim.open { display: flex; }
+  .modal-card {
+    width: 100%; max-width: 340px; background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: var(--color-radius); box-shadow: var(--color-shadow), 0 12px 32px rgba(0,0,0,0.18);
+    padding: 1.1rem; display: flex; flex-direction: column; gap: 0.8rem;
+  }
+  .modal-card h2 { margin: 0; font-size: 1rem; color: var(--color-ink); }
+  .modal-field { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.78rem; color: var(--color-ink-muted); flex: 1; }
+  .modal-field input, .modal-field textarea, .modal-field select {
+    border: 1px solid var(--color-border); border-radius: var(--color-radius-sm); padding: 0.45rem 0.6rem;
+    font-size: 0.88rem; color: var(--color-ink); background: var(--color-canvas); font-family: inherit;
+    resize: vertical;
+  }
+  .modal-field input:focus, .modal-field textarea:focus, .modal-field select:focus {
+    outline: 2px solid var(--color-accent); outline-offset: 1px;
+  }
+  .modal-row { display: flex; gap: 0.6rem; }
+
+  .color-swatches { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .color-swatch {
+    width: 26px; height: 26px; border-radius: 999px; border: 2px solid transparent; cursor: pointer; padding: 0;
+  }
+  .color-swatch[aria-pressed="true"] { border-color: var(--color-ink); }
+  .modal-date { margin: 0; font-size: 0.78rem; color: var(--color-ink-muted); }
+  .modal-error { margin: 0; font-size: 0.78rem; color: #c22a4d; min-height: 1em; }
+  .modal-actions { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.2rem; }
+  .modal-actions-right { display: flex; gap: 0.5rem; }
+  .modal-btn {
+    border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-ink);
+    border-radius: var(--color-radius-sm); padding: 0.45rem 0.9rem; font-size: 0.82rem; cursor: pointer;
+  }
+  .modal-btn:hover { background: var(--color-surface-alt); }
+  .modal-btn.primary { background: var(--color-accent); color: var(--color-accent-contrast); border-color: var(--color-accent); }
+  .modal-btn.danger { color: #c22a4d; border-color: color-mix(in srgb, #c22a4d 40%, var(--color-border)); }
+  .modal-btn.danger:hover { background: color-mix(in srgb, #c22a4d 10%, transparent); }
+  .modal-btn[hidden] { display: none; }
+</style>
+
+<script>
+  // Apply whatever's actually saved (same key/shape as src/lib/theme/theme-storage.ts)
+  // before first paint, so this mockup matches the real app instead of always
+  // showing its own hardcoded default palette.
+  (function applyLiveTheme() {
+    const DEFAULT_PALETTES = {
+      light: { bg: "#fbf8f6", surface: "#ffffff", text: "#362e38", accent: "#8b6ba8", border: "#e4d9e3" },
+      dark: { bg: "#211d24", surface: "#2b2630", text: "#efe9f0", accent: "#b79fd1", border: "#453c4c" },
+      retroLight: { bg: "#fdf3e7", surface: "#fffdf8", text: "#3b2a55", accent: "#ff6fa5", border: "#3b2a55" },
+      retroDark: { bg: "#1c1330", surface: "#241a3d", text: "#fdf3e7", accent: "#ff8fc0", border: "#7fe0c8" },
+    };
+    let theme = { mode: "light", retro: false, palettes: DEFAULT_PALETTES };
+    try {
+      const raw = localStorage.getItem("me-planner:theme");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const p = parsed.palettes || {};
+        theme = {
+          mode: parsed.mode || "light",
+          retro: Boolean(parsed.retro),
+          palettes: {
+            light: { ...DEFAULT_PALETTES.light, ...p.light },
+            dark: { ...DEFAULT_PALETTES.dark, ...p.dark },
+            retroLight: { ...DEFAULT_PALETTES.retroLight, ...p.retroLight },
+            retroDark: { ...DEFAULT_PALETTES.retroDark, ...p.retroDark },
+          },
+        };
+      }
+    } catch {
+      // fall through to defaults
+    }
+    const dark =
+      theme.mode === "dark" ||
+      (theme.mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const key = theme.retro ? (dark ? "retroDark" : "retroLight") : dark ? "dark" : "light";
+    const palette = theme.palettes[key];
+    const root = document.documentElement;
+    root.style.setProperty("--color-canvas", palette.bg);
+    root.style.setProperty("--color-surface", palette.surface);
+    root.style.setProperty("--color-ink", palette.text);
+    root.style.setProperty("--color-accent", palette.accent);
+    root.style.setProperty("--color-border", palette.border);
+    root.dataset.retro = theme.retro ? "true" : "false";
+  })();
+</script>
+
+<div class="banner">
+  <span><strong>Mockup</strong> — Planner week/day view, now matching whatever theme is currently saved (mode/retro/colors) — change it in the <a href="theme-system.html" style="color: var(--color-accent);">theme mockup</a> and reopen this page to see it reflected. Navigating weeks/days and switching Week/Day both work here.</span>
+</div>
+
+<div class="app">
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button type="button" class="today-btn" id="today-btn">Today</button>
+      <div class="chevron-pair">
+        <button type="button" id="prev-btn" aria-label="Previous">‹</button>
+        <button type="button" id="next-btn" aria-label="Next">›</button>
+      </div>
+      <div class="range-picker">
+        <button type="button" class="range-label" id="range-label"></button>
+        <div class="mini-cal" id="mini-cal">
+          <div class="mini-cal-head">
+            <button type="button" id="mini-prev" aria-label="Previous month">‹</button>
+            <span id="mini-cal-title"></span>
+            <button type="button" id="mini-next" aria-label="Next month">›</button>
+          </div>
+          <div class="mini-cal-grid" id="mini-cal-grid"></div>
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.6rem;">
+      <button type="button" class="new-event-btn" id="new-event-btn">+ New event</button>
+      <div class="segmented" role="group" aria-label="View">
+        <button type="button" data-view="week" aria-pressed="true">Week</button>
+        <button type="button" data-view="day" aria-pressed="false">Day</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-wrap">
+    <div class="day-headers" id="day-headers"></div>
+    <div class="scroll-area" id="scroll-area">
+      <div class="hour-grid" id="hour-grid"></div>
+    </div>
+  </div>
+
+ </div>
+
+<div class="modal-scrim" id="modal-scrim">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h2 id="modal-title">New event</h2>
+    <label class="modal-field">
+      <span>Title</span>
+      <input type="text" id="event-title" placeholder="What's happening?" />
+    </label>
+    <label class="modal-field">
+      <span>Notes</span>
+      <textarea id="event-notes" rows="2" placeholder="Location, agenda, anything else"></textarea>
+    </label>
+    <div class="modal-row">
+      <label class="modal-field">
+        <span>Starts</span>
+        <input type="time" id="event-start" step="900" />
+      </label>
+      <label class="modal-field">
+        <span>Ends</span>
+        <input type="time" id="event-end" step="900" />
+      </label>
+    </div>
+    <label class="modal-field">
+      <span>Repeats</span>
+      <select id="event-repeat">
+        <option value="none">Doesn't repeat</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly, same weekday</option>
+        <option value="monthly">Monthly, same date</option>
+      </select>
+    </label>
+    <div class="modal-field">
+      <span>Color</span>
+      <div class="color-swatches" id="color-swatches"></div>
+    </div>
+    <p class="modal-date" id="modal-date"></p>
+    <p class="modal-error" id="modal-error"></p>
+    <div class="modal-actions">
+      <button type="button" class="modal-btn danger" id="event-delete">Delete</button>
+      <div class="modal-actions-right">
+        <button type="button" class="modal-btn" id="event-cancel">Cancel</button>
+        <button type="button" class="modal-btn primary" id="event-save">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-scrim" id="confirm-scrim">
+  <div class="modal-card" style="max-width: 300px;" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <h2 id="confirm-title">Delete recurring event</h2>
+    <p style="margin: 0; font-size: 0.85rem; color: var(--color-ink-muted);">
+      This event repeats. Delete just this one, or all of them?
+    </p>
+    <div class="modal-actions">
+      <button type="button" class="modal-btn" id="confirm-cancel">Cancel</button>
+      <div class="modal-actions-right">
+        <button type="button" class="modal-btn" id="confirm-this">Just this event</button>
+        <button type="button" class="modal-btn danger" id="confirm-all">All events</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const HOUR_HEIGHT = 56;
+  const DEFAULT_SCROLL_HOUR = 7;
+  const scrollArea = document.getElementById("scroll-area");
+  const hourGrid = document.getElementById("hour-grid");
+  const dayHeaders = document.getElementById("day-headers");
+  const rangeLabel = document.getElementById("range-label");
+
+  let view = "week";
+  let anchor = new Date(); // the currently focused day
+
+  function startOfWeek(d) {
+    const date = new Date(d);
+    const day = (date.getDay() + 6) % 7; // Monday = 0
+    date.setDate(date.getDate() - day);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  function isSameDay(a, b) {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  }
+
+  function fmtRange(days) {
+    const opts = { month: "short", day: "numeric" };
+    if (days.length === 1) {
+      return days[0].toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric", year: "numeric" });
+    }
+    const first = days[0], last = days[days.length - 1];
+    const sameMonth = first.getMonth() === last.getMonth();
+    return sameMonth
+      ? `${first.toLocaleDateString(undefined, opts)} – ${last.getDate()}, ${last.getFullYear()}`
+      : `${first.toLocaleDateString(undefined, opts)} – ${last.toLocaleDateString(undefined, opts)}, ${last.getFullYear()}`;
+  }
+
+  const EVENT_COLORS = [
+    "#8b6ba8", // lavender (default, matches the app accent)
+    "#e0567a", // rose
+    "#d99a3d", // amber
+    "#5b8a72", // sage
+    "#3d9c9c", // teal
+    "#4b8fc2", // sky
+    "#9a4fa0", // plum
+    "#6b7280", // slate
+  ];
+
+  // ---- Events: date-keyed, persisted to localStorage (a stand-in for the
+  // real app's eventual SQLite storage) so add/edit/delete survive a reload. ----
+  const EVENTS_STORAGE_KEY = "me-planner:mock-events";
+
+  function dateKey(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  function seedEvents() {
+    const seedByOffset = {
+      0: [{ title: "Deep work", start: 9, end: 11 }, { title: "Team sync", start: 11.5, end: 12 }],
+      1: [{ title: "Dentist", start: 14, end: 15 }],
+      2: [{ title: "Deep work", start: 9, end: 11 }, { title: "Lunch with Sam", start: 12.5, end: 13.5 }, { title: "Gym", start: 18, end: 19 }],
+      3: [{ title: "Write report", start: 10, end: 12 }],
+      4: [{ title: "Retro", start: 15, end: 16 }, { title: "Movie night", start: 20, end: 22 }],
+      5: [{ title: "Grocery run", start: 10, end: 11 }],
+      6: [],
+    };
+    const monday = startOfWeek(new Date());
+    const seeded = [];
+    Object.entries(seedByOffset).forEach(([offset, evs]) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + Number(offset));
+      evs.forEach((ev) => seeded.push({ id: crypto.randomUUID(), dateKey: dateKey(d), ...ev }));
+    });
+    return seeded;
+  }
+
+  function loadEvents() {
+    try {
+      const raw = localStorage.getItem(EVENTS_STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {
+      // fall through to seed data
+    }
+    return seedEvents();
+  }
+
+  let events = loadEvents();
+  function persistEvents() {
+    localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(events));
+  }
+
+  // Open-ended recurrence: repeats forever forward from its own date, no
+  // "until" date in this mockup. `exceptions` holds dateKeys that were
+  // deleted as "just this event" — excluded even though they'd otherwise
+  // match the recurrence pattern. Editing still acts on the whole series.
+  function eventOccursOn(ev, d) {
+    const key = dateKey(d);
+    if (ev.exceptions && ev.exceptions.includes(key)) return false;
+    if (ev.dateKey === key) return true;
+    if (!ev.repeat || ev.repeat === "none") return false;
+    const start = new Date(ev.dateKey + "T00:00:00");
+    if (d < start) return false;
+    if (ev.repeat === "daily") return true;
+    if (ev.repeat === "weekly") return d.getDay() === start.getDay();
+    if (ev.repeat === "monthly") return d.getDate() === start.getDate();
+    return false;
+  }
+
+  // Side-by-side layout for overlapping events on the same day, Apple
+  // Calendar-style: group into clusters of transitively-overlapping events,
+  // then greedily pack each cluster into as few columns as possible.
+  function layoutOverlaps(dayEvents) {
+    const sorted = [...dayEvents].sort((a, b) => a.start - b.start || a.end - b.end);
+    const clusters = [];
+    let current = [];
+    let currentEnd = -Infinity;
+    sorted.forEach((ev) => {
+      if (current.length && ev.start >= currentEnd) {
+        clusters.push(current);
+        current = [];
+        currentEnd = -Infinity;
+      }
+      current.push(ev);
+      currentEnd = Math.max(currentEnd, ev.end);
+    });
+    if (current.length) clusters.push(current);
+
+    const result = new Map();
+    clusters.forEach((cluster) => {
+      const columnEnds = [];
+      cluster.forEach((ev) => {
+        let col = columnEnds.findIndex((end) => end <= ev.start);
+        if (col === -1) {
+          col = columnEnds.length;
+          columnEnds.push(ev.end);
+        } else {
+          columnEnds[col] = ev.end;
+        }
+        result.set(ev.id, { col });
+      });
+      cluster.forEach((ev) => {
+        result.get(ev.id).cols = columnEnds.length;
+      });
+    });
+    return result;
+  }
+
+  function getDays() {
+    if (view === "day") return [new Date(anchor)];
+    const monday = startOfWeek(anchor);
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return d;
+    });
+  }
+
+  function render() {
+    const days = getDays();
+    const today = new Date();
+    rangeLabel.textContent = fmtRange(days);
+
+    // Headers
+    dayHeaders.style.gridTemplateColumns = `64px repeat(${days.length}, 1fr)`;
+    dayHeaders.innerHTML = '<div class="gutter"></div>' + days
+      .map((d) => {
+        const isToday = isSameDay(d, today);
+        return `<div class="day-header${isToday ? " today" : ""}">
+          <div class="dow">${d.toLocaleDateString(undefined, { weekday: "short" })}</div>
+          <div class="num">${d.getDate()}</div>
+        </div>`;
+      })
+      .join("");
+
+    // Hour grid
+    hourGrid.className = "hour-grid" + (view === "day" ? " day-view" : "");
+    hourGrid.style.gridTemplateColumns = `64px repeat(${days.length}, 1fr)`;
+    hourGrid.style.height = `${24 * HOUR_HEIGHT}px`;
+
+    let html = '<div class="gutter-col">';
+    for (let h = 0; h < 24; h++) {
+      html += `<div class="hour-label">${h === 0 ? "12 AM" : h < 12 ? h + " AM" : h === 12 ? "12 PM" : h - 12 + " PM"}</div>`;
+    }
+    html += "</div>";
+
+    days.forEach((d) => {
+      const isToday = isSameDay(d, today);
+      const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+      const key = dateKey(d);
+      html += `<div class="day-col${isToday ? " today" : ""}${isWeekend ? " weekend" : ""}" data-date="${key}" style="position:relative;">`;
+      for (let h = 0; h < 24; h++) {
+        html += `<div class="hour-cell${h % 3 === 0 ? " major" : ""}" data-hour="${h}"></div>`;
+      }
+      const dayEvents = events.filter((ev) => eventOccursOn(ev, d));
+      const layout = layoutOverlaps(dayEvents);
+      dayEvents.forEach((ev) => {
+        const top = ev.start * HOUR_HEIGHT;
+        const height = (ev.end - ev.start) * HOUR_HEIGHT;
+        const { col, cols } = layout.get(ev.id);
+        const widthPct = 100 / cols;
+        const leftPct = col * widthPct;
+        const color = ev.color || "var(--color-accent)";
+        html += `<div class="block" data-id="${ev.id}" style="top:${top}px; height:${height}px; left:calc(${leftPct}% + 2px); width:calc(${widthPct}% - 4px); background:color-mix(in srgb, ${color} 18%, var(--color-surface)); border-left-color:${color};">
+          <span class="title">${ev.title}${ev.repeat && ev.repeat !== "none" ? " ↻" : ""}</span>
+          <span class="time">${fmtHour(ev.start)}–${fmtHour(ev.end)}</span>
+        </div>`;
+      });
+      if (isToday) {
+        const now = new Date();
+        const nowHours = now.getHours() + now.getMinutes() / 60;
+        html += `<div class="now-line" style="top:${nowHours * HOUR_HEIGHT}px;"></div>`;
+      }
+      html += "</div>";
+    });
+    hourGrid.innerHTML = html;
+  }
+
+  function fmtHour(h) {
+    const hour = Math.floor(h);
+    const min = Math.round((h - hour) * 60);
+    const suffix = hour < 12 ? "AM" : "PM";
+    const display = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return min ? `${display}:${String(min).padStart(2, "0")} ${suffix}` : `${display} ${suffix}`;
+  }
+
+  document.querySelectorAll(".segmented button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".segmented button").forEach((b) => b.setAttribute("aria-pressed", "false"));
+      btn.setAttribute("aria-pressed", "true");
+      view = btn.dataset.view;
+      render();
+      scrollToDefault();
+    });
+  });
+
+  document.getElementById("prev-btn").addEventListener("click", () => {
+    anchor.setDate(anchor.getDate() - (view === "day" ? 1 : 7));
+    anchor = new Date(anchor);
+    render();
+  });
+  document.getElementById("next-btn").addEventListener("click", () => {
+    anchor.setDate(anchor.getDate() + (view === "day" ? 1 : 7));
+    anchor = new Date(anchor);
+    render();
+  });
+  document.getElementById("today-btn").addEventListener("click", () => {
+    anchor = new Date();
+    render();
+  });
+
+  function scrollToDefault() {
+    scrollArea.scrollTop = DEFAULT_SCROLL_HOUR * HOUR_HEIGHT;
+  }
+
+  // ---- Mini month calendar (click the date range to jump to any day) ----
+  const miniCal = document.getElementById("mini-cal");
+  const miniCalGrid = document.getElementById("mini-cal-grid");
+  const miniCalTitle = document.getElementById("mini-cal-title");
+  let miniCalMonth = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+
+  function renderMiniCal() {
+    miniCalTitle.textContent = miniCalMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+    const today = new Date();
+    const firstOfMonth = new Date(miniCalMonth);
+    const startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday-first grid
+    const gridStart = new Date(firstOfMonth);
+    gridStart.setDate(gridStart.getDate() - startOffset);
+
+    const dows = ["M", "T", "W", "T", "F", "S", "S"];
+    let html = dows.map((d) => `<div class="mini-cal-dow">${d}</div>`).join("");
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(gridStart);
+      d.setDate(gridStart.getDate() + i);
+      const muted = d.getMonth() !== miniCalMonth.getMonth();
+      const isToday = isSameDay(d, today);
+      const isSelected = isSameDay(d, anchor);
+      const cls = ["mini-cal-day", muted && "muted", isToday && "today", isSelected && "selected"]
+        .filter(Boolean)
+        .join(" ");
+      html += `<button type="button" class="${cls}" data-date="${d.toISOString()}">${d.getDate()}</button>`;
+    }
+    miniCalGrid.innerHTML = html;
+  }
+
+  function openMiniCal() {
+    miniCalMonth = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+    renderMiniCal();
+    miniCal.classList.add("open");
+  }
+  function closeMiniCal() {
+    miniCal.classList.remove("open");
+  }
+
+  rangeLabel.addEventListener("click", (e) => {
+    e.stopPropagation();
+    miniCal.classList.contains("open") ? closeMiniCal() : openMiniCal();
+  });
+  document.getElementById("mini-prev").addEventListener("click", () => {
+    miniCalMonth.setMonth(miniCalMonth.getMonth() - 1);
+    miniCalMonth = new Date(miniCalMonth);
+    renderMiniCal();
+  });
+  document.getElementById("mini-next").addEventListener("click", () => {
+    miniCalMonth.setMonth(miniCalMonth.getMonth() + 1);
+    miniCalMonth = new Date(miniCalMonth);
+    renderMiniCal();
+  });
+  miniCalGrid.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-date]");
+    if (!btn) return;
+    anchor = new Date(btn.dataset.date);
+    closeMiniCal();
+    render();
+  });
+  document.addEventListener("click", (e) => {
+    if (!miniCal.contains(e.target) && e.target !== rangeLabel) closeMiniCal();
+  });
+
+  // ---- Add / edit / delete events ----
+  const modalScrim = document.getElementById("modal-scrim");
+  const modalTitle = document.getElementById("modal-title");
+  const modalDate = document.getElementById("modal-date");
+  const modalError = document.getElementById("modal-error");
+  const titleInput = document.getElementById("event-title");
+  const notesInput = document.getElementById("event-notes");
+  const startInput = document.getElementById("event-start");
+  const endInput = document.getElementById("event-end");
+  const repeatInput = document.getElementById("event-repeat");
+  const colorSwatchesEl = document.getElementById("color-swatches");
+  const deleteBtn = document.getElementById("event-delete");
+  let editingId = null;
+  let editingDateKey = null;
+  let editingOccurrenceDate = null; // which specific occurrence was clicked, for recurring events
+  let selectedColor = EVENT_COLORS[0];
+
+  EVENT_COLORS.forEach((color) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "color-swatch";
+    btn.style.background = color;
+    btn.setAttribute("aria-label", color);
+    btn.setAttribute("aria-pressed", "false");
+    btn.addEventListener("click", () => {
+      selectedColor = color;
+      [...colorSwatchesEl.children].forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+    });
+    colorSwatchesEl.appendChild(btn);
+  });
+
+  function selectColor(color) {
+    selectedColor = color || EVENT_COLORS[0];
+    [...colorSwatchesEl.children].forEach((b) =>
+      b.setAttribute("aria-pressed", String(b.style.background === toRgb(selectedColor))),
+    );
+  }
+  // Browsers normalize style.background to rgb(...); compare via a throwaway
+  // element instead of string-matching the original hex.
+  function toRgb(hex) {
+    const probe = document.createElement("div");
+    probe.style.background = hex;
+    return probe.style.background;
+  }
+
+  function toTimeInput(h) {
+    const hour = Math.floor(h);
+    const min = Math.round((h - hour) * 60);
+    return `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+  }
+  function fromTimeInput(v) {
+    const [h, m] = v.split(":").map(Number);
+    return h + m / 60;
+  }
+
+  function openModal({ id, dateKey: dKey, occurrenceDate, title, notes, start, end, repeat, color }) {
+    editingId = id || null;
+    editingDateKey = dKey;
+    editingOccurrenceDate = occurrenceDate || dKey;
+    modalTitle.textContent = editingId ? "Edit event" : "New event";
+    titleInput.value = title || "";
+    notesInput.value = notes || "";
+    startInput.value = toTimeInput(start);
+    endInput.value = toTimeInput(end);
+    repeatInput.value = repeat || "none";
+    selectColor(color);
+    modalDate.textContent = new Date((occurrenceDate || dKey) + "T00:00:00").toLocaleDateString(undefined, {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    });
+    modalError.textContent = "";
+    deleteBtn.hidden = !editingId;
+    modalScrim.classList.add("open");
+    titleInput.focus();
+  }
+
+  function closeModal() {
+    modalScrim.classList.remove("open");
+    editingId = null;
+    editingDateKey = null;
+    editingOccurrenceDate = null;
+  }
+
+  function snapToHalfHour(hour, offsetY) {
+    const withinHour = offsetY / HOUR_HEIGHT;
+    return withinHour < 0.5 ? hour : hour + 0.5;
+  }
+
+  hourGrid.addEventListener("click", (e) => {
+    const block = e.target.closest(".block");
+    if (block) {
+      const ev = events.find((x) => x.id === block.dataset.id);
+      const col = block.closest(".day-col");
+      if (ev) openModal({ ...ev, occurrenceDate: col ? col.dataset.date : ev.dateKey });
+      return;
+    }
+    const cell = e.target.closest(".hour-cell");
+    const col = e.target.closest(".day-col");
+    if (!cell || !col) return;
+    const hour = snapToHalfHour(Number(cell.dataset.hour), e.offsetY);
+    openModal({ dateKey: col.dataset.date, title: "", start: hour, end: Math.min(24, hour + 1) });
+  });
+
+  document.getElementById("new-event-btn").addEventListener("click", () => {
+    const d = view === "day" ? anchor : new Date();
+    openModal({ dateKey: dateKey(d), title: "", start: 9, end: 10 });
+  });
+
+  document.getElementById("event-cancel").addEventListener("click", closeModal);
+  modalScrim.addEventListener("click", (e) => {
+    if (e.target === modalScrim) closeModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (document.getElementById("confirm-scrim").classList.contains("open")) {
+      document.getElementById("confirm-scrim").classList.remove("open");
+      modalScrim.classList.add("open");
+    } else if (modalScrim.classList.contains("open")) {
+      closeModal();
+    }
+  });
+
+  document.getElementById("event-save").addEventListener("click", () => {
+    const title = titleInput.value.trim();
+    const notes = notesInput.value.trim();
+    const start = fromTimeInput(startInput.value);
+    const end = fromTimeInput(endInput.value);
+    const repeat = repeatInput.value;
+    const color = selectedColor;
+    if (!title) {
+      modalError.textContent = "Give it a title.";
+      return;
+    }
+    if (!(end > start)) {
+      modalError.textContent = "End has to be after start.";
+      return;
+    }
+    if (editingId) {
+      const ev = events.find((x) => x.id === editingId);
+      Object.assign(ev, { title, notes, start, end, repeat, color });
+    } else {
+      events.push({ id: crypto.randomUUID(), dateKey: editingDateKey, title, notes, start, end, repeat, color });
+    }
+    persistEvents();
+    closeModal();
+    render();
+  });
+
+  const confirmScrim = document.getElementById("confirm-scrim");
+
+  deleteBtn.addEventListener("click", () => {
+    const ev = events.find((x) => x.id === editingId);
+    if (ev && ev.repeat && ev.repeat !== "none") {
+      modalScrim.classList.remove("open");
+      confirmScrim.classList.add("open");
+    } else {
+      events = events.filter((x) => x.id !== editingId);
+      persistEvents();
+      closeModal();
+      render();
+    }
+  });
+
+  document.getElementById("confirm-cancel").addEventListener("click", () => {
+    confirmScrim.classList.remove("open");
+    modalScrim.classList.add("open");
+  });
+  document.getElementById("confirm-this").addEventListener("click", () => {
+    const ev = events.find((x) => x.id === editingId);
+    if (ev) {
+      ev.exceptions = ev.exceptions || [];
+      ev.exceptions.push(editingOccurrenceDate);
+    }
+    persistEvents();
+    confirmScrim.classList.remove("open");
+    closeModal();
+    render();
+  });
+  document.getElementById("confirm-all").addEventListener("click", () => {
+    events = events.filter((x) => x.id !== editingId);
+    persistEvents();
+    confirmScrim.classList.remove("open");
+    closeModal();
+    render();
+  });
+  confirmScrim.addEventListener("click", (e) => {
+    if (e.target === confirmScrim) {
+      confirmScrim.classList.remove("open");
+      modalScrim.classList.add("open");
+    }
+  });
+
+  render();
+  scrollToDefault();
+</script>

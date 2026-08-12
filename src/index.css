@@ -27,6 +27,31 @@
   --font-header: ui-monospace, "Courier New", monospace;
 }
 
+/* Super Kawaii Mode: separate skin from retro — Y2K desktop-widget look
+   (gradient sky, window-chrome panels, big rounded corners) instead of
+   8-bit pixel art. */
+:root[data-kawaii="true"] {
+  --radius-theme: 18px;
+  --shadow-theme: 0 6px 18px rgba(120, 90, 160, 0.18);
+  --font-header: ui-monospace, "Courier New", monospace;
+}
+:root[data-kawaii="true"] [data-theme-surface="app-root"] {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.4) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.4) 0 1px, transparent 1px 26px),
+    linear-gradient(135deg, #cfe0fb 0%, #f0d3f5 50%, #ffd6e8 100%);
+}
+:root[data-kawaii="true"] [data-theme-surface="chrome"] {
+  background: linear-gradient(90deg, #aecdf5, #f3b8e6);
+  border-color: #fff;
+}
+:root[data-kawaii="true"] .kawaii-icon-sticker {
+  background: #fff;
+  border: 1.5px solid #ffd6ea;
+  border-radius: 999px;
+  padding: 4px;
+}
+
 /* Lets the starfield gimmick show through — main goes fully transparent so
    the night sky isn't washed out; chrome (nav/topbar) stays mostly solid
    for legibility but lets a hint of it through too. */
@@ -35,6 +60,20 @@
 }
 :root[data-gimmick-starfield="true"] [data-theme-surface="chrome"] {
   background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+}
+
+.kawaii-dots { display: inline-flex; gap: 5px; margin-right: 0.3rem; }
+.kawaii-dots span {
+  width: 9px; height: 9px; border-radius: 50%; background: #fff; border: 1.5px solid #7fa3e0;
+}
+
+.kawaii-stickers span {
+  position: absolute; font-size: 1.3rem; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.08));
+  animation: kawaii-float 4s ease-in-out infinite; pointer-events: none;
+}
+@keyframes kawaii-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(6deg); }
 }
 
 @keyframes idle-bob {

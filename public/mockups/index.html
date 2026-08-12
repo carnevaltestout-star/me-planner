@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Me — Mockups</title>
+<style>
+  :root {
+    --bg: #faf9f6; --surface: #ffffff; --border: #e4e1d8; --text: #33312c; --text-muted: #7a776d; --accent: #5b8a72;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1c1b18; --surface: #242320; --border: #3a382f; --text: #edebe3; --text-muted: #a19d8f; --accent: #7faf95; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; height: 100vh; display: flex; flex-direction: column;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  header {
+    padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+  }
+  header .label { font-size: 0.78rem; color: var(--text-muted); margin-right: 0.4rem; }
+  .tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .tabs button {
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    border-radius: 999px; padding: 0.35rem 0.85rem; font-size: 0.82rem; cursor: pointer;
+  }
+  .tabs button[aria-selected="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  iframe { flex: 1; border: none; width: 100%; background: var(--surface); }
+</style>
+</head>
+<body>
+  <header>
+    <span class="label">Mockups (dev-only, not part of the app):</span>
+    <div class="tabs" id="tabs">
+      <button type="button" data-src="theme-system.html" aria-selected="true">Theme System</button>
+      <button type="button" data-src="planner-week-day-view.html" aria-selected="false">Planner Week/Day</button>
+    </div>
+  </header>
+  <iframe id="viewer" src="theme-system.html" title="Mockup preview"></iframe>
+  <script>
+    const tabs = document.getElementById("tabs");
+    const viewer = document.getElementById("viewer");
+    tabs.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-src]");
+      if (!btn) return;
+      [...tabs.children].forEach((b) => b.setAttribute("aria-selected", "false"));
+      btn.setAttribute("aria-selected", "true");
+      viewer.src = btn.dataset.src;
+    });
+  </script>
+</body>
+</html>

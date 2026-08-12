@@ -35,6 +35,67 @@ export function pixelGlyph(bitmap: Bitmap, props: SVGProps<SVGSVGElement>) {
   );
 }
 
+interface GlyphLayer {
+  grid: Bitmap;
+  color: string;
+}
+
+// Multi-color variant of pixelGlyph, for icons that need more than one fill
+// (e.g. the kawaii bunny's body + blush + bow). Each layer is its own <g>
+// with an inline style — SVG presentation attributes like fill="var(...)"
+// can't resolve CSS custom properties, only style="fill:..." can.
+export function pixelGlyphLayers(layers: GlyphLayer[], props: SVGProps<SVGSVGElement>) {
+  const cell = 20 / 8;
+  return (
+    <svg viewBox="0 0 20 20" {...props}>
+      {layers.map(({ grid, color }, layerIndex) => (
+        <g key={layerIndex} style={{ fill: color }}>
+          {grid.flatMap((row, y) =>
+            [...row].map((c, x) =>
+              c === "1" ? <rect key={`${x},${y}`} x={x * cell} y={y * cell} width={cell} height={cell} /> : null,
+            ),
+          )}
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+const KAWAII_BUNNY_BLUSH: Bitmap = [
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "01000010",
+  "00000000",
+  "00000000",
+];
+const KAWAII_BUNNY_BOW: Bitmap = [
+  "00000011",
+  "00000101",
+  "00000011",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+];
+
+// Blush + one-ear bow layered on top of the plain bunny body, shown instead
+// of BunnyIcon when Super Kawaii Mode is on. Body uses currentColor (the
+// accent) like every other pixel icon; blush/bow are fixed kawaii colors.
+export function KawaiiBunnyIcon(props: SVGProps<SVGSVGElement>) {
+  return pixelGlyphLayers(
+    [
+      { grid: BITMAPS.bunny, color: "currentColor" },
+      { grid: KAWAII_BUNNY_BLUSH, color: "#ff9fc4" },
+      { grid: KAWAII_BUNNY_BOW, color: "#e0217a" },
+    ],
+    props,
+  );
+}
+
 export function BunnyIcon(props: SVGProps<SVGSVGElement>) {
   return pixelGlyph(BITMAPS.bunny, props);
 }

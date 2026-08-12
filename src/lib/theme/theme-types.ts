@@ -30,6 +30,10 @@ export interface RetroGimmicks {
 export interface ThemeSettings {
   mode: ThemeMode;
   retro: boolean;
+  // A separate "skin" from retro — Y2K/kawaii desktop-widget look. Mutually
+  // exclusive with retro (enforced where both get toggled), fixed colors
+  // rather than a customizable palette like light/dark/retro have.
+  kawaii: boolean;
   palettes: ThemePalettes;
   iconPack: IconPackKey;
   gimmicks: RetroGimmicks;
@@ -56,6 +60,7 @@ export function paletteKeyFor(retro: boolean, dark: boolean): PaletteKey {
 export const DEFAULT_THEME: ThemeSettings = {
   mode: "light",
   retro: false,
+  kawaii: false,
   palettes: DEFAULT_PALETTES,
   iconPack: "classic",
   gimmicks: DEFAULT_GIMMICKS,

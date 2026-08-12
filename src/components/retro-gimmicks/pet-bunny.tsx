@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/components/theme-provider/theme-context";
-import { BunnyIcon, SleepingBunnyIcon } from "@/components/kawaii-icons/kawaii-icons";
+import { BunnyIcon, KawaiiBunnyIcon, SleepingBunnyIcon } from "@/components/kawaii-icons/kawaii-icons";
 
 const AWAKE_WINDOW_MS = 4 * 60 * 1000;
 const WALK_DURATION_MS = 900;
@@ -51,7 +51,8 @@ const MOODS = [
 // motion), just without the pop animation.
 export default function PetBunny() {
   const theme = useTheme();
-  const active = theme.retro && theme.gimmicks.bouncingBuddy;
+  const active = (theme.retro || theme.kawaii) && theme.gimmicks.bouncingBuddy;
+  const Bunny = theme.kawaii ? KawaiiBunnyIcon : BunnyIcon;
   const [awake, setAwake] = useState(false);
   const [walking, setWalking] = useState(false);
   const [facingLeft, setFacingLeft] = useState(false);
@@ -191,7 +192,7 @@ export default function PetBunny() {
       )}
       {awake ? (
         <div className="h-full w-full" style={{ transform: facingLeft ? "scaleX(-1)" : undefined }}>
-          <BunnyIcon
+          <Bunny
             className={`h-full w-full ${walking ? "gimmick-hop-arc" : "gimmick-idle-bob"}`}
             style={{ color: "var(--color-accent)", imageRendering: "pixelated" }}
           />

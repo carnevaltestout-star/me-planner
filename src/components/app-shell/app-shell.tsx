@@ -6,16 +6,18 @@ import StarfieldBackground from "@/components/retro-gimmicks/starfield-backgroun
 import PetBunny from "@/components/retro-gimmicks/pet-bunny";
 import PawDividerRail from "@/components/retro-gimmicks/paw-divider-rail";
 import IdleBunny from "@/components/retro-gimmicks/idle-bunny";
+import KawaiiStickers from "@/components/retro-gimmicks/kawaii-stickers";
 import { RETRO_NAV_ICONS } from "@/components/retro-gimmicks/retro-nav-icons";
 import { useTheme } from "@/components/theme-provider/theme-context";
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const theme = useTheme();
+  const pixelated = theme.retro || theme.kawaii;
 
   return (
     <nav className="flex flex-col gap-0.5" aria-label="Tabs">
       {navItems.map(({ path, label, icon: Icon }) => {
-        const DisplayIcon = theme.retro ? RETRO_NAV_ICONS[path] ?? Icon : Icon;
+        const DisplayIcon = pixelated ? RETRO_NAV_ICONS[path] ?? Icon : Icon;
         return (
           <NavLink
             key={path}
@@ -30,8 +32,8 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
             }
           >
             <DisplayIcon
-              className="h-[19px] w-[19px] flex-shrink-0"
-              style={theme.retro ? { imageRendering: "pixelated" } : undefined}
+              className={`h-[19px] w-[19px] flex-shrink-0 ${theme.kawaii ? "kawaii-icon-sticker" : ""}`}
+              style={pixelated ? { imageRendering: "pixelated" } : undefined}
             />
             <span>{label}</span>
           </NavLink>
@@ -59,19 +61,28 @@ function BrandMark() {
 }
 
 export default function AppShell() {
+  const theme = useTheme();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const location = useLocation();
   const currentLabel = navItems.find((item) => item.path === location.pathname)?.label ?? "";
 
   return (
-    <div className="relative flex h-screen bg-canvas text-ink">
+    <div className="relative flex h-screen bg-canvas text-ink" data-theme-surface="app-root">
       <StarfieldBackground />
+      <KawaiiStickers />
       <PetBunny />
       <div className="relative z-10 flex h-full w-full">
         <aside
           className="hidden w-60 flex-shrink-0 flex-col gap-5 border-r border-border bg-surface p-3 md:flex"
           data-theme-surface="chrome"
         >
+          {theme.kawaii && (
+            <div className="kawaii-dots">
+              <span />
+              <span />
+              <span />
+            </div>
+          )}
           <BrandMark />
           <NavList />
           <button
@@ -120,6 +131,13 @@ export default function AppShell() {
             >
               <MenuIcon className="h-[19px] w-[19px]" />
             </button>
+            {theme.kawaii && (
+              <div className="kawaii-dots hidden md:inline-flex">
+                <span />
+                <span />
+                <span />
+              </div>
+            )}
             <h1 className="flex-1 text-center font-theme text-sm font-semibold text-ink md:text-left">
               {currentLabel}
             </h1>

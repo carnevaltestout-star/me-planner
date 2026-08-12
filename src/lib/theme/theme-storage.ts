@@ -14,6 +14,7 @@ export function loadTheme(): ThemeSettings {
     return {
       mode: parsed.mode ?? DEFAULT_THEME.mode,
       retro: Boolean(parsed.retro),
+      kawaii: Boolean(parsed.kawaii),
       palettes: {
         light: { ...DEFAULT_PALETTES.light, ...parsedPalettes.light },
         dark: { ...DEFAULT_PALETTES.dark, ...parsedPalettes.dark },
