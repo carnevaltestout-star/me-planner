@@ -6,6 +6,7 @@ export default function TrackersPage() {
     <EmptyTabPlaceholder
       icon={TrackersIcon}
       description="Period, mood, and contentment check-ins over time."
+      kawaiiIndex={5}
     />
   );
 }

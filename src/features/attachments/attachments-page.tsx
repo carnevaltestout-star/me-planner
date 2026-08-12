@@ -6,6 +6,7 @@ export default function AttachmentsPage() {
     <EmptyTabPlaceholder
       icon={AttachmentsIcon}
       description="Files and notes you're learning from, organized by topic."
+      kawaiiIndex={4}
     />
   );
 }

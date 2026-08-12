@@ -3,9 +3,11 @@ import {
   AttachmentsIcon,
   BookReviewsIcon,
   DiaryIcon,
+  FinanceIcon,
   GoalsIcon,
   PlannerIcon,
   PrinciplesIcon,
+  StatisticsIcon,
   TrackersIcon,
   VocabularyIcon,
 } from "@/components/tab-icons/tab-icons";
@@ -27,4 +29,6 @@ export const navItems: NavItem[] = [
   { path: "/trackers", label: "Trackers", icon: TrackersIcon },
   { path: "/goals", label: "Goals", icon: GoalsIcon },
   { path: "/book-reviews", label: "Book Reviews", icon: BookReviewsIcon },
+  { path: "/statistics", label: "Statistics", icon: StatisticsIcon },
+  { path: "/finance-overview", label: "Finance Overview", icon: FinanceIcon },
 ];

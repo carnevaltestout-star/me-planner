@@ -2,6 +2,10 @@ import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { navItems } from "@/routes/nav-items";
 import { MenuIcon, SettingsIcon } from "@/components/tab-icons/tab-icons";
+import StarfieldBackground from "@/components/retro-gimmicks/starfield-background";
+import PetBunny from "@/components/retro-gimmicks/pet-bunny";
+import PawDividerRail from "@/components/retro-gimmicks/paw-divider-rail";
+import IdleBunny from "@/components/retro-gimmicks/idle-bunny";
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
   return (
@@ -12,10 +16,10 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
           to={path}
           onClick={onNavigate}
           className={({ isActive }) =>
-            `flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm ${
+            `flex items-center gap-2.5 rounded-theme px-2.5 py-2 text-sm font-theme ${
               isActive
-                ? "bg-emerald-50 font-semibold text-emerald-700"
-                : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                ? "bg-accent-soft font-semibold text-accent"
+                : "text-ink-muted hover:bg-surface-alt hover:text-ink"
             }`
           }
         >
@@ -29,11 +33,19 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
 
 function BrandMark() {
   return (
-    <div className="flex items-baseline gap-1.5 px-2">
-      <span className="text-base font-bold">Me</span>
-      <span className="text-xs text-slate-500">planner</span>
+    <div className="flex items-center gap-1.5 px-2">
+      <span className="font-theme text-base font-bold text-ink">Me</span>
+      <span className="text-xs text-ink-muted">planner</span>
+      <IdleBunny />
     </div>
   );
+}
+
+// Opens the in-progress theme-system mockup for review, until the real panel
+// (task 2) is approved and implemented. public/mockups/ is dev-only and gets
+// removed before this task merges.
+function openThemeMockup() {
+  window.open("/mockups/theme-system.html", "_blank", "noopener,noreferrer");
 }
 
 export default function AppShell() {
@@ -42,59 +54,78 @@ export default function AppShell() {
   const currentLabel = navItems.find((item) => item.path === location.pathname)?.label ?? "";
 
   return (
-    <div className="flex h-screen bg-white text-slate-900">
-      <aside className="hidden w-60 flex-shrink-0 flex-col gap-5 border-r border-slate-200 p-3 md:flex">
-        <BrandMark />
-        <NavList />
-        <div className="mt-auto flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-slate-500">
-          <SettingsIcon className="h-[17px] w-[17px]" />
-          <span>
-            Settings &amp; theme{" "}
-            <span className="ml-1 rounded-full border border-dashed border-slate-300 px-2 py-0.5 text-[10px] uppercase tracking-wide">
-              later task
+    <div className="relative flex h-screen bg-canvas text-ink">
+      <StarfieldBackground />
+      <PetBunny />
+      <div className="relative z-10 flex h-full w-full">
+        <aside
+          className="hidden w-60 flex-shrink-0 flex-col gap-5 border-r border-border bg-surface p-3 md:flex"
+          data-theme-surface="chrome"
+        >
+          <BrandMark />
+          <NavList />
+          <button
+            type="button"
+            onClick={openThemeMockup}
+            className="mt-auto flex items-center gap-2 rounded-theme px-2.5 py-2 text-left text-sm text-ink-muted hover:bg-surface-alt hover:text-ink"
+          >
+            <SettingsIcon className="h-[17px] w-[17px]" />
+            <span>
+              Settings &amp; theme{" "}
+              <span className="ml-1 rounded-full border border-dashed border-border px-2 py-0.5 text-[10px] uppercase tracking-wide">
+                mockup preview
+              </span>
             </span>
-          </span>
-        </div>
-      </aside>
-
-      {drawerOpen && (
-        <div
-          className="fixed inset-0 z-10 bg-black/30 md:hidden"
-          onClick={() => setDrawerOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-      <aside
-        className={`fixed inset-y-0 left-0 z-20 flex w-[76%] max-w-[280px] flex-col gap-5 border-r border-slate-200 bg-white p-3 transition-transform duration-200 md:hidden ${
-          drawerOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <BrandMark />
-        <NavList onNavigate={() => setDrawerOpen(false)} />
-      </aside>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex flex-shrink-0 items-center gap-2 border-b border-slate-200 px-4 py-3">
-          <button
-            type="button"
-            className="-m-1 p-1 text-slate-700 md:hidden"
-            aria-label="Open navigation"
-            onClick={() => setDrawerOpen(true)}
-          >
-            <MenuIcon className="h-[19px] w-[19px]" />
           </button>
-          <h1 className="flex-1 text-center text-sm font-semibold md:text-left">{currentLabel}</h1>
-          <button
-            type="button"
-            className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-            aria-label="Settings and theme"
+        </aside>
+
+        <PawDividerRail />
+
+        {drawerOpen && (
+          <div
+            className="fixed inset-0 z-10 bg-black/30 md:hidden"
+            onClick={() => setDrawerOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+        <aside
+          className={`fixed inset-y-0 left-0 z-20 flex w-[76%] max-w-[280px] flex-col gap-5 border-r border-border bg-surface p-3 transition-transform duration-200 md:hidden ${
+            drawerOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <BrandMark />
+          <NavList onNavigate={() => setDrawerOpen(false)} />
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div
+            className="flex flex-shrink-0 items-center gap-2 border-b border-border bg-surface px-4 py-3"
+            data-theme-surface="chrome"
           >
-            <SettingsIcon className="h-[19px] w-[19px]" />
-          </button>
+            <button
+              type="button"
+              className="-m-1 p-1 text-ink md:hidden"
+              aria-label="Open navigation"
+              onClick={() => setDrawerOpen(true)}
+            >
+              <MenuIcon className="h-[19px] w-[19px]" />
+            </button>
+            <h1 className="flex-1 text-center font-theme text-sm font-semibold text-ink md:text-left">
+              {currentLabel}
+            </h1>
+            <button
+              type="button"
+              onClick={openThemeMockup}
+              className="rounded-theme p-1.5 text-ink-muted hover:bg-surface-alt hover:text-ink"
+              aria-label="Settings and theme"
+            >
+              <SettingsIcon className="h-[19px] w-[19px]" />
+            </button>
+          </div>
+          <main className="flex-1 overflow-y-auto bg-canvas" data-theme-surface="main">
+            <Outlet />
+          </main>
         </div>
-        <main className="flex-1 overflow-y-auto">
-          <Outlet />
-        </main>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ export default function PlannerPage() {
     <EmptyTabPlaceholder
       icon={PlannerIcon}
       description="Full week, full day, extended hours. This is the default tab."
+      kawaiiIndex={0}
     />
   );
 }

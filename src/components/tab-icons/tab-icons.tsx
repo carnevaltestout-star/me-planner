@@ -94,6 +94,27 @@ export function BookReviewsIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function StatisticsIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <line x1="4" y1="20" x2="20" y2="20" />
+      <rect x="6" y="13" width="3" height="7" />
+      <rect x="11" y="9" width="3" height="11" />
+      <rect x="16" y="5" width="3" height="15" />
+    </svg>
+  );
+}
+
+export function FinanceIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <rect x="3.5" y="6" width="17" height="13" rx="2" />
+      <path d="M3.5 10h17" />
+      <circle cx="16.5" cy="14" r="1.4" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function SettingsIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...baseProps(props)}>
