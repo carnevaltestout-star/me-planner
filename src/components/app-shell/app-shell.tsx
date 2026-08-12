@@ -41,6 +41,13 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
+// Opens the theme-system mockup for now — there's no in-app settings panel
+// yet, only the underlying engine (Context/storage/CSS vars). Bring the real
+// panel and this can go away.
+function openThemeMockup() {
+  window.open("/mockups/theme-system.html", "_blank", "noopener,noreferrer");
+}
+
 function BrandMark() {
   return (
     <div className="flex items-center gap-1.5 px-2">
@@ -67,15 +74,19 @@ export default function AppShell() {
         >
           <BrandMark />
           <NavList />
-          <div className="mt-auto flex items-center gap-2 rounded-theme px-2.5 py-2 text-sm text-ink-muted">
+          <button
+            type="button"
+            onClick={openThemeMockup}
+            className="mt-auto flex items-center gap-2 rounded-theme px-2.5 py-2 text-left text-sm text-ink-muted hover:bg-surface-alt hover:text-ink"
+          >
             <SettingsIcon className="h-[17px] w-[17px]" />
             <span>
               Settings &amp; theme{" "}
               <span className="ml-1 rounded-full border border-dashed border-border px-2 py-0.5 text-[10px] uppercase tracking-wide">
-                panel coming soon
+                mockup preview
               </span>
             </span>
-          </div>
+          </button>
         </aside>
 
         <PawDividerRail />
@@ -112,13 +123,14 @@ export default function AppShell() {
             <h1 className="flex-1 text-center font-theme text-sm font-semibold text-ink md:text-left">
               {currentLabel}
             </h1>
-            <span
-              className="rounded-theme p-1.5 text-ink-muted"
-              aria-label="Settings and theme, panel coming soon"
-              title="Settings & theme panel coming soon"
+            <button
+              type="button"
+              onClick={openThemeMockup}
+              className="rounded-theme p-1.5 text-ink-muted hover:bg-surface-alt hover:text-ink"
+              aria-label="Settings and theme"
             >
               <SettingsIcon className="h-[19px] w-[19px]" />
-            </span>
+            </button>
           </div>
           <main className="flex-1 overflow-y-auto bg-canvas" data-theme-surface="main">
             <Outlet />
