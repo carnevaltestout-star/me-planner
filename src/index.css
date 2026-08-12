@@ -47,13 +47,16 @@
 }
 @keyframes mood-pop {
   0% { transform: translateY(calc(-50% + 4px)) scale(0.6); opacity: 0; }
-  20% { transform: translateY(calc(-50% - 2px)) scale(1.1); opacity: 1; }
-  80% { transform: translateY(calc(-50% - 2px)) scale(1); opacity: 1; }
+  10% { transform: translateY(calc(-50% - 2px)) scale(1.1); opacity: 1; }
+  85% { transform: translateY(calc(-50% - 2px)) scale(1); opacity: 1; }
   100% { transform: translateY(calc(-50% - 6px)) scale(0.9); opacity: 0; }
 }
 .gimmick-idle-bob { animation: idle-bob 1.6s ease-in-out infinite; }
 .gimmick-hop-arc { animation: hop-arc 0.9s ease-in-out 1; }
-.gimmick-mood-pop { animation: mood-pop 1.4s ease-in-out 1; }
+/* Duration matches the shortest possible display window (see
+   MOOD_DISPLAY_MIN_MS in pet-bunny.tsx); "forwards" holds the faded-out end
+   state instead of snapping back to visible if the JS timeout runs longer. */
+.gimmick-mood-pop { animation: mood-pop 3s ease-in-out 1 forwards; }
 @media (prefers-reduced-motion: reduce) {
   .gimmick-idle-bob, .gimmick-hop-arc, .gimmick-mood-pop { animation: none; }
 }
