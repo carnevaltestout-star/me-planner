@@ -81,11 +81,14 @@ export default function PetBunny() {
     }
 
     function clampToViewport() {
+      // Y always re-anchors to the bottom edge (its "home" row) instead of
+      // just clamping the old value — otherwise shrinking the window then
+      // growing it back leaves the bunny stuck floating at the old, smaller
+      // height instead of snapping back down to the bottom.
       const maxX = window.innerWidth - ICON_SIZE_PX - EDGE_MARGIN_PX;
-      const maxY = window.innerHeight - ICON_SIZE_PX - EDGE_MARGIN_PX;
       posRef.current = {
         x: Math.min(Math.max(posRef.current.x, EDGE_MARGIN_PX), Math.max(EDGE_MARGIN_PX, maxX)),
-        y: Math.min(Math.max(posRef.current.y, EDGE_MARGIN_PX), Math.max(EDGE_MARGIN_PX, maxY)),
+        y: window.innerHeight - ICON_SIZE_PX - EDGE_MARGIN_PX,
       };
       applyTransform();
     }
