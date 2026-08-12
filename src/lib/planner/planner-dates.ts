@@ -47,7 +47,7 @@ export function fmtHour(h: number): string {
 // event" — excluded even though they'd otherwise match the pattern.
 export function eventOccursOn(ev: PlannerEvent, d: Date): boolean {
   const key = dateKey(d);
-  if (ev.exceptions.includes(key)) return false;
+  if (ev.exceptions?.includes(key)) return false;
   if (ev.dateKey === key) return true;
   if (ev.repeat === "none") return false;
   const start = new Date(`${ev.dateKey}T00:00:00`);

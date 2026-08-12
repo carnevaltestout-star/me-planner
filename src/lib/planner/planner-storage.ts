@@ -47,10 +47,31 @@ function seedEvents(): PlannerEvent[] {
   return seeded;
 }
 
+// Normalizes whatever's in storage to the current shape. Events created via
+// earlier iterations of the mockup (before notes/repeat/color/exceptions
+// existed) are missing those fields entirely — reading them as-is crashes
+// anything that assumes e.g. `exceptions` is always an array.
+function normalize(raw: Partial<PlannerEvent>): PlannerEvent {
+  return {
+    id: raw.id ?? crypto.randomUUID(),
+    dateKey: raw.dateKey ?? "",
+    title: raw.title ?? "",
+    notes: raw.notes ?? "",
+    start: raw.start ?? 0,
+    end: raw.end ?? 1,
+    repeat: raw.repeat ?? "none",
+    color: raw.color ?? "",
+    exceptions: raw.exceptions ?? [],
+  };
+}
+
 export function loadEvents(): PlannerEvent[] {
   try {
     const raw = window.localStorage.getItem(EVENTS_STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed.map(normalize);
+    }
   } catch {
     // fall through to seed data
   }
