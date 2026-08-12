@@ -25,6 +25,9 @@ const MOODS = [
   "(*^-^*)",
   "(o^_^o)",
   "^-^",
+  "u got this champ!",
+  "we all die eventually, just do it",
+  "no risk no champagne"
 ];
 
 // Asleep by default. A click wakes it and keeps it awake for 2 minutes,
