@@ -17,20 +17,23 @@ const MOODS = [
   "⸜(｡˃ ᵕ ˂ )⸝♡",
   "uwu",
   "（>.<）",
-  "•⩊•",
   "❤︎",
-  "(^_^)",
   "(>_<)",
   "\\(^o^)/",
   "(*^-^*)",
   "(o^_^o)",
   "^-^",
   "u got this champ!",
-  "you gotta earn the smugness",
+  "You gotta earn the smugness",
+  "suffer productively",
+  "Get up, one task, one victory",
   "Get it together, respectfully",
+  "You can blush and still be a badass",
+  "F*ck perfect, show up",
+  "You're (probably) not under surveillance, relax",
   "keep walking",
   "we all die eventually, just do it",
-  "no risk no champagne"
+  "no risk no champagne babeeey"
 ];
 
 // Asleep by default. A click wakes it and keeps it awake for 2 minutes,
