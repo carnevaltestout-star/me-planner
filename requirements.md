@@ -82,6 +82,9 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
 - Card grid view, switchable to to-dos
 - Time horizons: Month, Quarter, Yearly
 - Switch between Goals and and To-dos Month, quartely, Yearly
+- Editable, deletable
+- Push notifications? Focus on Windows and Android solutions (needs research in the mockup/
+  implementation phase — confirm feasibility before committing to it)
 
 ### 8. Book Reviews
 - List of books with thoughts/review text
@@ -97,8 +100,11 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
   mockup phase)
 
 ### 10. Finance Overview
-- Scope intentionally left empty for now — ask the user for details once tabs 1-9 are built,
-  not before.
+- Incoming/outgoing money, displayed in red/green tones similar to a banking GUI
+- Savings card: editable, inputable
+- A slot for single stocks/ETFs — searchable via a free API, one search input field; once a
+  stock is picked, show its current value plus a graph of its value since it was picked, and
+  a single current-value readout. Deletable.
 
 ### 11. Learning
 - Upload anything you've been feeding your brain: links (as cleartext), documents, images
@@ -204,3 +210,15 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
   with periodic mood pop-ups (yawn/sword/laugh/hearts), vscode-pets-style. A second small idle
   bunny sits next to the "Me planner" brand mark. Everything respects
   `prefers-reduced-motion`.
+- **[Goals & Finance Overview scope filled in, 2026-08-12]** Goals: editable/deletable, plus a
+  maybe-push-notifications idea (Windows/Android focus) to sanity-check during that task's own
+  mockup phase rather than assumed now. Finance Overview: incoming/outgoing money in
+  banking-style red/green, an editable savings card, and a searchable stocks/ETFs slot (free
+  API, per-stock current value + a since-picked graph, deletable).
+- **[Branch-sync gotcha, 2026-08-12]** `requirements.md` edits only ever landed on `dev`
+  directly (established pattern: hop to `dev`, edit, commit, hop back), while
+  `feature/theme-system` kept branching further ahead without ever merging `dev`'s doc commits
+  back in. Working directly on the stale `feature/theme-system` copy nearly lost this entry's
+  own content (it got typed onto the old file, under a duplicate/wrong tab number). Lesson: for
+  any long-lived feature branch, merge `dev` into it periodically (or merge the branch into
+  `dev` sooner) rather than letting `requirements.md` diverge silently across branches.
