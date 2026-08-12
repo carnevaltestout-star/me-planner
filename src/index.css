@@ -46,10 +46,10 @@
   50% { transform: translateY(-7px); }
 }
 @keyframes mood-pop {
-  0% { transform: translate(-50%, 4px) scale(0.6); opacity: 0; }
-  20% { transform: translate(-50%, -2px) scale(1.1); opacity: 1; }
-  80% { transform: translate(-50%, -2px) scale(1); opacity: 1; }
-  100% { transform: translate(-50%, -6px) scale(0.9); opacity: 0; }
+  0% { transform: translateY(calc(-50% + 4px)) scale(0.6); opacity: 0; }
+  20% { transform: translateY(calc(-50% - 2px)) scale(1.1); opacity: 1; }
+  80% { transform: translateY(calc(-50% - 2px)) scale(1); opacity: 1; }
+  100% { transform: translateY(calc(-50% - 6px)) scale(0.9); opacity: 0; }
 }
 .gimmick-idle-bob { animation: idle-bob 1.6s ease-in-out infinite; }
 .gimmick-hop-arc { animation: hop-arc 0.9s ease-in-out 1; }

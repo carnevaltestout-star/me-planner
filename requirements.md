@@ -230,3 +230,8 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
   settings UI to actually change the theme yet, only the underlying engine (Context, storage,
   CSS variables). Building that real settings panel isn't its own backlog item yet; it should
   probably become one before the theme is genuinely user-editable end to end.
+- **[Settings access restored, 2026-08-12]** Removing the mockup wiring at merge time was a
+  mistake — it left literally no way to change the theme from the app at all (no real panel
+  existed to replace it with). Re-restored `public/mockups/theme-system.html` +
+  `mockups/index.html` and the gear icon's onClick. Lesson: don't remove the only working path
+  to a feature as "cleanup" until its real replacement actually exists.
