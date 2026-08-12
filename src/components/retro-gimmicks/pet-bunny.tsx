@@ -12,7 +12,8 @@ const ICON_SIZE_PX = 32;
 const EDGE_MARGIN_PX = 16;
 const MOOD_MIN_MS = 7000;
 const MOOD_MAX_MS = 12000;
-const MOOD_DISPLAY_MS = 1600;
+const MOOD_DISPLAY_MIN_MS = 3000;
+const MOOD_DISPLAY_MAX_MS = 5000;
 const MOODS = [
   "⸜(｡˃ ᵕ ˂ )⸝♡",
   "uwu",
@@ -28,7 +29,7 @@ const MOODS = [
   "suffer productively",
   "Get up, one task, one victory",
   "Get it together, respectfully",
-  "You can blush and still be a badass",
+  "Be nervous and a badass",
   "F*ck perfect, show up",
   "You're (probably) not under surveillance, relax",
   "keep walking <3",
@@ -127,7 +128,8 @@ export default function PetBunny() {
 
     function showMood() {
       setMood(MOODS[Math.floor(Math.random() * MOODS.length)]);
-      window.setTimeout(() => setMood(null), MOOD_DISPLAY_MS);
+      const displayFor = MOOD_DISPLAY_MIN_MS + Math.random() * (MOOD_DISPLAY_MAX_MS - MOOD_DISPLAY_MIN_MS);
+      window.setTimeout(() => setMood(null), displayFor);
       scheduleMood();
     }
 
