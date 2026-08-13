@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { PlannerView } from "@/lib/planner/planner-types";
 import MiniCalendar from "./mini-calendar";
+import YearView from "./year-view";
 
 interface PlannerToolbarProps {
   view: PlannerView;
@@ -26,6 +27,7 @@ export default function PlannerToolbar({
   onNewEvent,
 }: PlannerToolbarProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [yearViewOpen, setYearViewOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,6 +49,24 @@ export default function PlannerToolbar({
         >
           Today
         </button>
+        <button
+          type="button"
+          onClick={() => setYearViewOpen(true)}
+          className="rounded-full border border-border bg-surface px-3.5 py-1.5 text-sm text-ink hover:bg-surface-alt"
+        >
+          <span className="font-semibold">{anchor.toLocaleDateString(undefined, { month: "long" })}</span>{" "}
+          <span className="text-ink-muted">{anchor.getFullYear()}</span>
+        </button>
+        {yearViewOpen && (
+          <YearView
+            anchor={anchor}
+            onSelect={(d) => {
+              onJumpToDate(d);
+              setYearViewOpen(false);
+            }}
+            onClose={() => setYearViewOpen(false)}
+          />
+        )}
         <div className="inline-flex overflow-hidden rounded-full border border-border">
           <button
             type="button"

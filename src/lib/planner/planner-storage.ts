@@ -61,6 +61,7 @@ function normalize(raw: Partial<PlannerEvent>): PlannerEvent {
     end: raw.end ?? 1,
     repeat: raw.repeat ?? "none",
     color: raw.color ?? "",
+    priority: raw.priority,
     exceptions: raw.exceptions ?? [],
   };
 }

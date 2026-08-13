@@ -505,6 +505,7 @@
       return {
         mode: parsed.mode || "light",
         retro: Boolean(parsed.retro),
+        kawaii: Boolean(parsed.kawaii),
         palettes: {
           light: { ...DEFAULT_PALETTES.light, ...p.light },
           dark: { ...DEFAULT_PALETTES.dark, ...p.dark },
@@ -849,6 +850,7 @@
     }
 
     setRetro(savedTheme.retro);
+    setKawaii(savedTheme.kawaii);
     setGimmickStars(savedTheme.gimmicks.starfield);
     setGimmickDivider(savedTheme.gimmicks.pawDivider);
     setGimmickMascot(savedTheme.gimmicks.bouncingBuddy);

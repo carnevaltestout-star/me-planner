@@ -1,5 +1,6 @@
 export type PlannerView = "week" | "day";
 export type RepeatRule = "none" | "daily" | "weekly" | "monthly";
+export type EventPriority = 1 | 2 | 3 | 4; // 1 = highest, 4 = lowest
 
 export interface PlannerEvent {
   id: string;
@@ -10,8 +11,15 @@ export interface PlannerEvent {
   end: number;
   repeat: RepeatRule;
   color: string;
+  priority?: EventPriority; // undefined = no priority set, cell keeps the default tint
   exceptions: string[]; // dateKeys excluded from an otherwise-repeating series
 }
+
+// Shared between PlannerGrid (the actual cell fill) and EventModal (the
+// priority picker's live preview swatches) so they always show the same
+// tint. No priority set keeps DEFAULT_TINT_PERCENT.
+export const DEFAULT_TINT_PERCENT = 18;
+export const PRIORITY_TINT_PERCENT: Record<EventPriority, number> = { 1: 35, 2: 55, 3: 75, 4: 95 };
 
 export const EVENT_COLORS = [
   "#8b6ba8", // lavender (default, matches the app accent)

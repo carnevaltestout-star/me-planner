@@ -1,5 +1,18 @@
 import { useState } from "react";
-import { EVENT_COLORS, type RepeatRule } from "@/lib/planner/planner-types";
+import {
+  DEFAULT_TINT_PERCENT,
+  EVENT_COLORS,
+  PRIORITY_TINT_PERCENT,
+  type EventPriority,
+  type RepeatRule,
+} from "@/lib/planner/planner-types";
+
+const PRIORITIES: { value: EventPriority; label: string }[] = [
+  { value: 1, label: "1 · Highest" },
+  { value: 2, label: "2" },
+  { value: 3, label: "3" },
+  { value: 4, label: "4 · Lowest" },
+];
 
 export interface EventModalInitial {
   title: string;
@@ -8,6 +21,7 @@ export interface EventModalInitial {
   end: number;
   repeat: RepeatRule;
   color: string;
+  priority?: EventPriority;
   occurrenceDate: string;
 }
 
@@ -18,6 +32,7 @@ export interface EventModalSaveData {
   end: number;
   repeat: RepeatRule;
   color: string;
+  priority?: EventPriority;
 }
 
 interface EventModalProps {
@@ -46,6 +61,7 @@ export default function EventModal({ mode, initial, onSave, onDelete, onClose }:
   const [end, setEnd] = useState(toTimeInput(initial.end));
   const [repeat, setRepeat] = useState<RepeatRule>(initial.repeat);
   const [color, setColor] = useState(initial.color || EVENT_COLORS[0]);
+  const [priority, setPriority] = useState<EventPriority | undefined>(initial.priority);
   const [error, setError] = useState("");
 
   const dateLabel = new Date(`${initial.occurrenceDate}T00:00:00`).toLocaleDateString(undefined, {
@@ -66,7 +82,7 @@ export default function EventModal({ mode, initial, onSave, onDelete, onClose }:
       setError("End has to be after start.");
       return;
     }
-    onSave({ title: trimmedTitle, notes: notes.trim(), start: startHour, end: endHour, repeat, color });
+    onSave({ title: trimmedTitle, notes: notes.trim(), start: startHour, end: endHour, repeat, color, priority });
   }
 
   return (
@@ -79,8 +95,20 @@ export default function EventModal({ mode, initial, onSave, onDelete, onClose }:
       <div
         role="dialog"
         aria-modal="true"
-        className="flex w-full max-w-[340px] flex-col gap-3.5 rounded-theme border border-border bg-surface p-[1.1rem] shadow-theme"
+        style={priority !== undefined ? { borderColor: color, borderWidth: 3 } : undefined}
+        className={`relative flex w-full max-w-[340px] flex-col gap-3.5 rounded-theme border bg-surface p-[1.1rem] shadow-theme ${
+          priority === undefined ? "border-border" : ""
+        }`}
       >
+        {priority !== undefined && (
+          <span
+            aria-hidden="true"
+            style={{ background: color }}
+            className="absolute -left-2.5 -top-2.5 flex h-[26px] w-[26px] items-center justify-center rounded-full border-2 border-surface text-[0.62rem] font-bold text-white shadow-theme"
+          >
+            P{priority}
+          </span>
+        )}
         <h2 className="m-0 text-base text-ink">{mode === "edit" ? "Edit event" : "New event"}</h2>
 
         <label className="flex flex-1 flex-col gap-1.5 text-xs text-ink-muted">
@@ -155,6 +183,37 @@ export default function EventModal({ mode, initial, onSave, onDelete, onClose }:
                 style={{ background: c }}
                 className={`h-[26px] w-[26px] rounded-full border-2 ${c === color ? "border-ink" : "border-transparent"}`}
               />
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs text-ink-muted">Priority</span>
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              aria-pressed={priority === undefined}
+              onClick={() => setPriority(undefined)}
+              style={{ background: `color-mix(in srgb, ${color} ${DEFAULT_TINT_PERCENT}%, var(--color-surface))` }}
+              className={`rounded-theme-sm border px-2.5 py-1.5 text-xs text-ink ${
+                priority === undefined ? "border-ink font-semibold" : "border-border hover:brightness-95"
+              }`}
+            >
+              None
+            </button>
+            {PRIORITIES.map((p) => (
+              <button
+                key={p.value}
+                type="button"
+                aria-pressed={priority === p.value}
+                onClick={() => setPriority(p.value)}
+                style={{ background: `color-mix(in srgb, ${color} ${PRIORITY_TINT_PERCENT[p.value]}%, var(--color-surface))` }}
+                className={`rounded-theme-sm border px-2.5 py-1.5 text-xs text-ink ${
+                  priority === p.value ? "border-ink font-semibold" : "border-border hover:brightness-95"
+                }`}
+              >
+                {p.label}
+              </button>
             ))}
           </div>
         </div>

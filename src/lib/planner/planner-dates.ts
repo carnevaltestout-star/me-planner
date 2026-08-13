@@ -16,6 +16,21 @@ export function isSameDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
+// Monday-first 6-week (42-day) grid for a given month, including the
+// leading/trailing days from neighboring months needed to fill the grid.
+// Shared by MiniCalendar and YearView so both render identical month grids.
+export function monthGridDays(month: Date): Date[] {
+  const firstOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
+  const startOffset = (firstOfMonth.getDay() + 6) % 7;
+  const gridStart = new Date(firstOfMonth);
+  gridStart.setDate(gridStart.getDate() - startOffset);
+  return Array.from({ length: 42 }, (_, i) => {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
+    return d;
+  });
+}
+
 export function fmtRange(days: Date[]): string {
   const opts: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
   if (days.length === 1) {

@@ -7,7 +7,7 @@ import {
   layoutOverlaps,
   startOfWeek,
 } from "@/lib/planner/planner-dates";
-import type { PlannerEvent, PlannerView } from "@/lib/planner/planner-types";
+import { DEFAULT_TINT_PERCENT, PRIORITY_TINT_PERCENT, type PlannerEvent, type PlannerView } from "@/lib/planner/planner-types";
 
 const HOUR_HEIGHT = 56;
 const DEFAULT_SCROLL_HOUR = 7;
@@ -114,6 +114,7 @@ export default function PlannerGrid({ view, anchor, events, onCellClick, onBlock
                   const widthPct = 100 / cols;
                   const leftPct = col * widthPct;
                   const color = ev.color || "var(--color-accent)";
+                  const tintPercent = ev.priority ? PRIORITY_TINT_PERCENT[ev.priority] : DEFAULT_TINT_PERCENT;
                   return (
                     <div
                       key={ev.id}
@@ -127,15 +128,15 @@ export default function PlannerGrid({ view, anchor, events, onCellClick, onBlock
                         height: (ev.end - ev.start) * HOUR_HEIGHT,
                         left: `calc(${leftPct}% + 2px)`,
                         width: `calc(${widthPct}% - 4px)`,
-                        background: `color-mix(in srgb, ${color} 18%, var(--color-surface))`,
+                        background: `color-mix(in srgb, ${color} ${tintPercent}%, var(--color-surface))`,
                         borderLeft: `3px solid ${color}`,
                       }}
                     >
-                      <span className="font-semibold leading-[1.15]">
+                      <span className="min-w-0 truncate font-semibold leading-[1.15]">
                         {ev.title}
                         {ev.repeat !== "none" ? " ↻" : ""}
                       </span>
-                      <span className="leading-[1.15] text-ink-muted">
+                      <span className="min-w-0 truncate leading-[1.15] text-ink-muted">
                         {fmtHour(ev.start)}–{fmtHour(ev.end)}
                       </span>
                     </div>

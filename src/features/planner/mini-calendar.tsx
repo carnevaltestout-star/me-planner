@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { isSameDay } from "@/lib/planner/planner-dates";
+import { isSameDay, monthGridDays } from "@/lib/planner/planner-dates";
 
 interface MiniCalendarProps {
   anchor: Date;
@@ -9,16 +9,7 @@ interface MiniCalendarProps {
 export default function MiniCalendar({ anchor, onSelect }: MiniCalendarProps) {
   const [month, setMonth] = useState(() => new Date(anchor.getFullYear(), anchor.getMonth(), 1));
   const today = new Date();
-
-  const firstOfMonth = new Date(month);
-  const startOffset = (firstOfMonth.getDay() + 6) % 7; // Monday-first grid
-  const gridStart = new Date(firstOfMonth);
-  gridStart.setDate(gridStart.getDate() - startOffset);
-  const days = Array.from({ length: 42 }, (_, i) => {
-    const d = new Date(gridStart);
-    d.setDate(gridStart.getDate() + i);
-    return d;
-  });
+  const days = monthGridDays(month);
 
   return (
     <div
@@ -62,7 +53,7 @@ export default function MiniCalendar({ anchor, onSelect }: MiniCalendarProps) {
               type="button"
               onClick={() => onSelect(d)}
               className={`h-6 rounded-md text-xs hover:bg-surface-alt ${muted ? "text-ink-muted opacity-50" : "text-ink"} ${
-                isToday ? "font-bold text-accent" : ""
+                isToday ? "font-bold text-[#e0217a]" : ""
               } ${isSelected ? "bg-accent font-semibold text-accent-contrast hover:bg-accent" : ""}`}
             >
               {d.getDate()}

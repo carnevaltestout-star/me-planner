@@ -49,18 +49,21 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
 - Default view: full week, full day, extended hours (not just 9-5)
 - ADHD-friendly: minimal friction to add/edit tasks, visual time blocking preferred over lists
 
-### 2. Diary
+### 2. Journal
 - Gratitude-style daily reflection, fixed prompts each entry:
-  - What went well today?
-  - What do I want to do differently?
-  - What did I do for someone else today?
-  - What did I do for myself?
+  - What went well today, why?
+  - What will I do differently?
   - What new thing did I learn?
+  - What did I do for someone else today?
+
 - Goal: encourage balance between self-management and spontaneity (tone/copy should reflect this, not feel like a chore log)
 
 ### 3. Principles
 - User-editable list of personal principles, bullet points with editable subtext underneath
 - Full CRUD: add, edit, delete, reorder
+-Editable questions as headline, with date created and underneath text answers:,
+- What matters most to you?
+- Where do your blind spots lie?
 
 ### 4. Vocabulary
 - List of vocabulary entries (word + meaning/notes)
@@ -69,6 +72,7 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
 ### 5. Attachments/Documents
 - Files/notes the user is learning from or has written
 - Sorted/organized by topic (needs topic/tag system)
+- expandable, and downloadable as pdf
 
 ### 6. Trackers
 - Period tracker
@@ -111,6 +115,7 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
 - Search bar to filter through everything
 - Sort/filter by a topic flag/tag
 - Scheduled to be built last, after every other tab
+- buildn a memory/ flashcard learning game out of the provided content
 
 
 

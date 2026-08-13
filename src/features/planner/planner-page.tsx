@@ -105,6 +105,7 @@ export default function PlannerPage() {
           end: modal.event.end,
           repeat: modal.event.repeat,
           color: modal.event.color,
+          priority: modal.event.priority,
           occurrenceDate: modal.occurrenceDate,
         }
       : {
@@ -114,6 +115,7 @@ export default function PlannerPage() {
           end: modal.end,
           repeat: "none",
           color: "",
+          priority: undefined,
           occurrenceDate: modal.occurrenceDate,
         });
 
