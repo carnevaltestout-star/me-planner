@@ -7,7 +7,7 @@ type Bitmap = string[];
 // swapped in for the nav list specifically while Retro Mode is on.
 const BITMAPS: Record<string, Bitmap> = {
   planner: ["11111111", "10000001", "10101101", "10000001", "10101101", "10000001", "10000001", "11111111"],
-  diary: ["01100110", "11111111", "11111111", "11111111", "01111110", "00111100", "00011000", "00000000"],
+  journal: ["01100110", "11111111", "11111111", "11111111", "01111110", "00111100", "00011000", "00000000"],
   principles: ["00011000", "00111100", "01111110", "11111111", "11111111", "01111110", "00111100", "00011000"],
   vocabulary: ["11111111", "10000001", "10011001", "10011001", "10000001", "10011001", "10000001", "11111111"],
   attachments: ["00111100", "01100110", "01100000", "01100000", "00000110", "00000110", "01100110", "00111100"],
@@ -27,7 +27,7 @@ function icon(key: keyof typeof BITMAPS): IconComponent {
 // one up directly.
 export const RETRO_NAV_ICONS: Record<string, IconComponent> = {
   "/planner": icon("planner"),
-  "/diary": icon("diary"),
+  "/journal": icon("journal"),
   "/principles": icon("principles"),
   "/vocabulary": icon("vocabulary"),
   "/attachments": icon("attachments"),

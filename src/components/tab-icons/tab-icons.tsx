@@ -28,7 +28,7 @@ export function PlannerIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-export function DiaryIcon(props: SVGProps<SVGSVGElement>) {
+export function JournalIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...baseProps(props)}>
       <path d="M12 6.2c-1.7-1.3-4-1.9-6.2-1.6-.7.1-1.3.7-1.3 1.4v11.6c0 .9.8 1.5 1.6 1.4 2-.3 4.2.2 5.9 1.5 1.7-1.3 3.9-1.8 5.9-1.5.9.1 1.6-.5 1.6-1.4V6c0-.7-.5-1.3-1.3-1.4-2.2-.3-4.5.3-6.2 1.6Z" />

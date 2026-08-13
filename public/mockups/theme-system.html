@@ -406,7 +406,7 @@
 <script>
   const icons8 = {
     planner: ["11111111","10000001","10110101","10000001","10101101","10000001","10000001","11111111"],
-    diary:   ["01100110","11111111","11111111","11111111","01111110","00111100","00011000","00000000"],
+    journal: ["01100110","11111111","11111111","11111111","01111110","00111100","00011000","00000000"],
     trackers:["00000000","00000000","00000011","00000011","00001111","00001111","01111111","01111111"],
     goals:   ["00111100","01000010","10011001","10100101","10100101","10011001","01000010","00111100"],
     settings:["00111100","01111110","11100111","11011011","11011011","11100111","01111110","00111100"],
@@ -464,7 +464,7 @@
   ];
 
   const iconRow = document.getElementById("icon-row");
-  [["planner","Planner",true],["diary","Diary",false],["trackers","Trackers",false],["goals","Goals",false],["statistics","Stats",false],["settings","Settings",false]]
+  [["planner","Planner",true],["journal","Journal",false],["trackers","Trackers",false],["goals","Goals",false],["statistics","Stats",false],["settings","Settings",false]]
     .forEach(([key, label, active]) => {
       const div = document.createElement("div");
       div.className = "item" + (active ? " active" : "");
@@ -621,7 +621,7 @@
   const packsEl = document.getElementById("icon-packs");
   const tabPreviewGrid = document.getElementById("tab-preview-grid");
   const demoTabs = [
-    { label: "Diary", fallback: "diary" },
+    { label: "Journal", fallback: "journal" },
     { label: "Goals", fallback: "goals" },
     { label: "Trackers", fallback: "trackers" },
   ];

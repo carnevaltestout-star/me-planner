@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Me — Diary (Mockup)</title>
+<title>Me — Journal (Mockup)</title>
 <style>
   :root {
     --color-canvas: #fbf8f6;
@@ -141,7 +141,7 @@
 <body data-retro="false">
 
 <div class="banner">
-  <strong>Mockup preview</strong> — Diary tab. Gratitude-style daily reflection with five fixed prompts.
+  <strong>Mockup preview</strong> — Journal tab. Gratitude-style daily reflection with fixed prompts.
   Retro/theme colors mirror your saved theme settings. Not wired into the real app yet — for feedback only.
 </div>
 
@@ -179,7 +179,7 @@
 
 <script>
   const THEME_STORAGE_KEY = "me-planner:theme";
-  const DIARY_STORAGE_KEY = "me-planner:mock-diary";
+  const JOURNAL_STORAGE_KEY = "me-planner:mock-journal";
 
   const PROMPTS = [
     { key: "wentWell", emoji: "☀️", label: "What went well today?", placeholder: "Big or small, it counts…" },
@@ -216,13 +216,13 @@
 
   function loadEntries() {
     try {
-      return JSON.parse(localStorage.getItem(DIARY_STORAGE_KEY) || "{}");
+      return JSON.parse(localStorage.getItem(JOURNAL_STORAGE_KEY) || "{}");
     } catch {
       return {};
     }
   }
   function saveEntries(entries) {
-    localStorage.setItem(DIARY_STORAGE_KEY, JSON.stringify(entries));
+    localStorage.setItem(JOURNAL_STORAGE_KEY, JSON.stringify(entries));
   }
 
   function dateKey(d) {
@@ -351,7 +351,7 @@
         render();
       });
       item.querySelector(".hi-delete").addEventListener("click", () => {
-        if (!confirm("Delete this diary entry? This can't be undone.")) return;
+        if (!confirm("Delete this journal entry? This can't be undone.")) return;
         delete entries[k];
         saveEntries(entries);
         renderHistory();

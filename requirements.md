@@ -34,7 +34,7 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
 - **Styling / theming:** Tailwind CSS — palette defined as CSS variables, Tailwind references
   them, so the editable color theme requirement is a variable swap, not duplicated styles.
 - **Data storage:** SQLite via `tauri-plugin-sql` — local single file, works identically across
-  all target platforms, fits the mostly-relational data model (diary entries, principles, vocab,
+  all target platforms, fits the mostly-relational data model (journal entries, principles, vocab,
   tracker check-ins, goals, book reviews). No server needed (single user).
 - **Charts:** Recharts — for tracker visualizations (mood/contentment over time).
 - **File storage:** Tauri's built-in filesystem APIs — sandboxed, consistent across platforms,
@@ -125,7 +125,7 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
   ```
   src/
     components/     # shared/reusable UI (buttons, cards, modals, theme provider)
-    features/       # one folder per tab (planner/, diary/, principles/, vocabulary/,
+    features/       # one folder per tab (planner/, journal/, principles/, vocabulary/,
                      # attachments/, trackers/, goals/, book-reviews/)
     lib/             # db access (sqlite queries), theme utils, chart helpers
     routes/          # top-level tab routing
@@ -240,3 +240,19 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
   existed to replace it with). Re-restored `public/mockups/theme-system.html` +
   `mockups/index.html` and the gear icon's onClick. Lesson: don't remove the only working path
   to a feature as "cleanup" until its real replacement actually exists.
+- **[Kawaii Mode merged, Planner merged, Diary renamed to Journal, 2026-08-13]** Super Kawaii
+  Mode (Y2K desktop-widget skin, mutually exclusive with retro, sharing the same gimmicks) and
+  the real Planner week/day view (grid, add/edit/delete/repeat/color/priority, mini-calendar,
+  year view for jumping to any date) are both merged into `dev`. Diary renamed to **Journal**
+  throughout — folder, component, route (`/diary` → `/journal`), nav label, icon, retro pixel
+  icon, and both mockups (`public/mockups/diary.html` → `journal.html`,
+  `me-planner:mock-diary` → `me-planner:mock-journal`) — following the same
+  spec-order-vs-nav-order divergence already established for Diary/Planner: **Trackers now
+  sits directly under Journal in the sidenav**, ahead of its listed position in the Tabs/Features
+  section above, which is left unrenumbered. Journal's own prompt set was revised directly in
+  this file (4 prompts, reordered) — the mockup's prompt content itself hasn't been updated to
+  match yet; that happens on `feature/journal` when Journal is actually built for real (still
+  mockup-first per the workflow rule).
+- **[Branch discipline]** Going forward: after every merge into `dev`, immediately open the next
+  feature branch, named after whatever tab is next in the sidenav to actually get built for
+  real. Right now that's `feature/journal`.
