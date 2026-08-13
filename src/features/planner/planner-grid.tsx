@@ -53,15 +53,16 @@ export default function PlannerGrid({ view, anchor, events, onCellClick, onBlock
   }, [view]);
 
   const gridCols = `64px repeat(${days.length}, 1fr)`;
+  const dayDividerClass = "border-r-2 border-[color-mix(in_srgb,var(--color-border)_55%,var(--color-ink)_45%)]";
 
   return (
     <div className="overflow-hidden rounded-theme border border-border bg-surface shadow-theme">
       <div className="grid border-b border-border" style={{ gridTemplateColumns: gridCols }}>
-        <div className="border-r border-border" />
+        <div className={dayDividerClass} />
         {days.map((d) => {
           const today_ = isSameDay(d, today);
           return (
-            <div key={dateKey(d)} className="border-r border-border p-2.5 text-center last:border-r-0">
+            <div key={dateKey(d)} className={`${dayDividerClass} p-2.5 text-center last:border-r-0`}>
               <div className="text-[0.68rem] uppercase tracking-wide text-ink-muted">
                 {d.toLocaleDateString(undefined, { weekday: "short" })}
               </div>
@@ -79,7 +80,7 @@ export default function PlannerGrid({ view, anchor, events, onCellClick, onBlock
 
       <div ref={scrollRef} className="max-h-[620px] overflow-y-auto">
         <div className="grid" style={{ gridTemplateColumns: gridCols, height: 24 * HOUR_HEIGHT }}>
-          <div className="border-r border-border">
+          <div className={dayDividerClass}>
             {HOURS.map((h) => (
               <div key={h} className="relative -top-2 h-14 px-2 text-right text-[0.72rem] text-ink-muted">
                 {hourLabel(h)}
@@ -95,7 +96,7 @@ export default function PlannerGrid({ view, anchor, events, onCellClick, onBlock
             return (
               <div
                 key={key}
-                className={`relative border-r border-border last:border-r-0 ${
+                className={`relative last:border-r-0 ${dayDividerClass} ${
                   isToday ? "bg-[color-mix(in_srgb,var(--color-accent)_5%,transparent)]" : ""
                 } ${isWeekend ? "bg-[color-mix(in_srgb,var(--color-ink)_3%,transparent)]" : ""}`}
               >

@@ -118,7 +118,7 @@ export default function PlannerPage() {
         });
 
   return (
-    <div className="flex h-full flex-col gap-4 p-4">
+    <div className="planner-checkerboard flex h-full flex-col gap-4 p-4">
       <PlannerToolbar
         view={view}
         onViewChange={setView}
