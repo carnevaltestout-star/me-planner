@@ -40,19 +40,19 @@ export default function PlannerToolbar({
   }, [calendarOpen]);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="flex items-center gap-2.5">
+    <div className="flex flex-wrap items-center justify-between gap-2 md:gap-3">
+      <div className="flex flex-wrap items-center gap-1.5 md:gap-2.5">
         <button
           type="button"
           onClick={onToday}
-          className="rounded-full border border-border bg-surface px-3.5 py-1.5 text-sm text-ink hover:bg-surface-alt"
+          className="rounded-full border border-border bg-surface px-2.5 py-1 text-xs text-ink hover:bg-surface-alt md:px-3.5 md:py-1.5 md:text-sm"
         >
           Today
         </button>
         <button
           type="button"
           onClick={() => setYearViewOpen(true)}
-          className="rounded-full border border-border bg-surface px-3.5 py-1.5 text-sm text-ink hover:bg-surface-alt"
+          className="rounded-full border border-border bg-surface px-2.5 py-1 text-xs text-ink hover:bg-surface-alt md:px-3.5 md:py-1.5 md:text-sm"
         >
           <span className="font-semibold">{anchor.toLocaleDateString(undefined, { month: "long" })}</span>{" "}
           <span className="text-ink-muted">{anchor.getFullYear()}</span>
@@ -72,7 +72,7 @@ export default function PlannerToolbar({
             type="button"
             aria-label="Previous"
             onClick={onPrev}
-            className="flex h-[30px] w-[30px] items-center justify-center border-r border-border bg-surface text-ink hover:bg-surface-alt"
+            className="flex h-[24px] w-[24px] items-center justify-center border-r border-border bg-surface text-ink hover:bg-surface-alt md:h-[30px] md:w-[30px]"
           >
             ‹
           </button>
@@ -80,16 +80,19 @@ export default function PlannerToolbar({
             type="button"
             aria-label="Next"
             onClick={onNext}
-            className="flex h-[30px] w-[30px] items-center justify-center bg-surface text-ink hover:bg-surface-alt"
+            className="flex h-[24px] w-[24px] items-center justify-center bg-surface text-ink hover:bg-surface-alt md:h-[30px] md:w-[30px]"
           >
             ›
           </button>
         </div>
-        <div className="relative" ref={pickerRef}>
+        {/* Redundant on mobile — the grid's own day headers already show the
+            exact dates, and Month/Year already opens the year view to jump
+            around. Kept on desktop where there's room for it. */}
+        <div className="relative hidden md:block" ref={pickerRef}>
           <button
             type="button"
             onClick={() => setCalendarOpen((v) => !v)}
-            className="rounded-theme px-2 py-1.5 font-theme text-sm font-semibold text-ink hover:bg-surface-alt"
+            className="whitespace-nowrap rounded-theme px-2 py-1.5 font-theme text-sm font-semibold text-ink hover:bg-surface-alt"
           >
             {rangeLabel}
           </button>
@@ -104,11 +107,11 @@ export default function PlannerToolbar({
           )}
         </div>
       </div>
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-1.5 md:gap-2.5">
         <button
           type="button"
           onClick={onNewEvent}
-          className="rounded-theme border border-accent bg-accent px-3.5 py-1.5 text-sm font-semibold text-accent-contrast hover:brightness-105"
+          className="rounded-theme border border-accent bg-accent px-2.5 py-1 text-xs font-semibold text-accent-contrast hover:brightness-105 md:px-3.5 md:py-1.5 md:text-sm"
         >
           + New event
         </button>
@@ -117,7 +120,7 @@ export default function PlannerToolbar({
             type="button"
             onClick={() => onViewChange("week")}
             aria-pressed={view === "week"}
-            className={`px-4 py-1.5 text-sm ${
+            className={`px-2.5 py-1 text-xs md:px-4 md:py-1.5 md:text-sm ${
               view === "week" ? "bg-accent font-semibold text-accent-contrast" : "bg-surface text-ink-muted"
             }`}
           >
@@ -127,7 +130,7 @@ export default function PlannerToolbar({
             type="button"
             onClick={() => onViewChange("day")}
             aria-pressed={view === "day"}
-            className={`px-4 py-1.5 text-sm ${
+            className={`px-2.5 py-1 text-xs md:px-4 md:py-1.5 md:text-sm ${
               view === "day" ? "bg-accent font-semibold text-accent-contrast" : "bg-surface text-ink-muted"
             }`}
           >

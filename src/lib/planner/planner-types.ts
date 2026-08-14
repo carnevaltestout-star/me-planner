@@ -17,9 +17,11 @@ export interface PlannerEvent {
 
 // Shared between PlannerGrid (the actual cell fill) and EventModal (the
 // priority picker's live preview swatches) so they always show the same
-// tint. No priority set keeps DEFAULT_TINT_PERCENT.
+// tint. No priority set keeps DEFAULT_TINT_PERCENT. Priority 1 (highest) is
+// the most opaque, fading down to priority 4 (lowest) being the most
+// translucent.
 export const DEFAULT_TINT_PERCENT = 18;
-export const PRIORITY_TINT_PERCENT: Record<EventPriority, number> = { 1: 35, 2: 55, 3: 75, 4: 95 };
+export const PRIORITY_TINT_PERCENT: Record<EventPriority, number> = { 1: 95, 2: 75, 3: 55, 4: 35 };
 
 export const EVENT_COLORS = [
   "#8b6ba8", // lavender (default, matches the app accent)

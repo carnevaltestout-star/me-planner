@@ -5,6 +5,7 @@ export default {
     extend: {
       colors: {
         canvas: "var(--color-canvas)",
+        sidenav: "var(--color-sidenav)",
         surface: "var(--color-surface)",
         "surface-alt": "var(--color-surface-alt)",
         border: "var(--color-border)",

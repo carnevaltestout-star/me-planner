@@ -12,6 +12,7 @@ export function resolvesToDark(mode: ThemeSettings["mode"]): boolean {
 // fallback for anything using --color-canvas as a plain color.
 const KAWAII_COLORS: ThemeColors = {
   bg: "#f2ddec",
+  sidenav: "#f2ddec",
   surface: "#fffdfd",
   text: "#4a3b6b",
   accent: "#ff6fa5",
@@ -35,6 +36,7 @@ export function applyTheme(theme: ThemeSettings) {
   const palette = getActivePalette(theme);
 
   root.style.setProperty("--color-canvas", palette.bg);
+  root.style.setProperty("--color-sidenav", palette.sidenav);
   root.style.setProperty("--color-surface", palette.surface);
   root.style.setProperty("--color-ink", palette.text);
   root.style.setProperty("--color-accent", palette.accent);

@@ -120,7 +120,7 @@ export default function PlannerPage() {
         });
 
   return (
-    <div className="planner-checkerboard flex h-full flex-col gap-4 p-4">
+    <div className="planner-checkerboard flex h-full flex-col gap-2 p-2 md:gap-4 md:p-4">
       <PlannerToolbar
         view={view}
         onViewChange={setView}
@@ -133,7 +133,9 @@ export default function PlannerPage() {
         onNewEvent={handleNewEvent}
       />
 
-      <PlannerGrid view={view} anchor={anchor} events={events} onCellClick={handleCellClick} onBlockClick={handleBlockClick} />
+      <div className="min-h-0 flex-1">
+        <PlannerGrid view={view} anchor={anchor} events={events} onCellClick={handleCellClick} onBlockClick={handleBlockClick} />
+      </div>
 
       {modal && modalInitial && (
         <EventModal

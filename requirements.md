@@ -7,6 +7,7 @@ and gentle self-tracking over rigid systems.
 
 ## Workflow rule (IMPORTANT)
 Only install necessary packages, check if new feature can be developed with existing package, if not, download new one.
+Before you implement a new feature tell me what u want to install and the size of it.
 
 Before implementing any new feature/tab, send a GUI mockup (ASCII/wireframe description or
 an HTML/React preview) for approval first. Do NOT write production code for a feature until
@@ -50,12 +51,31 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
 - ADHD-friendly: minimal friction to add/edit tasks, visual time blocking preferred over lists
 
 ### 2. Journal
-- Gratitude-style daily reflection, fixed prompts each entry:
-  - What went well today, why?
-  - What will I do differently?
-  - What new thing did I learn?
-  - What did I do for someone else today?
-
+- Gratitude-style daily reflection, 4 static prompts each entry, plus a 5th dynamic prompt.
+  Each prompt has its own placeholder text (shown greyed-out in the empty field, never saved):
+  - What went well today, why? — *Something did. Sit here until you remember what.*
+  - What will I do differently? — *Future You is reading this. Make it useful for them.*
+  - What new thing did I learn? — *Bonus points if it changed your mind about something.*
+  - What did I do for someone else today? — *Nothing? Okay, but that's tomorrow's homework then.*
+  - 5th prompt: a dropdown picks one at random each day from a pool (below), user can pick a
+    different one from the dropdown, or click the pencil/edit icon next to it to write their own
+    custom question instead. Pool of 5th-prompt options, each with its own placeholder:
+    - What am I grateful for today? — *Gratitude. No fake manifestations.*
+    - What's one thing I'm proud of today? — *One thing you handled like a slightly competent adult.*
+    - What challenged me today, and how did I handle it? — *Even if "handled it" means avoided it
+      until 11pm.*
+    - What's one small thing that made today better? — *Small joys are still joys. Don't be a
+      snob about it.*
+  - Free-form Notes field underneath all 5 questions, styled like dotted journal paper.
+- Header: today's date + a calendar icon that opens a year view (12 months, scroll to another
+  year) to jump to any date's entry. A search bar (relaxed matching — "20.05" matches that
+  day/month across every year, "2026" matches every entry in that year, otherwise free-text
+  across questions+notes) with a magnifying-glass icon at its right end; search runs on
+  clicking the icon or clicking outside the search bar. A save button/icon to the right of the
+  search bar — retro mode shows an old floppy disk, kawaii mode a floppy disk with a heart in
+  the middle. Entries save on clicking the save icon or automatically on blur (clicking away
+  from a question/notes field). Only non-empty entries are ever stored.
+- Entries are editable and deletable.
 - Goal: encourage balance between self-management and spontaneity (tone/copy should reflect this, not feel like a chore log)
 
 ### 3. Principles
@@ -256,3 +276,12 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
 - **[Branch discipline]** Going forward: after every merge into `dev`, immediately open the next
   feature branch, named after whatever tab is next in the sidenav to actually get built for
   real. Right now that's `feature/journal`.
+- **[Journal built for real, 2026-08-14]** Mockup approved; `/journal` now renders a real React
+  component (`src/features/journal/`) instead of embedding `public/mockups/journal.html` in an
+  iframe — that file stays only as a historical reference, same as `planner-week-day-view.html`.
+  Entries persist via `src/lib/journal/journal-storage.ts`, the same localStorage-as-stand-in-for-
+  SQLite pattern as `planner-storage.ts` (storage key `me-planner:mock-journal-entries`).
+  Read/write/delete all go through `loadEntries()`/`saveEntries()`; delete is a new capability not
+  in the original mockup (a trash icon in the header, with a confirm dialog) since the mockup
+  never had an explicit way to clear an entry, only auto-delete-when-empty. Theming is inherited
+  automatically from the app's real CSS vars — no iframe theme-sync code needed anymore.

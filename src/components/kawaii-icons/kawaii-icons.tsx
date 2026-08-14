@@ -130,6 +130,23 @@ export function SleepingBunnyIcon(props: SVGProps<SVGSVGElement>) {
   return pixelGlyph(BITMAPS.bunnySleeping, props);
 }
 
+// Overlay-only glyph: just the two eye pixels from the bunny bitmap, meant to
+// be stacked on top of BunnyIcon/KawaiiBunnyIcon in a heart color so it works
+// as a "heart eyes" reaction regardless of which skin is currently showing.
+const BUNNY_HEART_EYES: Bitmap = [
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00000000",
+  "00100100",
+  "00000000",
+  "00000000",
+];
+export function BunnyHeartEyesIcon(props: SVGProps<SVGSVGElement>) {
+  return pixelGlyph(BUNNY_HEART_EYES, props);
+}
+
 export type IconComponent = (props: SVGProps<SVGSVGElement>) => JSX.Element;
 
 // Mirrors public/mockups/theme-system.html's iconPacks list. "classic" has no

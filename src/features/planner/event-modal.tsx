@@ -92,136 +92,151 @@ export default function EventModal({ mode, initial, onSave, onDelete, onClose }:
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        style={priority !== undefined ? { borderColor: color, borderWidth: 3 } : undefined}
-        className={`relative flex w-full max-w-[340px] flex-col gap-3.5 rounded-theme border bg-surface p-[1.1rem] shadow-theme ${
-          priority === undefined ? "border-border" : ""
-        }`}
-      >
+      {/* Badge lives on this outer, non-clipping wrapper — the dialog below
+          needs its own overflow-hidden for the rounded corners/scroll area,
+          which would otherwise clip the badge where it hangs over the edge. */}
+      <div className="relative w-full max-w-[340px]">
         {priority !== undefined && (
           <span
             aria-hidden="true"
             style={{ background: color }}
-            className="absolute -left-2.5 -top-2.5 flex h-[26px] w-[26px] items-center justify-center rounded-full border-2 border-surface text-[0.62rem] font-bold text-white shadow-theme"
+            className="absolute -left-2.5 -top-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full border-2 border-surface text-xs font-bold text-white shadow-theme"
           >
             P{priority}
           </span>
         )}
-        <h2 className="m-0 text-base text-ink">{mode === "edit" ? "Edit event" : "New event"}</h2>
 
-        <label className="flex flex-1 flex-col gap-1.5 text-xs text-ink-muted">
-          <span>Title</span>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="What's happening?"
-            className="rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-[0.88rem] text-ink focus:outline focus:outline-2 focus:outline-accent"
-          />
-        </label>
-
-        <label className="flex flex-1 flex-col gap-1.5 text-xs text-ink-muted">
-          <span>Notes</span>
-          <textarea
-            rows={2}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Location, agenda, anything else"
-            className="resize-y rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-[0.88rem] text-ink focus:outline focus:outline-2 focus:outline-accent"
-          />
-        </label>
-
-        <div className="flex gap-2.5">
-          <label className="flex flex-1 flex-col gap-1.5 text-xs text-ink-muted">
-            <span>Starts</span>
-            <input
-              type="time"
-              step={900}
-              value={start}
-              onChange={(e) => setStart(e.target.value)}
-              className="rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-[0.88rem] text-ink focus:outline focus:outline-2 focus:outline-accent"
-            />
-          </label>
-          <label className="flex flex-1 flex-col gap-1.5 text-xs text-ink-muted">
-            <span>Ends</span>
-            <input
-              type="time"
-              step={900}
-              value={end}
-              onChange={(e) => setEnd(e.target.value)}
-              className="rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-[0.88rem] text-ink focus:outline focus:outline-2 focus:outline-accent"
-            />
-          </label>
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={priority !== undefined ? { borderColor: color, borderWidth: 3 } : undefined}
+          className={`relative flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-theme border bg-surface shadow-theme ${
+            priority === undefined ? "border-border" : ""
+          }`}
+        >
+          {/* Header stays put while the fields below scroll — the title never
+              gets lost off-screen on short/landscape mobile viewports. */}
+          <div className="flex-shrink-0 border-b border-border px-[1.1rem] py-3">
+            <h2 className="m-0 text-base text-ink">{mode === "edit" ? "Edit event" : "New event"}</h2>
         </div>
 
-        <label className="flex flex-1 flex-col gap-1.5 text-xs text-ink-muted">
-          <span>Repeats</span>
-          <select
-            value={repeat}
-            onChange={(e) => setRepeat(e.target.value as RepeatRule)}
-            className="rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-[0.88rem] text-ink focus:outline focus:outline-2 focus:outline-accent"
-          >
-            <option value="none">Doesn&apos;t repeat</option>
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly, same weekday</option>
-            <option value="monthly">Monthly, same date</option>
-          </select>
-        </label>
-
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs text-ink-muted">Color</span>
-          <div className="flex flex-wrap gap-1.5">
-            {EVENT_COLORS.map((c) => (
-              <button
-                key={c}
-                type="button"
-                aria-label={c}
-                aria-pressed={c === color}
-                onClick={() => setColor(c)}
-                style={{ background: c }}
-                className={`h-[26px] w-[26px] rounded-full border-2 ${c === color ? "border-ink" : "border-transparent"}`}
+        <div className="flex-1 overflow-y-auto overscroll-contain px-[1.1rem] py-3.5">
+          <div className="flex flex-col gap-3.5">
+            <label className="flex flex-1 flex-col gap-1.5 text-xs text-ink-muted">
+              <span>Title</span>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="What's happening?"
+                className="rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-[0.88rem] text-ink focus:outline focus:outline-2 focus:outline-accent"
               />
-            ))}
-          </div>
-        </div>
+            </label>
 
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs text-ink-muted">Priority</span>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              aria-pressed={priority === undefined}
-              onClick={() => setPriority(undefined)}
-              style={{ background: `color-mix(in srgb, ${color} ${DEFAULT_TINT_PERCENT}%, var(--color-surface))` }}
-              className={`rounded-theme-sm border px-2.5 py-1.5 text-xs text-ink ${
-                priority === undefined ? "border-ink font-semibold" : "border-border hover:brightness-95"
-              }`}
-            >
-              None
-            </button>
-            {PRIORITIES.map((p) => (
-              <button
-                key={p.value}
-                type="button"
-                aria-pressed={priority === p.value}
-                onClick={() => setPriority(p.value)}
-                style={{ background: `color-mix(in srgb, ${color} ${PRIORITY_TINT_PERCENT[p.value]}%, var(--color-surface))` }}
-                className={`rounded-theme-sm border px-2.5 py-1.5 text-xs text-ink ${
-                  priority === p.value ? "border-ink font-semibold" : "border-border hover:brightness-95"
-                }`}
+            <label className="flex flex-1 flex-col gap-1.5 text-xs text-ink-muted">
+              <span>Notes</span>
+              <textarea
+                rows={2}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Location, agenda, anything else"
+                className="resize-y rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-[0.88rem] text-ink focus:outline focus:outline-2 focus:outline-accent"
+              />
+            </label>
+
+            <div className="flex gap-2.5">
+              <label className="flex flex-1 flex-col gap-1.5 text-xs text-ink-muted">
+                <span>Starts</span>
+                <input
+                  type="time"
+                  step={900}
+                  value={start}
+                  onChange={(e) => setStart(e.target.value)}
+                  className="rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-[0.88rem] text-ink focus:outline focus:outline-2 focus:outline-accent"
+                />
+              </label>
+              <label className="flex flex-1 flex-col gap-1.5 text-xs text-ink-muted">
+                <span>Ends</span>
+                <input
+                  type="time"
+                  step={900}
+                  value={end}
+                  onChange={(e) => setEnd(e.target.value)}
+                  className="rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-[0.88rem] text-ink focus:outline focus:outline-2 focus:outline-accent"
+                />
+              </label>
+            </div>
+
+            <label className="flex flex-1 flex-col gap-1.5 text-xs text-ink-muted">
+              <span>Repeats</span>
+              <select
+                value={repeat}
+                onChange={(e) => setRepeat(e.target.value as RepeatRule)}
+                className="rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-[0.88rem] text-ink focus:outline focus:outline-2 focus:outline-accent"
               >
-                {p.label}
-              </button>
-            ))}
+                <option value="none">Doesn&apos;t repeat</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly, same weekday</option>
+                <option value="monthly">Monthly, same date</option>
+              </select>
+            </label>
+
+            <div className="flex flex-col gap-1.5">
+              <span className="text-xs text-ink-muted">Color</span>
+              <div className="flex flex-wrap gap-1.5">
+                {EVENT_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    aria-label={c}
+                    aria-pressed={c === color}
+                    onClick={() => setColor(c)}
+                    style={{ background: c }}
+                    className={`h-[26px] w-[26px] rounded-full border-2 ${c === color ? "border-ink" : "border-transparent"}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <span className="text-xs text-ink-muted">Priority</span>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  aria-pressed={priority === undefined}
+                  onClick={() => setPriority(undefined)}
+                  style={{ background: `color-mix(in srgb, ${color} ${DEFAULT_TINT_PERCENT}%, var(--color-surface))` }}
+                  className={`rounded-theme-sm border px-2.5 py-1.5 text-xs text-ink ${
+                    priority === undefined ? "border-ink font-semibold" : "border-border hover:brightness-95"
+                  }`}
+                >
+                  None
+                </button>
+                {PRIORITIES.map((p) => (
+                  <button
+                    key={p.value}
+                    type="button"
+                    aria-pressed={priority === p.value}
+                    onClick={() => setPriority(p.value)}
+                    style={{ background: `color-mix(in srgb, ${color} ${PRIORITY_TINT_PERCENT[p.value]}%, var(--color-surface))` }}
+                    className={`rounded-theme-sm border px-2.5 py-1.5 text-xs text-ink ${
+                      priority === p.value ? "border-ink font-semibold" : "border-border hover:brightness-95"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <p className="m-0 text-xs text-ink-muted">{dateLabel}</p>
+            {error && <p className="m-0 text-xs text-[#c22a4d]">{error}</p>}
           </div>
         </div>
 
-        <p className="m-0 text-xs text-ink-muted">{dateLabel}</p>
-        <p className="m-0 min-h-[1em] text-xs text-[#c22a4d]">{error}</p>
-
-        <div className="mt-0.5 flex items-center justify-between gap-2">
+        {/* Footer stays put too — Save/Cancel are always reachable without
+            hunting through the scrollable fields above. */}
+        <div className="flex flex-shrink-0 items-center justify-between gap-2 border-t border-border px-[1.1rem] py-3">
           {mode === "edit" ? (
             <button
               type="button"
@@ -249,6 +264,7 @@ export default function EventModal({ mode, initial, onSave, onDelete, onClose }:
               Save
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>

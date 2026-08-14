@@ -1,27 +1,20 @@
 <title>Me — Theme System (Mockup)</title>
 <style>
+  /* Only 5 base tokens — bg/surface/text/accent/border — same split as the
+     real app's own src/index.css. JS (syncPageColors) overwrites these to
+     match whatever theme is actually saved/active, so this page looks like
+     part of the app instead of a separate generic tool with its own look.
+     These are just the fallback before that first JS pass runs. */
   :root {
-    --bg: #faf9f6;
+    --bg: #fbf8f6;
     --surface: #ffffff;
-    --surface-alt: #f1efe9;
-    --border: #e4e1d8;
-    --text: #33312c;
-    --text-muted: #7a776d;
-    --accent: #5b8a72;
-    --accent-soft: #e6efe9;
-    --focus: #3d6b53;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg: #1c1b18; --surface: #242320; --surface-alt: #2e2c27; --border: #3a382f;
-      --text: #edebe3; --text-muted: #a19d8f; --accent: #7faf95; --accent-soft: #29352e;
-      --focus: #9bcab3;
-    }
-  }
-  :root[data-theme="dark"] {
-    --bg: #1c1b18; --surface: #242320; --surface-alt: #2e2c27; --border: #3a382f;
-    --text: #edebe3; --text-muted: #a19d8f; --accent: #7faf95; --accent-soft: #29352e;
-    --focus: #9bcab3;
+    --border: #e4d9e3;
+    --text: #362e38;
+    --accent: #8b6ba8;
+    --surface-alt: color-mix(in srgb, var(--surface) 85%, var(--accent) 15%);
+    --text-muted: color-mix(in srgb, var(--text) 60%, var(--bg) 40%);
+    --accent-soft: color-mix(in srgb, var(--accent) 18%, var(--surface) 82%);
+    --focus: var(--accent);
   }
 
   * { box-sizing: border-box; }
@@ -32,13 +25,6 @@
   }
   button, select { font-family: inherit; }
 
-  .banner {
-    display: flex; flex-wrap: wrap; gap: 0.4rem; flex-direction: column;
-    padding: 0.65rem 1rem; background: var(--surface-alt); border-bottom: 1px solid var(--border);
-    font-size: 0.8rem; color: var(--text-muted);
-  }
-  .banner strong { color: var(--text); }
-
   .stage { display: flex; justify-content: center; padding: 2rem 1rem 3rem; }
   .frame {
     width: 100%; max-width: 900px; border: 1px solid var(--border); border-radius: 16px;
@@ -47,24 +33,24 @@
 
   /* ---- Simulated app tokens (independent of the outer artifact theme) ---- */
   .frame {
-    --f-bg: #fbf8f6; --f-surface: #ffffff; --f-surface-alt: #f3ecf3; --f-border: #e4d9e3;
+    --f-bg: #fbf8f6; --f-sidenav: #fbf8f6; --f-surface: #ffffff; --f-surface-alt: #f3ecf3; --f-border: #e4d9e3;
     --f-text: #362e38; --f-text-muted: #837490; --f-accent: #8b6ba8; --f-accent-contrast: #ffffff;
     --f-radius: 10px; --f-shadow: none; --f-header-font: inherit; --f-body-font: inherit;
     transition: background 0.15s ease;
   }
   .frame[data-mode="dark"] {
-    --f-bg: #211d24; --f-surface: #2b2630; --f-surface-alt: #352e3b; --f-border: #453c4c;
+    --f-bg: #211d24; --f-sidenav: #211d24; --f-surface: #2b2630; --f-surface-alt: #352e3b; --f-border: #453c4c;
     --f-text: #efe9f0; --f-text-muted: #a899ae; --f-accent: #b79fd1; --f-accent-contrast: #211d24;
   }
   .frame[data-retro="on"] {
-    --f-bg: #fdf3e7; --f-surface: #fffdf8; --f-surface-alt: #ffe9cf; --f-border: #3b2a55;
+    --f-bg: #fdf3e7; --f-sidenav: #fdf3e7; --f-surface: #fffdf8; --f-surface-alt: #ffe9cf; --f-border: #3b2a55;
     --f-text: #3b2a55; --f-text-muted: #6b5b8a; --f-accent: #ff6fa5; --f-accent-contrast: #fffdf8;
     --f-radius: 0px; --f-shadow: 3px 3px 0 var(--f-border);
     --f-header-font: ui-monospace, "Courier New", monospace;
     --f-body-font: ui-monospace, "Courier New", monospace;
   }
   .frame[data-retro="on"][data-mode="dark"] {
-    --f-bg: #1c1330; --f-surface: #241a3d; --f-surface-alt: #2f2350; --f-border: #7fe0c8;
+    --f-bg: #1c1330; --f-sidenav: #1c1330; --f-surface: #241a3d; --f-surface-alt: #2f2350; --f-border: #7fe0c8;
     --f-text: #fdf3e7; --f-text-muted: #b9a9d6; --f-accent: #ff8fc0; --f-accent-contrast: #1c1330;
   }
   /* Kawaii Mode: its own "skin", mutually exclusive with Retro — a Y2K
@@ -72,7 +58,7 @@
      corners) rather than 8-bit pixel art. */
   .frame[data-kawaii="on"] {
     --f-bg: linear-gradient(135deg, #cfe0fb 0%, #f0d3f5 50%, #ffd6e8 100%);
-    --f-surface: #fffdfd; --f-surface-alt: #ffeaf4; --f-border: #ffffff;
+    --f-sidenav: #f2ddec; --f-surface: #fffdfd; --f-surface-alt: #ffeaf4; --f-border: #ffffff;
     --f-text: #4a3b6b; --f-text-muted: #8577a8; --f-accent: #ff6fa5; --f-accent-contrast: #ffffff;
     --f-radius: 18px; --f-shadow: 0 6px 18px rgba(120, 90, 160, 0.18);
     --f-header-font: ui-monospace, "Courier New", monospace;
@@ -98,36 +84,54 @@
     50% { transform: translateY(-6px) rotate(6deg); }
   }
 
-  .kawaii-dots { display: none; gap: 5px; margin-right: 0.3rem; }
-  .frame[data-kawaii="on"] .kawaii-dots { display: inline-flex; }
-  .kawaii-dots span {
-    width: 9px; height: 9px; border-radius: 50%; background: #fff; border: 1.5px solid #7fa3e0;
-  }
+  .topbar-bunny { display: block; width: 20px; height: 20px; flex-shrink: 0; margin-right: 0.2rem; }
+  .topbar-bunny svg { width: 100%; height: 100%; color: var(--f-accent); image-rendering: pixelated; }
   .frame[data-kawaii="on"] .topbar {
     background: linear-gradient(90deg, #aecdf5, #f3b8e6); border-bottom: 2px solid #fff;
   }
-  .frame[data-kawaii="on"] .preview-card { overflow: hidden; }
-  .kawaii-titlebar { display: none; }
-  .frame[data-kawaii="on"] .kawaii-titlebar {
-    display: flex; align-items: center; gap: 0.4rem; margin: -1rem -1rem 0.9rem;
-    padding: 0.5rem 0.75rem; background: linear-gradient(90deg, #aecdf5, #f3b8e6);
-    font-family: var(--f-header-font); font-size: 0.62rem; color: #3b2a55;
-  }
-
   .topbar {
     display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
     padding: 0.85rem 1.1rem; border-bottom: 2px solid var(--f-border); background: var(--f-surface);
   }
   .brand {
     font-weight: 700; font-family: var(--f-header-font); letter-spacing: 0.02em;
-    font-size: 0.95rem;
+    font-size: 0.95rem; border: none; background: none; padding: 0; cursor: pointer; color: var(--f-text);
+    border-radius: var(--f-radius);
   }
+  .brand:hover { text-decoration: underline; }
   .frame[data-retro="on"] .brand { font-size: 0.72rem; line-height: 1.6; }
 
-  .pixel-icon-row { display: flex; gap: 0.9rem; align-items: center; }
+  .pixel-icon-row { display: flex; flex-wrap: wrap; gap: 0.7rem 0.9rem; align-items: center; }
   .pixel-icon-row .item {
     display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
     font-size: 0.68rem; color: var(--f-text-muted); width: 56px; text-align: center;
+    border: none; background: none; padding: 0.2rem; border-radius: var(--f-radius); cursor: pointer;
+    font-family: var(--f-body-font);
+  }
+  .pixel-icon-row .item:hover { background: var(--f-surface-alt); color: var(--f-text); }
+
+  /* ---- Mobile: a left icon sidenav replaces the topbar's icon row,
+     matching the real app's actual mobile layout (icon rail, not a
+     horizontal strip). Clickable — sets which tab previews as active.
+     767px matches Tailwind's `md:` breakpoint (768px) that the real
+     AppShell switches on, so this preview flips to mobile layout at the
+     same width the real app actually does. ---- */
+  .frame-sidenav { display: none; }
+  @media (max-width: 767px) {
+    .topbar .pixel-icon-row { display: none; }
+    .frame-sidenav {
+      display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+      width: 42px; flex-shrink: 0; padding: 0.5rem 0; border-right: 1.5px solid var(--f-border);
+      background: var(--f-sidenav);
+    }
+    .frame-sidenav button {
+      display: flex; align-items: center; justify-content: center; width: 30px; height: 30px;
+      border-radius: var(--f-radius); cursor: pointer; color: var(--f-text-muted); border: none; background: none; padding: 0;
+    }
+    .frame-sidenav button.active {
+      background: color-mix(in srgb, var(--f-accent) 18%, var(--f-sidenav)); color: var(--f-text);
+    }
+    .frame-sidenav svg { width: 17px; height: 17px; color: var(--f-accent); image-rendering: pixelated; }
   }
   .pixel-icon-row svg { width: 22px; height: 22px; color: var(--f-accent); image-rendering: pixelated; }
   .frame[data-kawaii="on"] .pixel-icon-row svg {
@@ -157,13 +161,42 @@
   .segmented button:disabled { opacity: 0.45; cursor: not-allowed; }
 
   .swatches { display: flex; flex-wrap: wrap; gap: 0.9rem; }
-  .swatch-field { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
+  .swatch-field { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; cursor: grab; }
+  .swatch-field:active { cursor: grabbing; }
+  .swatch-field.drag-over input[type="color"] { outline: 2px solid var(--f-accent); outline-offset: 2px; }
+  .swatch-field .swatch-label-row { display: flex; align-items: center; gap: 0.3rem; }
   .swatch-field label { font-size: 0.72rem; color: var(--f-text-muted); }
   .swatch-field input[type="color"] {
     width: 40px; height: 40px; border-radius: var(--f-radius); border: 1.5px solid var(--f-border);
     padding: 0; cursor: pointer; background: none;
   }
   .swatch-field input:disabled { opacity: 0.4; cursor: not-allowed; }
+  .swatch-add-btn {
+    width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--f-border); background: var(--f-surface);
+    color: var(--f-text-muted); font-size: 10px; line-height: 1; padding: 0; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .swatch-add-btn:hover { border-color: var(--f-accent); color: var(--f-accent); }
+
+  .favorites-block { margin-top: 1rem; padding-top: 0.9rem; border-top: 1.5px dashed var(--f-border); }
+  .favorites-block .hint { margin: 0 0 0.6rem; }
+  .favorites-strip {
+    display: flex; flex-wrap: wrap; gap: 0.6rem; min-height: 52px; padding: 0.6rem;
+    border: 1.5px dashed var(--f-border); border-radius: var(--f-radius); align-items: center;
+  }
+  .favorites-strip.drag-over { border-color: var(--f-accent); background: color-mix(in srgb, var(--f-accent) 12%, transparent); }
+  .favorites-empty { font-size: 0.78rem; color: var(--f-text-muted); }
+  .favorite-chip {
+    width: 40px; height: 40px; border-radius: var(--f-radius); border: 1.5px solid var(--f-border);
+    cursor: grab; position: relative; flex-shrink: 0;
+  }
+  .favorite-chip:active { cursor: grabbing; }
+  .favorite-chip .remove-btn {
+    position: absolute; top: -7px; right: -7px; width: 17px; height: 17px; border-radius: 50%;
+    border: 1.5px solid var(--f-surface); background: var(--f-text-muted); color: var(--f-surface);
+    font-size: 11px; line-height: 1; cursor: pointer; display: none; padding: 0;
+  }
+  .favorite-chip:hover .remove-btn, .favorite-chip:focus-within .remove-btn { display: block; }
 
   .presets { display: flex; flex-wrap: wrap; gap: 0.6rem; }
   .preset-btn {
@@ -197,36 +230,6 @@
   .switch[aria-checked="true"] { background: var(--f-accent); }
   .switch[aria-checked="true"] .knob { transform: translateX(20px); }
 
-  .preview-card {
-    border: 1.5px solid var(--f-border); border-radius: var(--f-radius); box-shadow: var(--f-shadow);
-    background: var(--f-surface); padding: 1rem; display: flex; flex-direction: column; gap: 0.7rem;
-  }
-  .preview-card .pill {
-    align-self: flex-start; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em;
-    color: var(--f-text-muted); border: 1px dashed var(--f-border); border-radius: 999px; padding: 0.15rem 0.55rem;
-  }
-  .preview-card .row { display: flex; align-items: center; gap: 0.6rem; }
-  .preview-card .nav-chip {
-    display: flex; align-items: center; gap: 0.4rem; background: var(--f-accent); color: var(--f-accent-contrast);
-    border-radius: var(--f-radius); padding: 0.4rem 0.7rem; font-size: 0.8rem; font-weight: 600;
-    font-family: var(--f-header-font); box-shadow: var(--f-shadow);
-  }
-  .frame[data-retro="on"] .preview-card .nav-chip { font-size: 0.6rem; letter-spacing: 0.03em; }
-  .preview-card button.cta {
-    border: 1.5px solid var(--f-border); border-radius: var(--f-radius); box-shadow: var(--f-shadow);
-    background: var(--f-accent); color: var(--f-accent-contrast); padding: 0.5rem 1rem; font-size: 0.82rem;
-    font-weight: 600; cursor: pointer; font-family: var(--f-body-font);
-  }
-  .preview-card p { margin: 0; font-size: 0.82rem; color: var(--f-text-muted); }
-
-  .tab-preview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.7rem; }
-  .tab-preview-card {
-    border: 1.5px solid var(--f-border); border-radius: var(--f-radius); box-shadow: var(--f-shadow);
-    background: var(--f-surface); padding: 1rem 0.7rem; display: flex; flex-direction: column;
-    align-items: center; gap: 0.5rem; text-align: center;
-  }
-  .tab-preview-card svg { width: 34px; height: 34px; color: var(--f-accent); image-rendering: pixelated; }
-  .tab-preview-card span { font-size: 0.76rem; color: var(--f-text-muted); font-family: var(--f-body-font); }
 
   .preset-btn .pack-icons { display: flex; gap: 0.2rem; }
   .preset-btn .pack-icons svg { width: 14px; height: 14px; image-rendering: pixelated; }
@@ -271,11 +274,6 @@
   @media (prefers-reduced-motion: reduce) { .mascot-buddy { animation: none; } }
 </style>
 
-<div class="banner">
-  <span><strong>Mockup</strong> — theme system: appearance mode, editable palette, retro 8-bit toggle, kawaii icon packs. Interactive: click the mode buttons, drag the color swatches, flip the retro switch, try an icon pack.</span>
-  <span>Fonts here are a <strong>system-monospace approximation</strong> of the chosen pair — production bundles the real <strong>Press Start 2P</strong> (headers) + <strong>Pixelify Sans</strong> (body) font files locally, no CDN. Retro icons shown are the real final style: hand-drawn blocky pixel-art, no icon package.</span>
-</div>
-
 <div class="stage">
   <div class="frame" id="frame">
     <canvas id="starfield-canvas"></canvas>
@@ -287,11 +285,12 @@
       <span style="top:42%; left:2%; animation-delay:2.2s;">✨</span>
     </div>
     <div class="app-bg">
+      <div class="frame-sidenav" id="frame-sidenav"></div>
       <div class="divider-rail" id="divider-rail"></div>
       <div class="app-main">
       <div class="topbar">
-        <div class="kawaii-dots"><span></span><span></span><span></span></div>
-        <span class="brand">Me · planner</span>
+        <div class="topbar-bunny" id="topbar-bunny"></div>
+        <button type="button" class="brand" id="brand-btn">Me · planner</button>
         <div class="pixel-icon-row" id="icon-row"></div>
       </div>
 
@@ -316,6 +315,13 @@
           <h2>Customize colors</h2>
           <p class="hint">Overrides the preset. Applies instantly, everywhere — including Retro Mode.</p>
           <div class="swatches" id="swatches"></div>
+
+          <div class="favorites-block">
+            <p class="hint">Favourites — drag any color above down here (or tap its + button) to save it, then drag a favourite back onto any color above to reuse it.</p>
+            <div class="favorites-strip" id="favorites-strip" aria-label="Saved favourite colors">
+              <span class="favorites-empty" id="favorites-empty">No favourites yet.</span>
+            </div>
+          </div>
         </div>
 
         <div class="section">
@@ -326,7 +332,6 @@
             </div>
             <div class="switch" id="retro-switch" role="switch" aria-checked="false" tabindex="0"><div class="knob"></div></div>
           </div>
-          <div class="pixel-icon-row" id="mascot-row" style="margin-top: 0.7rem;"></div>
         </div>
 
         <div class="section">
@@ -379,23 +384,6 @@
           </div>
         </div>
 
-        <div class="section">
-          <h2>Live preview</h2>
-          <div class="preview-card">
-            <div class="kawaii-titlebar">
-              <div class="kawaii-dots"><span></span><span></span><span></span></div>
-              <span>preview.exe</span>
-            </div>
-            <span class="pill" id="preview-pill">Sample UI, not a real tab</span>
-            <div class="row">
-              <span class="nav-chip" id="preview-chip">Planner — active tab</span>
-            </div>
-            <p>This is muted body text, showing contrast against the surface.</p>
-            <button type="button" class="cta">Add task</button>
-          </div>
-          <p class="hint" style="margin-top: 0.9rem;">Same icon pack, shown inside three different tabs' own content — not just the nav:</p>
-          <div class="tab-preview-grid" id="tab-preview-grid"></div>
-        </div>
       </div>
       </div>
     </div>
@@ -405,12 +393,18 @@
 
 <script>
   const icons8 = {
-    planner: ["11111111","10000001","10110101","10000001","10101101","10000001","10000001","11111111"],
+    planner: ["11111111","10000001","10101101","10000001","10101101","10000001","10000001","11111111"],
     journal: ["01100110","11111111","11111111","11111111","01111110","00111100","00011000","00000000"],
     trackers:["00000000","00000000","00000011","00000011","00001111","00001111","01111111","01111111"],
     goals:   ["00111100","01000010","10011001","10100101","10100101","10011001","01000010","00111100"],
     settings:["00111100","01111110","11100111","11011011","11011011","11100111","01111110","00111100"],
     statistics:["00000001","00000011","00000110","00011100","00110000","01100000","11000000","10000000"],
+    principles:["00011000","00111100","01111110","11111111","11111111","01111110","00111100","00011000"],
+    vocabulary:["11111111","10000001","10011001","10011001","10000001","10011001","10000001","11111111"],
+    attachments:["00111100","01100110","01100000","01100000","00000110","00000110","01100110","00111100"],
+    bookReviews:["11111110","10000010","10111010","10111010","10111010","10000010","10000010","11111110"],
+    finance: ["00111100","01111110","11100111","11000011","11000011","11100111","01111110","00111100"],
+    learning:["00111100","01111110","11111111","11111111","01111110","00111100","00011000","00011000"],
     bunny:   ["00100100","00100100","00111100","01111110","11111111","11011011","11111111","01111110"],
     star:    ["00011000","00011000","00111100","11111111","01111110","00111100","01100110","11000011"],
     heart:   ["01100110","11111111","11111111","11111111","01111110","00111100","00011000","00000000"],
@@ -420,7 +414,8 @@
     onigiri: ["00011000","00111100","01111110","01111110","11111111","11000011","11000011","11111111"],
     donut:   ["00111100","01111110","11100111","11000011","11000011","11100111","01111110","00111100"],
     boba:    ["00011000","00011000","01111110","01111110","01111110","01111110","00111100","00011000"],
-    paw:     ["01100110","01100110","00000000","00111100","01111110","11111111","11111111","01111110"]
+    paw:     ["01100110","01100110","00000000","00111100","01111110","11111111","11111111","01111110"],
+    alien:   ["00100100","00100100","00111100","01111110","11111111","10111101","10100101","01000010"]
   };
   const iconPacks = [
     { key: "classic", name: "Classic (no swap)", icons: null },
@@ -463,23 +458,48 @@
     { grid: ["00000011", "00000101", "00000011", "00000000", "00000000", "00000000", "00000000", "00000000"], color: "#e0217a" },
   ];
 
-  const iconRow = document.getElementById("icon-row");
-  [["planner","Planner",true],["journal","Journal",false],["trackers","Trackers",false],["goals","Goals",false],["statistics","Stats",false],["settings","Settings",false]]
-    .forEach(([key, label, active]) => {
-      const div = document.createElement("div");
-      div.className = "item" + (active ? " active" : "");
-      div.innerHTML = pixelIcon(key) + `<span>${label}</span>`;
-      iconRow.appendChild(div);
-    });
+  // Same 11 tabs, same order, as the real app's src/routes/nav-items.ts.
+  const NAV_TABS = [
+    ["planner", "Planner", "/planner"],
+    ["journal", "Journal", "/journal"],
+    ["trackers", "Trackers", "/trackers"],
+    ["principles", "Principles", "/principles"],
+    ["vocabulary", "Vocabulary", "/vocabulary"],
+    ["attachments", "Attachments", "/attachments"],
+    ["goals", "Goals", "/goals"],
+    ["bookReviews", "Book Reviews", "/book-reviews"],
+    ["statistics", "Statistics", "/statistics"],
+    ["finance", "Finance Overview", "/finance-overview"],
+    ["learning", "Learning", "/learning"],
+  ];
 
-  const mascotRow = document.getElementById("mascot-row");
-  [["bunny","streak mascot"],["star","achievement"],["heart","favorited"]]
-    .forEach(([key, label]) => {
-      const div = document.createElement("div");
-      div.className = "item";
-      div.innerHTML = pixelIcon(key) + `<span>${label}</span>`;
-      mascotRow.appendChild(div);
-    });
+  function goToTab(route) {
+    window.location.href = "/#" + route;
+  }
+  document.getElementById("brand-btn").addEventListener("click", () => goToTab("/planner"));
+
+  const iconRow = document.getElementById("icon-row");
+  NAV_TABS.forEach(([key, label, route], i) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "item" + (i === 0 ? " active" : "");
+    btn.innerHTML = pixelIcon(key) + `<span>${label}</span>`;
+    btn.addEventListener("click", () => goToTab(route));
+    iconRow.appendChild(btn);
+  });
+
+  // Mobile sidenav — same tabs, vertical, clickable to jump straight to that tab.
+  const frameSidenav = document.getElementById("frame-sidenav");
+  NAV_TABS.forEach(([key, label, route], i) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "item" + (i === 0 ? " active" : "");
+    btn.setAttribute("aria-label", label);
+    btn.title = label;
+    btn.innerHTML = pixelIcon(key);
+    btn.addEventListener("click", () => goToTab(route));
+    frameSidenav.appendChild(btn);
+  });
 
   const frame = document.getElementById("frame");
 
@@ -490,10 +510,10 @@
   // different context.
   const THEME_STORAGE_KEY = "me-planner:theme";
   const DEFAULT_PALETTES = {
-    light: { bg: "#fbf8f6", surface: "#ffffff", text: "#362e38", accent: "#8b6ba8", border: "#e4d9e3" },
-    dark: { bg: "#211d24", surface: "#2b2630", text: "#efe9f0", accent: "#b79fd1", border: "#453c4c" },
-    retroLight: { bg: "#fdf3e7", surface: "#fffdf8", text: "#3b2a55", accent: "#ff6fa5", border: "#3b2a55" },
-    retroDark: { bg: "#1c1330", surface: "#241a3d", text: "#fdf3e7", accent: "#ff8fc0", border: "#7fe0c8" },
+    light: { bg: "#fbf8f6", sidenav: "#fbf8f6", surface: "#ffffff", text: "#362e38", accent: "#8b6ba8", border: "#e4d9e3" },
+    dark: { bg: "#211d24", sidenav: "#211d24", surface: "#2b2630", text: "#efe9f0", accent: "#b79fd1", border: "#453c4c" },
+    retroLight: { bg: "#fdf3e7", sidenav: "#fdf3e7", surface: "#fffdf8", text: "#3b2a55", accent: "#ff6fa5", border: "#3b2a55" },
+    retroDark: { bg: "#1c1330", sidenav: "#1c1330", surface: "#241a3d", text: "#fdf3e7", accent: "#ff8fc0", border: "#7fe0c8" },
   };
 
   function loadSavedTheme() {
@@ -544,17 +564,41 @@
     return dark ? "dark" : "light";
   }
 
+  // Kawaii's colors are fixed (not part of the editable palette system) —
+  // same values as .frame[data-kawaii="on"]'s CSS, kept in JS too since the
+  // outer page can't rely on that attribute-selector cascade the way the
+  // frame does.
+  const KAWAII_PAGE_COLORS = {
+    bg: "linear-gradient(135deg, #cfe0fb 0%, #f0d3f5 50%, #ffd6e8 100%)",
+    surface: "#fffdfd", text: "#4a3b6b", accent: "#ff6fa5", border: "#ffffff",
+  };
+
+  // Keeps the outer settings page itself (not just the .frame preview) in
+  // the same colors as the real app's current theme, so the whole page
+  // feels like part of the app instead of a separate generic tool.
+  function syncPageColors(palette) {
+    const root = document.documentElement.style;
+    root.setProperty("--bg", palette.bg);
+    root.setProperty("--surface", palette.surface);
+    root.setProperty("--text", palette.text);
+    root.setProperty("--accent", palette.accent);
+    root.setProperty("--border", palette.border);
+  }
+
   function applyPaletteToFrame(key) {
     const palette = paletteState[key];
     frame.style.setProperty("--f-bg", palette.bg);
+    frame.style.setProperty("--f-sidenav", palette.sidenav);
     frame.style.setProperty("--f-surface", palette.surface);
     frame.style.setProperty("--f-text", palette.text);
     frame.style.setProperty("--f-accent", palette.accent);
     frame.style.setProperty("--f-border", palette.border);
+    if (inputs.sidenav) inputs.sidenav.value = palette.sidenav;
     if (inputs.bg) inputs.bg.value = palette.bg;
     if (inputs.surface) inputs.surface.value = palette.surface;
     if (inputs.text) inputs.text.value = palette.text;
     if (inputs.accent) inputs.accent.value = palette.accent;
+    syncPageColors(palette);
   }
 
   // ---- Appearance mode ----
@@ -594,8 +638,91 @@
     presetsEl.appendChild(btn);
   });
 
+  // ---- Favourites: individual saved colors (their own localStorage key,
+  // a settings-page convenience — not part of the applied theme). Drag any
+  // color swatch below down into the strip to save it (or tap its + badge);
+  // drag a favourite back onto any swatch to reuse it there, or tap a
+  // favourite to apply it to whichever swatch was last focused/clicked. ----
+  const FAVORITES_STORAGE_KEY = "me-planner:favoriteColors";
+  const FAVORITES_MAX = 16;
+
+  function loadFavorites() {
+    try {
+      const raw = localStorage.getItem(FAVORITES_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.filter((c) => typeof c === "string") : [];
+    } catch {
+      return [];
+    }
+  }
+  function persistFavorites() {
+    localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favorites));
+  }
+  let favorites = loadFavorites();
+
+  function addFavorite(color) {
+    if (!color || favorites.includes(color)) return;
+    favorites.push(color);
+    if (favorites.length > FAVORITES_MAX) favorites.shift();
+    persistFavorites();
+    renderFavorites();
+  }
+
+  const favoritesStrip = document.getElementById("favorites-strip");
+  const favoritesEmpty = document.getElementById("favorites-empty");
+
+  function renderFavorites() {
+    [...favoritesStrip.querySelectorAll(".favorite-chip")].forEach((el) => el.remove());
+    favoritesEmpty.style.display = favorites.length ? "none" : "block";
+    favorites.forEach((color, i) => {
+      const chip = document.createElement("div");
+      chip.className = "favorite-chip";
+      chip.style.background = color;
+      chip.title = `${color} — tap to apply, or drag onto a color above`;
+      chip.draggable = true;
+      chip.tabIndex = 0;
+      chip.setAttribute("role", "button");
+      chip.addEventListener("click", () => applyFavoriteColor(color));
+      chip.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); applyFavoriteColor(color); }
+      });
+      chip.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("application/x-color", color);
+        e.dataTransfer.effectAllowed = "copyMove";
+      });
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "remove-btn";
+      removeBtn.textContent = "×";
+      removeBtn.setAttribute("aria-label", `Remove favourite ${color}`);
+      removeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        favorites.splice(i, 1);
+        persistFavorites();
+        renderFavorites();
+      });
+      chip.appendChild(removeBtn);
+      favoritesStrip.appendChild(chip);
+    });
+  }
+
+  favoritesStrip.addEventListener("dragover", (e) => {
+    if (!e.dataTransfer.types.includes("application/x-color")) return;
+    e.preventDefault();
+    favoritesStrip.classList.add("drag-over");
+  });
+  favoritesStrip.addEventListener("dragleave", () => favoritesStrip.classList.remove("drag-over"));
+  favoritesStrip.addEventListener("drop", (e) => {
+    e.preventDefault();
+    favoritesStrip.classList.remove("drag-over");
+    const color = e.dataTransfer.getData("application/x-color");
+    if (color) addFavorite(color);
+  });
+
   // ---- Custom swatches ----
   const swatchDefs = [
+    { key: "sidenav", label: "Sidenav" },
     { key: "bg", label: "Background" },
     { key: "surface", label: "Surface" },
     { key: "text", label: "Text" },
@@ -603,10 +730,26 @@
   ];
   const swatchesEl = document.getElementById("swatches");
   const inputs = {};
+  let lastFocusedSwatchKey = "accent";
+
+  function applyFavoriteColor(color) {
+    const input = inputs[lastFocusedSwatchKey];
+    if (!input) return;
+    input.value = color;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
   swatchDefs.forEach((s) => {
     const wrap = document.createElement("div");
     wrap.className = "swatch-field";
-    wrap.innerHTML = `<input type="color" value="${paletteState.light[s.key]}" id="swatch-${s.key}"><label for="swatch-${s.key}">${s.label}</label>`;
+    wrap.draggable = true;
+    wrap.innerHTML = `
+      <input type="color" value="${paletteState.light[s.key]}" id="swatch-${s.key}">
+      <div class="swatch-label-row">
+        <label for="swatch-${s.key}">${s.label}</label>
+        <button type="button" class="swatch-add-btn" title="Save to Favourites" aria-label="Save ${s.label} to Favourites">+</button>
+      </div>
+    `;
     swatchesEl.appendChild(wrap);
     inputs[s.key] = wrap.querySelector("input");
     inputs[s.key].addEventListener("input", () => {
@@ -615,16 +758,36 @@
       frame.style.setProperty(`--f-${s.key}`, inputs[s.key].value);
       [...presetsEl.children].forEach((b) => b.setAttribute("aria-pressed", "false"));
     });
+    inputs[s.key].addEventListener("focus", () => { lastFocusedSwatchKey = s.key; });
+    wrap.addEventListener("mousedown", () => { lastFocusedSwatchKey = s.key; });
+    wrap.querySelector(".swatch-add-btn").addEventListener("click", () => addFavorite(inputs[s.key].value));
+
+    // Drag this swatch's current color down into Favourites to save it.
+    wrap.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("application/x-color", inputs[s.key].value);
+      e.dataTransfer.effectAllowed = "copyMove";
+    });
+    // Drop a favourite color back onto this swatch to apply it here.
+    wrap.addEventListener("dragover", (e) => {
+      if (!e.dataTransfer.types.includes("application/x-color")) return;
+      e.preventDefault();
+      wrap.classList.add("drag-over");
+    });
+    wrap.addEventListener("dragleave", () => wrap.classList.remove("drag-over"));
+    wrap.addEventListener("drop", (e) => {
+      e.preventDefault();
+      wrap.classList.remove("drag-over");
+      const color = e.dataTransfer.getData("application/x-color");
+      if (!color) return;
+      inputs[s.key].value = color;
+      inputs[s.key].dispatchEvent(new Event("input", { bubbles: true }));
+    });
   });
+
+  renderFavorites();
 
   // ---- Icon pack (kawaii mode) ----
   const packsEl = document.getElementById("icon-packs");
-  const tabPreviewGrid = document.getElementById("tab-preview-grid");
-  const demoTabs = [
-    { label: "Journal", fallback: "journal" },
-    { label: "Goals", fallback: "goals" },
-    { label: "Trackers", fallback: "trackers" },
-  ];
   let activePack = iconPacks[0];
 
   iconPacks.forEach((pack, i) => {
@@ -638,22 +801,9 @@
       [...packsEl.children].forEach((b) => b.setAttribute("aria-pressed", "false"));
       btn.setAttribute("aria-pressed", "true");
       activePack = pack;
-      renderTabPreviews();
     });
     packsEl.appendChild(btn);
   });
-
-  function renderTabPreviews() {
-    tabPreviewGrid.innerHTML = "";
-    demoTabs.forEach((tab, i) => {
-      const iconKey = activePack.icons ? activePack.icons[i % activePack.icons.length] : tab.fallback;
-      const card = document.createElement("div");
-      card.className = "tab-preview-card";
-      card.innerHTML = pixelIcon(iconKey) + `<span>${tab.label} — empty state</span>`;
-      tabPreviewGrid.appendChild(card);
-    });
-  }
-  renderTabPreviews();
 
   // ---- Retro switch & Super Kawaii Mode ----
   // Two mutually-exclusive "skins", but the gimmicks (starfield/paw
@@ -678,12 +828,6 @@
     }
   }
 
-  function updatePreviewPill() {
-    const label =
-      frame.dataset.kawaii === "on" ? "Super Kawaii Mode" : frame.dataset.retro === "on" ? "Retro Mode" : null;
-    document.getElementById("preview-pill").textContent = label ? `${label} — colors still editable` : "Sample UI, not a real tab";
-  }
-
   function setRetro(on) {
     retroSwitch.setAttribute("aria-checked", String(on));
     frame.dataset.retro = on ? "on" : "off";
@@ -695,7 +839,8 @@
       applyPaletteToFrame(currentPaletteKey());
     }
     updateGimmicksVisibility();
-    updatePreviewPill();
+    renderMascotBuddy();
+    renderTopbarIcon();
   }
   retroSwitch.addEventListener("click", () => setRetro(retroSwitch.getAttribute("aria-checked") !== "true"));
   retroSwitch.addEventListener("keydown", (e) => {
@@ -711,9 +856,17 @@
       // Deliberately skips applyPaletteToFrame() — Kawaii's colors come
       // from its own CSS tokens, not the palette-swatch system yet, and
       // applying a palette here would overwrite them with inline styles.
+      syncPageColors(KAWAII_PAGE_COLORS);
+    } else {
+      // Turning kawaii off — the frame's own kawaii colors fall away on
+      // their own (CSS attribute selector stops matching), but the outer
+      // page's colors were set directly via JS and need an explicit
+      // resync back to whatever palette is currently active.
+      applyPaletteToFrame(currentPaletteKey());
     }
     updateGimmicksVisibility();
-    updatePreviewPill();
+    renderMascotBuddy();
+    renderTopbarIcon();
   }
   kawaiiSwitch.addEventListener("click", () => setKawaii(kawaiiSwitch.getAttribute("aria-checked") !== "true"));
   kawaiiSwitch.addEventListener("keydown", (e) => {
@@ -825,6 +978,22 @@
       frame.dataset.kawaii === "on" ? pixelIconLayers(kawaiiBunnyLayers("var(--f-accent)")) : pixelIcon("bunny");
   }
   renderMascotBuddy();
+
+  // Always-present icon next to the brand mark, replacing the old three
+  // window-chrome dots: a small static bunny in retro/kawaii mode (matches
+  // the real app's IdleBunny), an 8-bit alien in normal mode. Static —
+  // no bob animation, unlike the wandering mascot-buddy preview.
+  const topbarBunny = document.getElementById("topbar-bunny");
+  function renderTopbarIcon() {
+    if (frame.dataset.kawaii === "on") {
+      topbarBunny.innerHTML = pixelIconLayers(kawaiiBunnyLayers("var(--f-accent)"));
+    } else if (frame.dataset.retro === "on") {
+      topbarBunny.innerHTML = pixelIcon("bunny");
+    } else {
+      topbarBunny.innerHTML = pixelIcon("alien");
+    }
+  }
+  renderTopbarIcon();
   const gimmickMascotSwitch = document.getElementById("gimmick-mascot-switch");
   function setGimmickMascot(on) {
     gimmickMascotSwitch.setAttribute("aria-checked", String(on));
@@ -846,7 +1015,6 @@
     if (packIndex >= 0) {
       [...packsEl.children].forEach((b, i) => b.setAttribute("aria-pressed", i === packIndex ? "true" : "false"));
       activePack = iconPacks[packIndex];
-      renderTabPreviews();
     }
 
     setRetro(savedTheme.retro);

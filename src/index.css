@@ -3,9 +3,10 @@
 @tailwind utilities;
 
 /* Base tokens are set at runtime by src/lib/theme/apply-theme.ts; derived
-   tokens live here so ThemeSettings only needs to store the 5 base colors. */
+   tokens live here so ThemeSettings only needs to store the 6 base colors. */
 :root {
   --color-canvas: #fbf8f6;
+  --color-sidenav: #fbf8f6;
   --color-surface: #ffffff;
   --color-ink: #362e38;
   --color-accent: #8b6ba8;
@@ -63,6 +64,12 @@
 :root[data-gimmick-starfield="true"] [data-theme-surface="chrome"] {
   background: color-mix(in srgb, var(--color-surface) 90%, transparent);
 }
+:root[data-gimmick-starfield="true"] [data-theme-surface="chrome"].bg-sidenav {
+  background: color-mix(in srgb, var(--color-sidenav) 90%, transparent);
+}
+:root[data-gimmick-starfield="true"] .planner-checkerboard {
+  background-color: transparent;
+}
 
 /* Subtle checkerboard texture behind the Planner page only (not a
    theme-wide background — scoped to its own class, applied directly on
@@ -78,9 +85,14 @@
   background-position: 0 0, 0 12px, 12px -12px, -12px 0px;
 }
 
-.kawaii-dots { display: inline-flex; gap: 5px; margin-right: 0.3rem; }
-.kawaii-dots span {
-  width: 9px; height: 9px; border-radius: 50%; background: #fff; border: 1.5px solid #7fa3e0;
+/* Journal's Notes field: a faint grid-paper texture instead of a boxed
+   input, so it reads as part of the page rather than a form field. */
+.journal-notes-paper {
+  background-color: transparent;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-border) 15%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-border) 15%, transparent) 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
 .kawaii-stickers span {
@@ -112,6 +124,39 @@
    MOOD_DISPLAY_MIN_MS in pet-bunny.tsx); "forwards" holds the faded-out end
    state instead of snapping back to visible if the JS timeout runs longer. */
 .gimmick-mood-pop { animation: mood-pop 3s ease-in-out 1 forwards; }
+/* Speech-bubble tail pointing at the bunny, built from two stacked CSS
+   triangles (pink slightly bigger, white smaller on top) so the border only
+   shows as a thin pink outline around the tail, matching the bubble's own
+   border. */
+.gimmick-mood-pop::before,
+.gimmick-mood-pop::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  border-style: solid;
+  border-color: transparent transparent transparent #ff6fa5;
+}
+.gimmick-mood-pop::before {
+  right: -11px;
+  transform: translateY(-50%);
+  border-width: 8px 0 8px 11px;
+}
+.gimmick-mood-pop::after {
+  right: -7px;
+  transform: translateY(-50%);
+  border-width: 6px 0 6px 8px;
+  border-left-color: #ffffff;
+}
+
+@keyframes heart-float {
+  0% { transform: translate(-50%, 0) scale(0.7); opacity: 0; }
+  15% { transform: translate(-50%, -6px) scale(1.05); opacity: 1; }
+  100% { transform: translate(-50%, -34px) scale(0.9); opacity: 0; }
+}
+/* Duration matches HEART_FLOAT_MS in pet-bunny.tsx, same "forwards" reasoning
+   as .gimmick-mood-pop above. */
+.gimmick-heart-float { animation: heart-float 1.4s ease-out forwards; }
+
 @media (prefers-reduced-motion: reduce) {
-  .gimmick-idle-bob, .gimmick-hop-arc, .gimmick-mood-pop { animation: none; }
+  .gimmick-idle-bob, .gimmick-hop-arc, .gimmick-mood-pop, .gimmick-heart-float { animation: none; }
 }
