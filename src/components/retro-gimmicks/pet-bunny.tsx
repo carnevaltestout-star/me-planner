@@ -17,8 +17,8 @@ const ICON_SIZE_PX = 32;
 const EDGE_MARGIN_PX = 16;
 const MOOD_MIN_MS = 7000;
 const MOOD_MAX_MS = 12000;
-const MOOD_DISPLAY_MIN_MS = 3000;
-const MOOD_DISPLAY_MAX_MS = 5000;
+const MOOD_DISPLAY_MIN_MS = 4000;
+const MOOD_DISPLAY_MAX_MS = 6000;
 // Clicking the bunny itself (not just anywhere on the page) 3-4 times within
 // this window triggers heart eyes; a 5th click in the same window swaps that
 // for a "please focus" nudge instead — a light-touch nag against using the
@@ -59,7 +59,11 @@ const MOODS = [
   "Replace \"What if\'s!?\" with \"Let\'s find out!\"",
   "Anxiety always wins a debate",
   "Choose: Pain of discipline or regret?!",
-  "Notice, don\t react to all thoughts, dumbass"
+  "Notice, don\t react to all thoughts, dumbass",
+  "Kiss yourself",
+  "I know it hurts a lot",
+  "Slow down, to regain control",
+  "Always stay critical, question and debate!;3"
 ];
 
 function homePosition() {

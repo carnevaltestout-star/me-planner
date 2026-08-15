@@ -158,7 +158,12 @@ function BrandMark() {
 
 export default function AppShell() {
   const location = useLocation();
-  const currentLabel = navItems.find((item) => item.path === location.pathname)?.label ?? "";
+  // Matches nested routes too (e.g. /book-reviews/:bookId under /book-reviews)
+  // so the topbar title doesn't go blank on a tab's detail/edit sub-pages.
+  const currentLabel =
+    navItems.find(
+      (item) => location.pathname === item.path || location.pathname.startsWith(`${item.path}/`),
+    )?.label ?? "";
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
