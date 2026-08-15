@@ -393,6 +393,7 @@
 
 <script>
   const icons8 = {
+    overview:["01110111","01110111","01110111","00000000","01110111","01110111","01110111","00000000"],
     planner: ["11111111","10000001","10101101","10000001","10101101","10000001","10000001","11111111"],
     journal: ["01100110","11111111","11111111","11111111","01111110","00111100","00011000","00000000"],
     trackers:["00000000","00000000","00000011","00000011","00001111","00001111","01111111","01111111"],
@@ -460,15 +461,16 @@
 
   // Same 11 tabs, same order, as the real app's src/routes/nav-items.ts.
   const NAV_TABS = [
+    ["overview", "Overview", "/overview"],
     ["planner", "Planner", "/planner"],
     ["journal", "Journal", "/journal"],
     ["trackers", "Trackers", "/trackers"],
+    ["statistics", "Statistics", "/statistics"],
     ["principles", "Principles", "/principles"],
     ["vocabulary", "Vocabulary", "/vocabulary"],
     ["attachments", "Attachments", "/attachments"],
     ["goals", "Goals", "/goals"],
     ["bookReviews", "Book Reviews", "/book-reviews"],
-    ["statistics", "Statistics", "/statistics"],
     ["finance", "Finance Overview", "/finance-overview"],
     ["learning", "Learning", "/learning"],
   ];
@@ -476,7 +478,7 @@
   function goToTab(route) {
     window.location.href = "/#" + route;
   }
-  document.getElementById("brand-btn").addEventListener("click", () => goToTab("/planner"));
+  document.getElementById("brand-btn").addEventListener("click", () => goToTab("/overview"));
 
   const iconRow = document.getElementById("icon-row");
   NAV_TABS.forEach(([key, label, route], i) => {

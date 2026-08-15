@@ -54,6 +54,13 @@
   border-radius: 999px;
   padding: 4px;
 }
+/* Trackers grid/column divider lines pick up the current theme's accent
+   color instead of the plain border tone, in every skin — scoped to
+   .trackers-grid so it doesn't touch border-border usage anywhere else in
+   the app. */
+.trackers-grid .border-border {
+  border-color: var(--color-accent);
+}
 
 /* Lets the starfield gimmick show through — main goes fully transparent so
    the night sky isn't washed out; chrome (nav/topbar) stays mostly solid

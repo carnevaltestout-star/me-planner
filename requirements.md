@@ -46,6 +46,13 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
 
 ## Tabs / Features
 
+### 0. Overview
+- Sits above Planner in the sidenav (Planner stays the default/home route on launch).
+- Future: a card-grid view of every tab in one place, each card previewing that tab's own data
+  (upcoming events, latest journal entry, etc.).
+- Current state: cards exist and are clickable (jump straight to that tab), but are intentionally
+  content-empty — no data preview yet. Icon: a 2x2 grid (8-bit pixel version in retro/kawaii mode).
+
 ### 1. Planner (default/home tab)
 - Default view: full week, full day, extended hours (not just 9-5)
 - ADHD-friendly: minimal friction to add/edit tasks, visual time blocking preferred over lists
@@ -285,3 +292,12 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
   in the original mockup (a trash icon in the header, with a confirm dialog) since the mockup
   never had an explicit way to clear an entry, only auto-delete-when-empty. Theming is inherited
   automatically from the app's real CSS vars — no iframe theme-sync code needed anymore.
+- **[Overview tab added, Statistics reordered, 2026-08-15]** New **Overview** tab added above
+  Planner in the sidenav (Planner remains the default/home route) — a real route
+  (`/overview`, `src/features/overview/`) rendering a clickable card grid, one card per other tab,
+  same spec-order-vs-nav-order divergence already established for Trackers: **Statistics now sits
+  directly under Trackers in the sidenav**, ahead of its listed position in the Tabs/Features
+  section above, which is left unrenumbered. Cards are intentionally content-empty for now
+  (icon + label, clickable) — this is the eventual home for a full card-preview dashboard, built
+  directly for real rather than mockup-first since an empty-card grid is already effectively
+  wireframe-fidelity.

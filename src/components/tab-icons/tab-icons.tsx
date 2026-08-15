@@ -12,6 +12,17 @@ function baseProps(props: SVGProps<SVGSVGElement>): SVGProps<SVGSVGElement> {
   };
 }
 
+export function OverviewIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <rect x="3.5" y="3.5" width="7.8" height="7.8" rx="1.8" />
+      <rect x="12.7" y="3.5" width="7.8" height="7.8" rx="1.8" />
+      <rect x="3.5" y="12.7" width="7.8" height="7.8" rx="1.8" />
+      <rect x="12.7" y="12.7" width="7.8" height="7.8" rx="1.8" />
+    </svg>
+  );
+}
+
 export function PlannerIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...baseProps(props)}>

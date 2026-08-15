@@ -51,7 +51,15 @@ const MOODS = [
   "keep walking <3",
   "we all die eventually, just do it",
   "no risk no champagne babeeey",
-  "be awkward with confidence"
+  "be awkward with confidence",
+  "Eat something that isn't a snack",
+  "Stop refreshing your misery",
+  "Be consistent and sometimes impressive",
+  "Feelings are signs, not instructions.",
+  "Replace \"What if\'s!?\" with \"Let\'s find out!\"",
+  "Anxiety always wins a debate",
+  "Choose: Pain of discipline or regret?!",
+  "Notice, don\t react to all thoughts, dumbass"
 ];
 
 function homePosition() {
