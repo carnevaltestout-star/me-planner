@@ -13,6 +13,7 @@ export interface BookReview {
   review: string;
   tropes: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export function emptyBookReview(id: string): BookReview {
@@ -31,6 +32,7 @@ export function emptyBookReview(id: string): BookReview {
     review: "",
     tropes: "",
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 }
 

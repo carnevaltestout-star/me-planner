@@ -21,6 +21,7 @@ function seedReviews(): Record<string, BookReview> {
       review: "Dense and repetitive in places, but the core argument still holds up as the opening move of an entire field. Worth reading slowly.",
       tropes: "Unreliable narrator (himself), the symbolic object, the talking cure",
       createdAt: "2026-04-12T09:00:00.000Z",
+      updatedAt: "2026-04-12T09:00:00.000Z",
     },
     {
       ...emptyBookReview("seed-jung"),
@@ -36,6 +37,7 @@ function seedReviews(): Record<string, BookReview> {
       review: "The most accessible entry point into Jung. The illustrated case studies from his collaborators make the abstract ideas click.",
       tropes: "The shadow, the wise old man, the hero's descent",
       createdAt: "2026-05-29T09:00:00.000Z",
+      updatedAt: "2026-05-29T09:00:00.000Z",
     },
     {
       ...emptyBookReview("seed-frankl"),
@@ -51,6 +53,7 @@ function seedReviews(): Record<string, BookReview> {
       review: "Short, devastating, and somehow not bleak. Read it in a few sittings and thought about it for weeks after.",
       tropes: "Meaning as the antidote to suffering, the found purpose",
       createdAt: "2026-06-15T09:00:00.000Z",
+      updatedAt: "2026-06-15T09:00:00.000Z",
     },
     {
       ...emptyBookReview("seed-adler"),
@@ -66,13 +69,18 @@ function seedReviews(): Record<string, BookReview> {
       review: "Still working through this one on audio during commutes. Solid so far, if a bit lecture-y in tone.",
       tropes: "The overcompensating underdog, birth order as destiny",
       createdAt: "2026-07-01T09:00:00.000Z",
+      updatedAt: "2026-07-01T09:00:00.000Z",
     },
   ];
   return Object.fromEntries(seed.map((b) => [b.id, b]));
 }
 
 function normalize(id: string, raw: Partial<BookReview>): BookReview {
-  return { ...emptyBookReview(id), ...raw, id };
+  const base = emptyBookReview(id);
+  // Records saved before updatedAt existed fall back to their own
+  // createdAt, not "now" — otherwise every pre-existing review would look
+  // like it was just edited the moment this field was introduced.
+  return { ...base, ...raw, id, updatedAt: raw.updatedAt ?? raw.createdAt ?? base.createdAt };
 }
 
 export function loadBookReviews(): Record<string, BookReview> {

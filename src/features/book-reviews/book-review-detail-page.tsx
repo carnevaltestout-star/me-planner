@@ -37,12 +37,14 @@ export default function BookReviewDetailPage() {
   }
 
   function persist(next: BookReview) {
+    const stamped = { ...next, updatedAt: new Date().toISOString() };
     const updated = { ...reviews };
-    if (isBookReviewEmpty(next)) {
+    if (isBookReviewEmpty(stamped)) {
       delete updated[id];
     } else {
-      updated[id] = next;
+      updated[id] = stamped;
     }
+    setBook(stamped);
     setReviews(updated);
     saveBookReviews(updated);
   }
