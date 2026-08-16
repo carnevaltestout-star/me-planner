@@ -22,7 +22,9 @@ function getDays(view: PlannerView, anchor: Date): Date[] {
 }
 
 export default function PlannerPage() {
-  const [view, setView] = useState<PlannerView>("week");
+  // Week view is cramped on a phone-width screen, so mobile starts on Day
+  // instead — matches the app's usual md: (768px) mobile/desktop split.
+  const [view, setView] = useState<PlannerView>(() => (window.innerWidth < 768 ? "day" : "week"));
   const [anchor, setAnchor] = useState(() => new Date());
   const [events, setEvents] = useState<PlannerEvent[]>(() => loadEvents());
   const [modal, setModal] = useState<ModalState | null>(null);

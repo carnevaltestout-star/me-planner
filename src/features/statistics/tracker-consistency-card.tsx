@@ -1,19 +1,20 @@
 import { useMemo } from "react";
 import { computeHabitActivitySeries } from "@/lib/statistics/tracker-stats";
-import type { ChartType, TimeRange } from "@/lib/statistics/stat-types";
+import type { TimeRange } from "@/lib/statistics/stat-types";
 import { TrackersIcon } from "@/components/tab-icons/tab-icons";
-import { AxisCaption, StatCardShell, StatEmpty, resolveChartType, xAxisLabelFor } from "./stat-card-shell";
-import { StatMultiBarChart, StatMultiLineChart } from "./stat-charts";
+import { StatCardShell, StatEmpty, xAxisLabelFor } from "./stat-card-shell";
+import HabitHeatmap from "./habit-heatmap";
 
 interface TrackerConsistencyCardProps {
   range: TimeRange;
-  chartType: ChartType;
   today: Date;
 }
 
-export default function TrackerConsistencyCard({ range, chartType, today }: TrackerConsistencyCardProps) {
+// A grid (habit × time bucket) rather than overlapping lines/bars — reads
+// clearly even with several habits or a month's worth of days, and mirrors
+// the Trackers tab's own grid-of-cells visual language.
+export default function TrackerConsistencyCard({ range, today }: TrackerConsistencyCardProps) {
   const activity = useMemo(() => computeHabitActivitySeries(range, today), [range, today]);
-  const resolved = resolveChartType(chartType, ["line", "bar"]);
 
   return (
     <StatCardShell icon={TrackersIcon} iconPath="/trackers" title="Habit Consistency">
@@ -21,13 +22,9 @@ export default function TrackerConsistencyCard({ range, chartType, today }: Trac
         <StatEmpty message="Add a Done or Amount tracker to see consistency here." />
       ) : (
         <>
-          <div className="h-36">
-            {resolved === "bar" ? (
-              <StatMultiBarChart data={activity.points} series={activity.series} />
-            ) : (
-              <StatMultiLineChart data={activity.points} series={activity.series} />
-            )}
-          </div>
+          <p className="m-0 text-[0.65rem] text-ink-muted">Y: Habit</p>
+          <HabitHeatmap points={activity.points} series={activity.series} />
+          <p className="m-0 text-right text-[0.65rem] text-ink-muted">X: {xAxisLabelFor(range)}</p>
           <ul className="m-0 flex flex-col gap-1 p-0 text-xs">
             {activity.overall.map((i) => (
               <li key={i.tracker.id} className="flex items-center gap-2">
@@ -37,7 +34,6 @@ export default function TrackerConsistencyCard({ range, chartType, today }: Trac
               </li>
             ))}
           </ul>
-          <AxisCaption x={xAxisLabelFor(range)} y="Completion rate (%)" />
         </>
       )}
     </StatCardShell>

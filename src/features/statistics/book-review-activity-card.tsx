@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { computeBookReviewStats } from "@/lib/statistics/book-review-stats";
 import type { ChartType, TimeRange } from "@/lib/statistics/stat-types";
 import { BookReviewsIcon } from "@/components/tab-icons/tab-icons";
-import { AxisCaption, MiniStat, StatCardShell, StatEmpty, rangeNoun, resolveChartType, xAxisLabelFor } from "./stat-card-shell";
+import { ChartFrame, MiniStat, StatCardShell, StatEmpty, rangeNoun, resolveChartType, xAxisLabelFor } from "./stat-card-shell";
 import { StatBarChart, StatLineChart } from "./stat-charts";
 
 interface BookReviewActivityCardProps {
@@ -29,10 +29,9 @@ export default function BookReviewActivityCard({ range, chartType, today }: Book
             <MiniStat label="Edited" value={stats.editedInRange} />
             <MiniStat label="Avg rating" value={stats.avgRating !== null ? `${stats.avgRating}★` : "—"} />
           </div>
-          <div className="h-32">
+          <ChartFrame x={xAxisLabelFor(range)} y="Books added" height="h-32">
             {resolved === "line" ? <StatLineChart data={stats.series} /> : <StatBarChart data={stats.series} />}
-          </div>
-          <AxisCaption x={xAxisLabelFor(range)} y="Books added" />
+          </ChartFrame>
         </>
       )}
     </StatCardShell>

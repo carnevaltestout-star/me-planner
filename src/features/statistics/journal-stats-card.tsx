@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { computeJournalStats } from "@/lib/statistics/journal-stats";
 import type { ChartType, TimeRange } from "@/lib/statistics/stat-types";
 import { JournalIcon } from "@/components/tab-icons/tab-icons";
-import { AxisCaption, MiniStat, StatCardShell, StatEmpty, rangeNoun, resolveChartType, xAxisLabelFor } from "./stat-card-shell";
+import { ChartFrame, MiniStat, StatCardShell, StatEmpty, rangeNoun, resolveChartType, xAxisLabelFor } from "./stat-card-shell";
 import { StatBarChart, StatLineChart } from "./stat-charts";
 
 interface JournalStatsCardProps {
@@ -31,10 +31,9 @@ export default function JournalStatsCard({ range, chartType, today }: JournalSta
             <MiniStat label="Avg / week" value={stats.avgPerWeek} />
             <MiniStat label="Most active day" value={stats.mostActiveDay ?? "—"} />
           </div>
-          <div className="h-36">
+          <ChartFrame x={xAxisLabelFor(range)} y="Journal entries">
             {resolved === "line" ? <StatLineChart data={stats.series} /> : <StatBarChart data={stats.series} />}
-          </div>
-          <AxisCaption x={xAxisLabelFor(range)} y="Journal entries" />
+          </ChartFrame>
         </>
       )}
     </StatCardShell>

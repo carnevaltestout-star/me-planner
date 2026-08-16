@@ -70,7 +70,7 @@ export default function StatisticsPage() {
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         <ActivityOverviewCard range={range} chartType={chartType} today={today} />
         <JournalStatsCard range={range} chartType={chartType} today={today} />
-        <TrackerConsistencyCard range={range} chartType={chartType} today={today} />
+        <TrackerConsistencyCard range={range} today={today} />
         <TrackerMoodCard range={range} chartType={chartType} today={today} />
         <TrackerFrequencyCard range={range} chartType={chartType} today={today} />
         <BookReviewActivityCard range={range} chartType={chartType} today={today} />

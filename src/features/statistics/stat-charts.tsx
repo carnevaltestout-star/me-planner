@@ -1,6 +1,6 @@
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useCssVar } from "@/lib/statistics/use-css-var";
-import type { DistributionSlice, MultiSeriesPoint, SeriesMeta, SeriesPoint } from "@/lib/statistics/stat-types";
+import type { DistributionSlice, SeriesPoint } from "@/lib/statistics/stat-types";
 
 function useChartTheme() {
   return {
@@ -56,56 +56,6 @@ export function StatLineChart({ data, color }: SeriesChartProps) {
           isAnimationActive={false}
         />
       </LineChart>
-    </ResponsiveContainer>
-  );
-}
-
-interface MultiSeriesChartProps {
-  data: MultiSeriesPoint[];
-  series: SeriesMeta[];
-}
-
-export function StatMultiLineChart({ data, series }: MultiSeriesChartProps) {
-  const { inkMuted, border, surface, ink } = useChartTheme();
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={data} margin={{ top: 4, right: 8, left: -22, bottom: 0 }}>
-        <CartesianGrid stroke={border} strokeDasharray="3 3" vertical={false} />
-        <XAxis dataKey="label" tick={tickStyle(inkMuted)} axisLine={{ stroke: border }} tickLine={false} interval="preserveStartEnd" />
-        <YAxis tick={tickStyle(inkMuted)} axisLine={{ stroke: border }} tickLine={false} width={30} domain={[0, 100]} allowDecimals={false} />
-        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, borderColor: border, background: surface, color: ink }} />
-        {series.map((s) => (
-          <Line
-            key={s.key}
-            type="monotone"
-            dataKey={s.key}
-            name={s.name}
-            stroke={s.color}
-            strokeWidth={2}
-            dot={{ r: 2 }}
-            activeDot={{ r: 4 }}
-            connectNulls={false}
-            isAnimationActive={false}
-          />
-        ))}
-      </LineChart>
-    </ResponsiveContainer>
-  );
-}
-
-export function StatMultiBarChart({ data, series }: MultiSeriesChartProps) {
-  const { inkMuted, border, surface, ink } = useChartTheme();
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
-        <CartesianGrid stroke={border} strokeDasharray="3 3" vertical={false} />
-        <XAxis dataKey="label" tick={tickStyle(inkMuted)} axisLine={{ stroke: border }} tickLine={false} interval="preserveStartEnd" />
-        <YAxis tick={tickStyle(inkMuted)} axisLine={{ stroke: border }} tickLine={false} width={30} domain={[0, 100]} allowDecimals={false} />
-        <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, borderColor: border, background: surface, color: ink }} />
-        {series.map((s) => (
-          <Bar key={s.key} dataKey={s.key} name={s.name} fill={s.color} radius={[2, 2, 0, 0]} isAnimationActive={false} />
-        ))}
-      </BarChart>
     </ResponsiveContainer>
   );
 }

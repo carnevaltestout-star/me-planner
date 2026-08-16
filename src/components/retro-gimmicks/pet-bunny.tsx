@@ -49,6 +49,7 @@ const MOODS = [
   "F*ck perfect, show up",
   "You're (probably) not under surveillance, relax",
   "keep walking <3",
+  "What u fear controls u",
   "we all die eventually, just do it",
   "no risk no champagne babeeey",
   "be awkward with confidence",
@@ -63,7 +64,10 @@ const MOODS = [
   "Kiss yourself",
   "I know it hurts a lot",
   "Slow down, to regain control",
-  "Always stay critical, question and debate!;3"
+  "Always stay critical, question and debate! ;3",
+  "Do what u fear",
+  "Touch some grass",
+  "bounce back and learn :3"
 ];
 
 function homePosition() {

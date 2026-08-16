@@ -55,11 +55,16 @@ export function StatEmpty({ message = "Not enough data yet." }: { message?: stri
   );
 }
 
-export function AxisCaption({ x, y }: { x: string; y: string }) {
+// Y-axis description sits above the chart (reading top-to-bottom, same
+// direction the axis itself runs); X-axis description sits below it,
+// right-aligned toward where the axis actually ends.
+export function ChartFrame({ x, y, height = "h-36", children }: { x: string; y: string; height?: string; children: ReactNode }) {
   return (
-    <p className="m-0 text-[0.65rem] text-ink-muted">
-      X: {x} · Y: {y}
-    </p>
+    <div className="flex flex-col gap-1">
+      <p className="m-0 text-[0.65rem] text-ink-muted">Y: {y}</p>
+      <div className={height}>{children}</div>
+      <p className="m-0 text-right text-[0.65rem] text-ink-muted">X: {x}</p>
+    </div>
   );
 }
 

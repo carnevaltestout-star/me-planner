@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { computeTrackerFrequencySeries, hasAnyTrackerEntries } from "@/lib/statistics/tracker-stats";
 import type { ChartType, TimeRange } from "@/lib/statistics/stat-types";
 import { TrackersIcon } from "@/components/tab-icons/tab-icons";
-import { AxisCaption, StatCardShell, StatEmpty, resolveChartType, xAxisLabelFor } from "./stat-card-shell";
+import { ChartFrame, StatCardShell, StatEmpty, resolveChartType, xAxisLabelFor } from "./stat-card-shell";
 import { StatBarChart, StatLineChart } from "./stat-charts";
 
 interface TrackerFrequencyCardProps {
@@ -22,10 +22,9 @@ export default function TrackerFrequencyCard({ range, chartType, today }: Tracke
         <StatEmpty message="Log a tracker entry to see frequency here." />
       ) : (
         <>
-          <div className="h-36">
+          <ChartFrame x={xAxisLabelFor(range)} y="Tracker entries">
             {resolved === "line" ? <StatLineChart data={series} /> : <StatBarChart data={series} />}
-          </div>
-          <AxisCaption x={xAxisLabelFor(range)} y="Tracker entries" />
+          </ChartFrame>
         </>
       )}
     </StatCardShell>

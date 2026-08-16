@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { computeActivityStats } from "@/lib/statistics/activity-stats";
 import type { ChartType, TimeRange } from "@/lib/statistics/stat-types";
 import { StatisticsIcon } from "@/components/tab-icons/tab-icons";
-import { AxisCaption, MiniStat, StatCardShell, StatEmpty, resolveChartType, xAxisLabelFor } from "./stat-card-shell";
+import { ChartFrame, MiniStat, StatCardShell, StatEmpty, resolveChartType, xAxisLabelFor } from "./stat-card-shell";
 import { StatBarChart, StatLineChart } from "./stat-charts";
 
 interface ActivityOverviewCardProps {
@@ -27,10 +27,9 @@ export default function ActivityOverviewCard({ range, chartType, today }: Activi
             <MiniStat label="Most active" value={stats.mostActiveSection ?? "—"} />
             <MiniStat label="Current streak" value={`${stats.currentStreakDays}d`} />
           </div>
-          <div className="h-40">
+          <ChartFrame x={xAxisLabelFor(range)} y="Activities" height="h-40">
             {resolved === "line" ? <StatLineChart data={stats.series} /> : <StatBarChart data={stats.series} />}
-          </div>
-          <AxisCaption x={xAxisLabelFor(range)} y="Activities" />
+          </ChartFrame>
         </>
       )}
     </StatCardShell>
