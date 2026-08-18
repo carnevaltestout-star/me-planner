@@ -98,6 +98,38 @@ export function HeartCheckIcon({ borderColor, fillColor, ...props }: SVGProps<SV
   );
 }
 
+function ImportImageLineIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <rect x="3" y="4.5" width="18" height="14" rx="2" />
+      <circle cx="8.3" cy="9.3" r="1.5" />
+      <path d="M3.5 15.3 8.5 10.8l3.4 3.2 3-2.5 5.6 4.6" />
+    </svg>
+  );
+}
+
+const IMPORT_IMAGE_BITMAP = [
+  "11111111",
+  "10000001",
+  "10010001",
+  "10000001",
+  "10001001",
+  "10010101",
+  "10101101",
+  "11111111",
+];
+
+// Picture-with-mountain glyph for the "Import from image" action — same
+// shape family as CoverGlyphIcon in Book Reviews, just its own bitmap since
+// icons are kept per-feature rather than cross-imported.
+export function ImportImageIcon(props: SVGProps<SVGSVGElement>) {
+  const theme = useTheme();
+  if (theme.retro || theme.kawaii) {
+    return pixelGlyph(IMPORT_IMAGE_BITMAP, { ...props, style: { imageRendering: "pixelated", ...props.style } });
+  }
+  return <ImportImageLineIcon {...props} />;
+}
+
 export function CheckArchiveIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...baseProps(props)}>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { DndContext, closestCenter, useSensor, useSensors, MouseSensor, TouchSensor, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { dateKey, isDateWithinPeriod, periodLabel, periodShortLabel, representativeDate, shiftPeriod } from "@/lib/goals/goal-todo-dates";
@@ -18,7 +18,8 @@ import SortableGoalTodoCard from "./sortable-goal-todo-card";
 import GoalTodoForm from "./goal-todo-form";
 import GoalTodoDeleteConfirm from "./goal-todo-delete-confirm";
 import DoneListView from "./done-list-view";
-import { CheckArchiveIcon, SearchIcon } from "./goal-todo-icons";
+import ImportTodosModal from "./import-todos-modal";
+import { CheckArchiveIcon, ImportImageIcon, SearchIcon } from "./goal-todo-icons";
 
 export default function GoalsPage() {
   const today = useMemo(() => new Date(), []);
@@ -30,10 +31,30 @@ export default function GoalsPage() {
   const [viewingDone, setViewingDone] = useState(false);
   const [formItem, setFormItem] = useState<GoalTodoItem | null>(null);
   const [pendingDelete, setPendingDelete] = useState<GoalTodoItem | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [justImportedCount, setJustImportedCount] = useState<number | null>(null);
+  const importPulseRef = useRef<number>();
 
   function persist(next: Record<string, GoalTodoItem>) {
     setItems(next);
     saveItems(next);
+  }
+
+  // Each imported line becomes its own plain to-do, filed under today (the
+  // spec's "today's to-do section") — same emptyItem() base every other
+  // to-do goes through, so it behaves identically to one added by hand.
+  function handleImportConfirm(titles: string[]) {
+    const todayKey = dateKey(today);
+    const updated = { ...items };
+    titles.forEach((title, i) => {
+      const id = crypto.randomUUID();
+      updated[id] = { ...emptyItem(id, "todo", todayKey), title, order: Date.now() + i };
+    });
+    persist(updated);
+    setImportOpen(false);
+    window.clearTimeout(importPulseRef.current);
+    setJustImportedCount(titles.length);
+    importPulseRef.current = window.setTimeout(() => setJustImportedCount(null), 2600);
   }
 
   const allOfKind = useMemo(() => Object.values(items).filter((i) => i.kind === activeKind), [items, activeKind]);
@@ -266,13 +287,33 @@ export default function GoalsPage() {
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={openCreate}
-            className="flex-shrink-0 self-start rounded-theme border border-accent bg-accent px-2 py-1 text-xs font-semibold text-accent-contrast hover:brightness-105"
-          >
-            + New {activeKind === "goal" ? "goal" : "to-do"}
-          </button>
+          <div className="relative flex flex-shrink-0 flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={openCreate}
+              className="rounded-theme border border-accent bg-accent px-2 py-1 text-xs font-semibold text-accent-contrast hover:brightness-105"
+            >
+              + New {activeKind === "goal" ? "goal" : "to-do"}
+            </button>
+            {activeKind === "todo" && (
+              <button
+                type="button"
+                onClick={() => setImportOpen(true)}
+                className="flex items-center gap-1.5 rounded-theme border border-border bg-surface px-2 py-1 text-xs font-semibold text-ink shadow-theme hover:bg-surface-alt"
+              >
+                <ImportImageIcon className="h-3.5 w-3.5" style={{ color: "var(--color-accent)" }} />
+                Import
+              </button>
+            )}
+            <span
+              aria-live="polite"
+              className={`text-xs font-medium text-ink-muted transition-opacity duration-300 ${
+                justImportedCount ? "opacity-100" : "pointer-events-none opacity-0"
+              }`}
+            >
+              Added {justImportedCount ?? 0} to-do{justImportedCount === 1 ? "" : "s"}
+            </span>
+          </div>
         </>
       )}
 
@@ -339,6 +380,8 @@ export default function GoalsPage() {
           onConfirm={handleDelete}
         />
       )}
+
+      {importOpen && <ImportTodosModal onClose={() => setImportOpen(false)} onConfirm={handleImportConfirm} />}
     </div>
   );
 }
