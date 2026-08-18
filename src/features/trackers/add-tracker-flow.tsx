@@ -68,7 +68,7 @@ export default function AddTrackerFlow({ onClose, onCreate, periodAlreadyAdded }
                 : "hover:border-accent hover:bg-surface-alt"
             }`}
           >
-            <TrackerIcon icon="heart" className="h-6 w-6" style={{ color: periodAlreadyAdded ? undefined : "#c0392b" }} />
+            <TrackerIcon icon="drop" className="h-6 w-6" style={{ color: periodAlreadyAdded ? undefined : "#c0392b" }} />
             <span className="text-sm font-semibold text-ink">Period</span>
           </button>
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { dateKey } from "@/lib/trackers/tracker-dates";
 import { TRACKER_COLORS, TRACKER_ICON_KEYS, type Tracker, type TrackerIconKey } from "@/lib/trackers/tracker-types";
 import TrackerIcon from "./tracker-icon";
 import { TrashIcon } from "./tracker-line-icons";
@@ -18,13 +19,29 @@ function canChangeKind(kind: Tracker["kind"]): kind is "boolean" | "amount" {
   return kind === "boolean" || kind === "amount";
 }
 
+function toDateInput(d: Date): string {
+  return dateKey(d);
+}
+
 export default function EditTrackerModal({ tracker, onClose, onSave, onDelete }: EditTrackerModalProps) {
   const [name, setName] = useState(tracker.name);
   const [icon, setIcon] = useState<TrackerIconKey>(tracker.icon);
   const [color, setColor] = useState(tracker.color);
   const [kind, setKind] = useState<"boolean" | "amount">(canChangeKind(tracker.kind) ? tracker.kind : "boolean");
+  const [periodLength, setPeriodLength] = useState(tracker.kind === "period" ? tracker.periodLengthDays : 5);
+  const [cycleLength, setCycleLength] = useState(tracker.kind === "period" ? tracker.cycleLengthDays : 28);
+  const [startDate, setStartDate] = useState(tracker.kind === "period" ? tracker.lastPeriodStart : toDateInput(new Date()));
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState("");
+
+  const nextPeriodPreview =
+    tracker.kind === "period"
+      ? (() => {
+          const start = new Date(`${startDate}T00:00:00`);
+          start.setDate(start.getDate() + cycleLength);
+          return start.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+        })()
+      : "";
 
   function handleSave() {
     const trimmed = name.trim();
@@ -34,6 +51,16 @@ export default function EditTrackerModal({ tracker, onClose, onSave, onDelete }:
     }
     if (canChangeKind(tracker.kind)) {
       onSave({ id: tracker.id, createdAt: tracker.createdAt, name: trimmed, color, icon, kind });
+    } else if (tracker.kind === "period") {
+      onSave({
+        ...tracker,
+        name: trimmed,
+        color,
+        icon,
+        periodLengthDays: Math.max(1, periodLength),
+        cycleLengthDays: Math.max(1, cycleLength),
+        lastPeriodStart: startDate,
+      });
     } else {
       onSave({ ...tracker, name: trimmed, color, icon });
     }
@@ -138,6 +165,48 @@ export default function EditTrackerModal({ tracker, onClose, onSave, onDelete }:
                   </button>
                 </div>
               </div>
+            )}
+
+            {tracker.kind === "period" && (
+              <>
+                <label className="flex flex-col gap-1.5 text-xs text-ink-muted">
+                  <span>Last period started</span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-[0.88rem] text-ink focus:outline focus:outline-2 focus:outline-accent"
+                  />
+                </label>
+                <div className="flex gap-2.5">
+                  <label className="flex flex-1 flex-col gap-1.5 text-xs text-ink-muted">
+                    <span>Estimated length (days)</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={14}
+                      value={periodLength}
+                      onChange={(e) => setPeriodLength(Number(e.target.value))}
+                      className="rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-[0.88rem] text-ink focus:outline focus:outline-2 focus:outline-accent"
+                    />
+                  </label>
+                  <label className="flex flex-1 flex-col gap-1.5 text-xs text-ink-muted">
+                    <span>Cycle length (days)</span>
+                    <input
+                      type="number"
+                      min={14}
+                      max={60}
+                      value={cycleLength}
+                      onChange={(e) => setCycleLength(Number(e.target.value))}
+                      className="rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-[0.88rem] text-ink focus:outline focus:outline-2 focus:outline-accent"
+                    />
+                  </label>
+                </div>
+                <p className="m-0 text-xs text-ink-muted">
+                  Next period estimated around <strong className="text-ink">{nextPeriodPreview}</strong> (~
+                  {Math.round(cycleLength / 7)} weeks from the start date).
+                </p>
+              </>
             )}
 
             <div className="flex flex-col gap-1.5">

@@ -15,6 +15,12 @@ export function isToday(d: Date): boolean {
   return isSameDay(d, new Date());
 }
 
+export function shiftDay(d: Date, delta: number): Date {
+  const next = new Date(d);
+  next.setDate(next.getDate() + delta);
+  return next;
+}
+
 export function isFuture(d: Date): boolean {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -31,4 +37,20 @@ export function daysInMonth(year: number, month: number): Date[] {
 
 export function monthLabel(year: number, month: number): string {
   return new Date(year, month, 1).toLocaleDateString(undefined, { month: "long", year: "numeric" });
+}
+
+// Monday-first 6-week (42-day) grid for a given month, including the
+// leading/trailing days from neighboring months needed to fill the grid —
+// same shape as Planner's own monthGridDays, so the year-at-a-glance panel
+// here renders identical month grids.
+export function monthGridDays(month: Date): Date[] {
+  const firstOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
+  const startOffset = (firstOfMonth.getDay() + 6) % 7;
+  const gridStart = new Date(firstOfMonth);
+  gridStart.setDate(gridStart.getDate() - startOffset);
+  return Array.from({ length: 42 }, (_, i) => {
+    const d = new Date(gridStart);
+    d.setDate(gridStart.getDate() + i);
+    return d;
+  });
 }

@@ -31,7 +31,7 @@ export default function PeriodConfigModal({ onClose, onCreate }: PeriodConfigMod
       id: crypto.randomUUID(),
       name: "Period",
       color,
-      icon: "heart",
+      icon: "drop",
       kind: "period",
       createdAt: dateKey(new Date()),
       periodLengthDays: Math.max(1, periodLength),
@@ -53,7 +53,7 @@ export default function PeriodConfigModal({ onClose, onCreate }: PeriodConfigMod
         className="flex w-full max-w-[340px] flex-col gap-3.5 rounded-theme border border-border bg-surface p-[1.1rem] shadow-theme"
       >
         <div className="flex items-center gap-2">
-          <TrackerIcon icon="heart" className="h-5 w-5" style={{ color }} />
+          <TrackerIcon icon="drop" className="h-5 w-5" style={{ color }} />
           <h2 className="m-0 text-base text-ink">Period tracker</h2>
         </div>
         <p className="m-0 text-xs text-ink-muted">

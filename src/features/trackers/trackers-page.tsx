@@ -9,6 +9,8 @@ import AddTrackerFlow from "./add-tracker-flow";
 import MoodPickerModal from "./mood-picker-modal";
 import AmountEntryModal from "./amount-entry-modal";
 import EditTrackerModal from "./edit-tracker-modal";
+import TrackerMonthPicker from "./tracker-month-picker";
+import EnergyTrackerCard from "./energy-tracker-card";
 
 const DAY_COL_PX = 34;
 const LABEL_COL_PX = 176;
@@ -27,6 +29,7 @@ export default function TrackersPage() {
   const [moodPicker, setMoodPicker] = useState<{ trackerId: string; dateKey: string } | null>(null);
   const [amountEntry, setAmountEntry] = useState<{ trackerId: string; dateKey: string } | null>(null);
   const [editingTracker, setEditingTracker] = useState<Tracker | null>(null);
+  const [monthPickerOpen, setMonthPickerOpen] = useState(false);
 
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const [pinned, setPinned] = useState(false);
@@ -135,8 +138,27 @@ export default function TrackersPage() {
         <path fill="currentColor" d="M12 19s-7.2-4.4-9.4-8.7C1 7 2.5 4 5.7 4c1.9 0 3.4 1 4.7 2.6C11.7 5 13.2 4 15.1 4c3.2 0 4.7 3 3.1 6.3C16 14.6 12 19 12 19Z" />
       </svg>
 
+      <EnergyTrackerCard />
+
       <div className="flex flex-shrink-0 items-center justify-between rounded-theme border border-border bg-surface px-3 py-2.5 shadow-theme">
-        <p className="m-0 text-sm font-semibold text-ink">{monthLabel(anchor.getFullYear(), anchor.getMonth())}</p>
+        <button
+          type="button"
+          onClick={() => setMonthPickerOpen(true)}
+          className="m-0 rounded-full border px-3 py-1.5 text-sm font-semibold text-ink hover:bg-surface-alt"
+          style={{ borderColor: "var(--color-accent)" }}
+        >
+          {monthLabel(anchor.getFullYear(), anchor.getMonth())}
+        </button>
+        {monthPickerOpen && (
+          <TrackerMonthPicker
+            anchor={anchor}
+            onSelect={(year, month) => {
+              setAnchor(new Date(year, month, 1));
+              setMonthPickerOpen(false);
+            }}
+            onClose={() => setMonthPickerOpen(false)}
+          />
+        )}
         <div className="flex items-center gap-1.5">
           <button
             type="button"

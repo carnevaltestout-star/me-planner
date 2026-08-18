@@ -19,7 +19,8 @@ export type TrackerIconKey =
   | "console"
   | "speechBubble"
   | "utensils"
-  | "palette";
+  | "palette"
+  | "drop";
 
 export const TRACKER_ICON_KEYS: TrackerIconKey[] = [
   "water",
@@ -41,6 +42,7 @@ export const TRACKER_ICON_KEYS: TrackerIconKey[] = [
   "speechBubble",
   "utensils",
   "palette",
+  "drop",
 ];
 
 // Same palette as Planner's EVENT_COLORS, so a tracker's color picker looks

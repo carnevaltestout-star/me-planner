@@ -226,6 +226,17 @@ function UtensilsIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+// Outline variant of the same teardrop shape as DropIcon above, for the
+// general icon picker (which uses stroke-only icons everywhere else) —
+// DropIcon itself stays solid-fill, reserved for the tiny period-day marks.
+function DropOutlineIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <path d="M12 2.5c1.6 2.4 7 10.3 7 14.3a7 7 0 1 1-14 0c0-4 5.4-11.9 7-14.3Z" />
+    </svg>
+  );
+}
+
 function PaletteIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...baseProps(props)}>
@@ -258,4 +269,5 @@ export const TRACKER_LINE_ICONS: Record<TrackerIconKey, ComponentType<SVGProps<S
   speechBubble: SpeechBubbleIcon,
   utensils: UtensilsIcon,
   palette: PaletteIcon,
+  drop: DropOutlineIcon,
 };
