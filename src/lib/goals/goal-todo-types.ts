@@ -67,7 +67,12 @@ export function emptyItem(id: string, kind: ItemKind, date: string): GoalTodoIte
     done: false,
     doneAt: "",
     createdAt: new Date().toISOString(),
-    order: Date.now(),
+    // Negative and shrinking with every call — a brand-new item always
+    // sorts ahead of anything created earlier (including other negative
+    // orders from past new items, and any positive orders left over from
+    // manual drag reordering), landing at the top of the list instead of
+    // the bottom.
+    order: -Date.now(),
   };
 }
 

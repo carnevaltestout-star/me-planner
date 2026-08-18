@@ -1,6 +1,7 @@
 
 ## Workflow rule (IMPORTANT)
 -on the start of each new chat, run the app in localhost
+-always make sure to ask before you download packages and keep in mind the space available on the system u work on.
 - read this md file, then the requirements.md to know which step you currently are at, before continuing mention your next steps to me.
 - Only install necessary packages, check if new feature can be developed with existing package, if not, download new one.
 - Before you implement a new feature tell me what u want to install and the size of it.
