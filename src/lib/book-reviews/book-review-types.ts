@@ -14,6 +14,10 @@ export interface BookReview {
   tropes: string;
   createdAt: string;
   updatedAt: string;
+  // Manual drag-and-drop position — seeded/migrated in rating-desc order so
+  // the shelf starts highest-rated-first, then overridden per-card once the
+  // user actually drags one.
+  order: number;
 }
 
 export function emptyBookReview(id: string): BookReview {
@@ -33,6 +37,7 @@ export function emptyBookReview(id: string): BookReview {
     tropes: "",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    order: Date.now(),
   };
 }
 
