@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { CHART_TYPES, TIME_RANGES, type ChartType, type TimeRange } from "@/lib/statistics/stat-types";
-import { PrinciplesIcon, VocabularyIcon, GoalsIcon } from "@/components/tab-icons/tab-icons";
+import { PrinciplesIcon, VocabularyIcon } from "@/components/tab-icons/tab-icons";
 import { BarChartTypeIcon, HistogramTypeIcon, LineChartTypeIcon, PieChartTypeIcon } from "./chart-type-icons";
 import ActivityOverviewCard from "./activity-overview-card";
 import JournalStatsCard from "./journal-stats-card";
@@ -9,6 +9,7 @@ import TrackerMoodCard from "./tracker-mood-card";
 import TrackerFrequencyCard from "./tracker-frequency-card";
 import BookReviewActivityCard from "./book-review-activity-card";
 import BookReviewRatingsCard from "./book-review-ratings-card";
+import GoalsTodosStatsCard from "./goals-todos-stats-card";
 import StubStatCard from "./stub-stat-card";
 
 const CHART_TYPE_ICONS: Record<ChartType, typeof BarChartTypeIcon> = {
@@ -75,6 +76,7 @@ export default function StatisticsPage() {
         <TrackerFrequencyCard range={range} chartType={chartType} today={today} />
         <BookReviewActivityCard range={range} chartType={chartType} today={today} />
         <BookReviewRatingsCard range={range} chartType={chartType} today={today} />
+        <GoalsTodosStatsCard range={range} chartType={chartType} today={today} />
         <StubStatCard
           icon={PrinciplesIcon}
           iconPath="/principles"
@@ -86,12 +88,6 @@ export default function StatisticsPage() {
           iconPath="/vocabulary"
           title="Vocabulary"
           message="Statistics will appear once you start using Vocabulary."
-        />
-        <StubStatCard
-          icon={GoalsIcon}
-          iconPath="/goals"
-          title="Goals"
-          message="Statistics will appear once you start using Goals."
         />
       </div>
     </div>

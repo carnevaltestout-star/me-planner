@@ -109,9 +109,9 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
 - Productivity
 - (Likely daily check-in style, visualized over time — confirm chart style in mockup phase)
 
-### 7. Goals
+### 7. Goals / To-Dos
 - Card grid view, switchable to to-dos
-- Time horizons: Month, Quarter, Yearly
+- Time horizons: day, week, Month, Quarter, Yearly
 - Switch between Goals and and To-dos Month, quartely, Yearly
 - Editable, deletable
 - Push notifications? Focus on Windows and Android solutions (needs research in the mockup/

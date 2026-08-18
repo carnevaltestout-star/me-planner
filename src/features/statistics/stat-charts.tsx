@@ -1,5 +1,7 @@
 import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useCssVar } from "@/lib/statistics/use-css-var";
+import type { DoneUndoneBar } from "@/lib/statistics/goals-stats";
+import { DONE_COLOR, UNDONE_COLOR } from "@/lib/statistics/goals-stats";
 import type { DistributionSlice, SeriesPoint } from "@/lib/statistics/stat-types";
 
 function useChartTheme() {
@@ -111,6 +113,44 @@ export function StatHistogram({ data }: DistributionChartProps) {
             <Cell key={d.key} fill={d.color} />
           ))}
         </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+// One bar per kind (Goals, To-Dos), each internally stacked into a
+// done/not-done split — hovering a segment shows its own count and
+// percentage of that kind's total, not of the combined whole.
+export function StatDoneUndoneBarChart({ data }: { data: DoneUndoneBar[] }) {
+  const { inkMuted, border, surface, ink } = useChartTheme();
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={data} margin={{ top: 4, right: 4, left: -22, bottom: 0 }} barCategoryGap="30%">
+        <CartesianGrid stroke={border} strokeDasharray="3 3" vertical={false} />
+        <XAxis dataKey="label" tick={tickStyle(inkMuted)} axisLine={{ stroke: border }} tickLine={false} />
+        <YAxis tick={tickStyle(inkMuted)} axisLine={{ stroke: border }} tickLine={false} width={30} allowDecimals={false} />
+        <Tooltip
+          cursor={{ fill: border, opacity: 0.3 }}
+          content={({ active, payload, label }) => {
+            if (!active || !payload || !payload.length) return null;
+            const done = Number(payload.find((p) => p.dataKey === "done")?.value ?? 0);
+            const undone = Number(payload.find((p) => p.dataKey === "undone")?.value ?? 0);
+            const total = done + undone;
+            return (
+              <div style={{ background: surface, border: `1px solid ${border}`, borderRadius: 8, padding: "6px 10px", fontSize: 12 }}>
+                <p style={{ margin: 0, fontWeight: 600, color: ink }}>{label}</p>
+                <p style={{ margin: 0, color: DONE_COLOR }}>
+                  Done: {done} ({total ? Math.round((done / total) * 100) : 0}%)
+                </p>
+                <p style={{ margin: 0, color: UNDONE_COLOR }}>
+                  Not done: {undone} ({total ? Math.round((undone / total) * 100) : 0}%)
+                </p>
+              </div>
+            );
+          }}
+        />
+        <Bar dataKey="done" stackId="a" fill={DONE_COLOR} isAnimationActive={false} maxBarSize={48} />
+        <Bar dataKey="undone" stackId="a" fill={UNDONE_COLOR} radius={[3, 3, 0, 0]} isAnimationActive={false} maxBarSize={48} />
       </BarChart>
     </ResponsiveContainer>
   );

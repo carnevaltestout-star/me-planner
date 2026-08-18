@@ -21,7 +21,7 @@ export default function AppRoutes() {
     <HashRouter>
       <Routes>
         <Route element={<AppShell />}>
-          <Route index element={<Navigate to="/planner" replace />} />
+          <Route index element={<Navigate to="/goals" replace />} />
           <Route path="/overview" element={<OverviewPage />} />
           <Route path="/planner" element={<PlannerPage />} />
           <Route path="/journal" element={<JournalPage />} />

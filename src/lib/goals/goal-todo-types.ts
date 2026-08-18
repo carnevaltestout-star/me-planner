@@ -1,0 +1,96 @@
+export type ItemKind = "goal" | "todo";
+
+export type TimeHorizon = "day" | "week" | "month" | "quarter" | "year";
+
+export const HORIZONS: { key: TimeHorizon; label: string }[] = [
+  { key: "day", label: "Day" },
+  { key: "week", label: "Week" },
+  { key: "month", label: "Month" },
+  { key: "quarter", label: "Quarter" },
+  { key: "year", label: "Year" },
+];
+
+// Same palette as Planner's EVENT_COLORS / Trackers' TRACKER_COLORS, so the
+// color picker here looks and feels like the ones already established
+// elsewhere in the app.
+export const ITEM_COLORS = [
+  "#8b6ba8", // lavender (default, matches the app accent)
+  "#e0567a", // rose
+  "#d99a3d", // amber
+  "#5b8a72", // sage
+  "#3d9c9c", // teal
+  "#4b8fc2", // sky
+  "#9a4fa0", // plum
+  "#6b7280", // slate
+];
+
+export interface ChecklistStep {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+export interface GoalTodoItem {
+  id: string;
+  kind: ItemKind;
+  title: string;
+  category: string;
+  color: string;
+  deadline: string; // dateKey, "" if none set
+  // A single canonical date (dateKey) rather than a fixed horizon+period —
+  // this is what lets the same item show up in Day/Week/Month/Quarter/Year
+  // views alike, for whichever of those currently contains this date,
+  // instead of being siloed under just the one horizon it was created in.
+  date: string;
+  steps: ChecklistStep[]; // goals only — if present, progress is derived from these
+  manualPercent: number; // goals only — used when steps is empty
+  done: boolean;
+  doneAt: string; // ISO timestamp, "" if not done
+  createdAt: string; // ISO timestamp
+  // Manual drag-and-drop position. A global scalar, but only ever compared
+  // against other items within the same filtered (kind + period) list, so
+  // reordering one period's view never disturbs another's.
+  order: number;
+}
+
+export function emptyItem(id: string, kind: ItemKind, date: string): GoalTodoItem {
+  return {
+    id,
+    kind,
+    title: "",
+    category: "",
+    color: ITEM_COLORS[0],
+    deadline: "",
+    date,
+    steps: [],
+    manualPercent: 0,
+    done: false,
+    doneAt: "",
+    createdAt: new Date().toISOString(),
+    order: Date.now(),
+  };
+}
+
+// Which date an item is actually filed under for horizon/period filtering —
+// a deadline is a stronger, more specific signal of "when this belongs"
+// than the fallback creation-context date, so it wins whenever it's set.
+// Live-derived rather than baked in at save time, so editing/clearing the
+// deadline later immediately re-files the item without any migration.
+export function effectiveDate(item: GoalTodoItem): string {
+  return item.deadline || item.date;
+}
+
+export function isItemEmpty(item: GoalTodoItem): boolean {
+  return !item.title.trim() && !item.category.trim() && !item.deadline && item.steps.length === 0 && item.manualPercent === 0;
+}
+
+// Todos are binary; goals derive from their checklist when they have one,
+// otherwise fall back to a manually-set percentage.
+export function progressPercent(item: GoalTodoItem): number {
+  if (item.kind === "todo") return item.done ? 100 : 0;
+  if (item.steps.length > 0) {
+    const doneCount = item.steps.filter((s) => s.done).length;
+    return Math.round((doneCount / item.steps.length) * 100);
+  }
+  return item.manualPercent;
+}
