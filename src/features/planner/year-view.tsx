@@ -19,8 +19,9 @@ function MonthCard({
   onSelect: (date: Date) => void;
 }) {
   const days = monthGridDays(month);
+  const isCurrentMonth = month.getFullYear() === today.getFullYear() && month.getMonth() === today.getMonth();
   return (
-    <div className="rounded-theme border border-border bg-surface p-2.5">
+    <div className={`rounded-theme border p-2.5 bg-surface ${isCurrentMonth ? "border-[#e0217a]" : "border-border"}`}>
       <div className="mb-1.5 text-center text-sm font-semibold text-ink">
         {month.toLocaleDateString(undefined, { month: "long" })}
       </div>

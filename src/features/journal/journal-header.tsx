@@ -16,6 +16,8 @@ interface JournalHeaderProps {
   hasEntry: boolean;
   justSaved: boolean;
   onToday: () => void;
+  onPrevDay: () => void;
+  onNextDay: () => void;
   onOpenYearView: () => void;
   onJumpToDate: (d: Date) => void;
   onSave: () => void;
@@ -29,6 +31,8 @@ export default function JournalHeader({
   hasEntry,
   justSaved,
   onToday,
+  onPrevDay,
+  onNextDay,
   onOpenYearView,
   onJumpToDate,
   onSave,
@@ -79,6 +83,14 @@ export default function JournalHeader({
         </button>
         <button
           type="button"
+          onClick={onPrevDay}
+          aria-label="Previous day"
+          className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-theme border border-border bg-surface text-xs text-ink hover:bg-surface-alt md:h-8 md:w-8 md:text-sm"
+        >
+          ‹
+        </button>
+        <button
+          type="button"
           onClick={onOpenYearView}
           className="flex min-w-0 items-center gap-1 rounded-theme border border-border bg-surface px-2 py-1 text-xs text-ink hover:bg-surface-alt md:gap-1.5 md:px-3 md:py-1.5 md:text-sm"
         >
@@ -86,6 +98,14 @@ export default function JournalHeader({
             {current.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
           </strong>
           <CalendarIcon className="h-3.5 w-3.5 flex-shrink-0 text-ink-muted md:h-4 md:w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onNextDay}
+          aria-label="Next day"
+          className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-theme border border-border bg-surface text-xs text-ink hover:bg-surface-alt md:h-8 md:w-8 md:text-sm"
+        >
+          ›
         </button>
       </div>
 

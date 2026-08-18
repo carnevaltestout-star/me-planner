@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Q5_POOL, STATIC_QUESTIONS, type JournalEntry } from "@/lib/journal/journal-types";
+import { useTheme } from "@/components/theme-provider/theme-context";
 
 interface JournalPromptsProps {
   entry: JournalEntry;
@@ -13,10 +14,30 @@ const sectionDivider = "border-b border-[color-mix(in_srgb,var(--color-border)_5
 const fieldUnderline =
   "border-0 border-b-[1.5px] border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] bg-transparent px-0.5 py-1.5 text-sm font-semibold text-ink focus:border-accent focus:outline-none disabled:cursor-default";
 
+// Retro/kawaii-only stand-in for the plain border divider — a dashed rule
+// in the accent color. Drawn as a repeating gradient rather than a fixed
+// run of literal "--" characters so it always spans the full row edge to
+// edge, at any card width, instead of a fixed-length string that falls
+// short (or overflows) depending on how wide the row actually is.
+function DashDivider() {
+  return (
+    <div
+      aria-hidden="true"
+      className="h-[2px] w-full"
+      style={{
+        backgroundImage:
+          "repeating-linear-gradient(to right, color-mix(in srgb, var(--color-accent) 45%, transparent) 0, color-mix(in srgb, var(--color-accent) 45%, transparent) 8px, transparent 8px, transparent 16px)",
+      }}
+    />
+  );
+}
+
 // Remounted with key={entry.dateKey} by the parent whenever the viewed date
 // changes, so each field's local (blur-to-commit) state naturally resets —
 // no effect-based sync needed.
 export default function JournalPrompts({ entry, locked, onFieldCommit }: JournalPromptsProps) {
+  const theme = useTheme();
+  const pixelated = theme.retro || theme.kawaii;
   const [values, setValues] = useState({
     wentWell: entry.wentWell,
     differently: entry.differently,
@@ -76,24 +97,27 @@ export default function JournalPrompts({ entry, locked, onFieldCommit }: Journal
   return (
     <div className="rounded-theme border border-border bg-surface px-4 py-0.5 shadow-theme sm:px-5">
       {STATIC_QUESTIONS.map((q) => (
-        <div key={q.key} className={`flex flex-col gap-2.5 py-[1.15rem] transition-colors focus-within:border-accent ${sectionDivider}`}>
-          <div className="flex items-center gap-2.5 border-l-[3px] border-accent pl-2.5 text-sm font-semibold text-ink">
-            <span className="text-base">{q.emoji}</span>
-            <span>{q.label}</span>
+        <Fragment key={q.key}>
+          <div className={`flex flex-col gap-2.5 py-[1.15rem] transition-colors focus-within:border-accent ${pixelated ? "" : sectionDivider}`}>
+            <div className="flex items-center gap-2.5 border-l-[3px] border-accent pl-2.5 text-sm font-semibold text-ink">
+              <span className="text-base">{q.emoji}</span>
+              <span>{q.label}</span>
+            </div>
+            <textarea
+              rows={2}
+              placeholder={q.placeholder}
+              value={values[q.key]}
+              disabled={locked}
+              onChange={(e) => setValue(q.key, e.target.value)}
+              onBlur={(e) => onFieldCommit(q.key, e.target.value)}
+              className={textareaClass}
+            />
           </div>
-          <textarea
-            rows={2}
-            placeholder={q.placeholder}
-            value={values[q.key]}
-            disabled={locked}
-            onChange={(e) => setValue(q.key, e.target.value)}
-            onBlur={(e) => onFieldCommit(q.key, e.target.value)}
-            className={textareaClass}
-          />
-        </div>
+          {pixelated && <DashDivider />}
+        </Fragment>
       ))}
 
-      <div className={`flex flex-col gap-2.5 py-[1.15rem] transition-colors focus-within:border-accent ${sectionDivider}`}>
+      <div className={`flex flex-col gap-2.5 py-[1.15rem] transition-colors focus-within:border-accent ${pixelated ? "" : sectionDivider}`}>
         <div className="flex items-center gap-2 border-l-[3px] border-accent pl-2.5">
           {q5Custom ? (
             <>
@@ -134,7 +158,9 @@ export default function JournalPrompts({ entry, locked, onFieldCommit }: Journal
                 {q5MenuOpen && (
                   <div
                     role="listbox"
-                    className="absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-y-auto rounded-theme border border-border bg-surface shadow-theme"
+                    className={`absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-y-auto rounded-theme border border-border bg-surface ${
+                      theme.kawaii ? "shadow-lg" : "shadow-theme"
+                    }`}
                   >
                     {Q5_POOL.map((q) => (
                       <button
@@ -175,6 +201,7 @@ export default function JournalPrompts({ entry, locked, onFieldCommit }: Journal
           className={textareaClass}
         />
       </div>
+      {pixelated && <DashDivider />}
 
       <div className="flex flex-col gap-2.5 py-[1.15rem]">
         <div className="flex items-center gap-2.5 border-l-[3px] border-accent pl-2.5 text-sm font-semibold text-ink">

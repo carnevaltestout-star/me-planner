@@ -15,6 +15,12 @@ export function isToday(d: Date): boolean {
   return isSameDay(d, new Date());
 }
 
+export function shiftDay(d: Date, delta: number): Date {
+  const next = new Date(d);
+  next.setDate(next.getDate() + delta);
+  return next;
+}
+
 export function isFuture(d: Date): boolean {
   const today = new Date();
   today.setHours(0, 0, 0, 0);

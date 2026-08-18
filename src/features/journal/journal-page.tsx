@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { dateKey, isFuture } from "@/lib/journal/journal-dates";
+import { dateKey, isFuture, shiftDay } from "@/lib/journal/journal-dates";
 import { loadEntries, saveEntries } from "@/lib/journal/journal-storage";
 import { emptyEntry, isEntryEmpty, type JournalEntry } from "@/lib/journal/journal-types";
 import JournalHeader from "./journal-header";
@@ -67,6 +67,8 @@ export default function JournalPage() {
         hasEntry={hasEntry}
         justSaved={justSaved}
         onToday={() => setCurrent(new Date())}
+        onPrevDay={() => setCurrent((d) => shiftDay(d, -1))}
+        onNextDay={() => setCurrent((d) => shiftDay(d, 1))}
         onOpenYearView={() => setYearViewOpen(true)}
         onJumpToDate={setCurrent}
         onSave={() => {
