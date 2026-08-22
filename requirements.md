@@ -17,6 +17,24 @@ or do a bugfix.
 - Prefer clean, readable code over clever code: clear names, small functions, no dead code or commented-out blocks.
 - Never hardcode secrets, API keys, or tokens — use environment variables and confirm they're gitignored.
 - Add or update tests for any behavior change; don't mark something done if tests fail or are skipped.
+Search inputs that accept date values must recognize the following formats. Day and month are always given as `DD.MM` (day before month, never `MM.DD`).
+
+## Date Search Format
+
+Search inputs that accept date values must recognize the following formats. Day and month are always given as `DD.MM` (day before month, never `MM.DD`).
+
+| Format         | Example      | Matches                                  |
+|-----------------|--------------|-------------------------------------------|
+| `DD.MM`         | `24.12`      | That day and month, any year              |
+| `Month`         | `December`   | Any date within that month, any year      |
+| `Year`          | `2026`       | Any date within that year                 |
+| `DD.MM.YY`      | `24.12.26`   | That day/month/year, assuming `20YY`      |
+| `DD.MM.YYYY`    | `24.12.2026` | That exact day, month, and year           |
+
+Implementation notes:
+- Treat missing components as wildcards, not failures — a partial format should broaden the match, never reject the search.
+- `Month` should also accept common abbreviations (`Dec`) in addition to full names (`December`).
+- Reject invalid values (day > 31, month > 12) with a validation message rather than failing silently.
 
 Branching: classic `master` → `dev` → `feature` model. Clone `dev` from `master` before
 starting work. Create a new branch per feature; merge into `dev` only after explicit approval.

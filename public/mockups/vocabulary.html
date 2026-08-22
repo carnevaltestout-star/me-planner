@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Me — Vocabulary / SRS (Mockup)</title>
+<style>
+  :root {
+    --color-canvas: #fbf8f6;
+    --color-surface: #ffffff;
+    --color-ink: #362e38;
+    --color-accent: #8b6ba8;
+    --color-border: #e4d9e3;
+    --color-surface-alt: color-mix(in srgb, var(--color-surface) 85%, var(--color-accent) 15%);
+    --color-ink-muted: color-mix(in srgb, var(--color-ink) 60%, var(--color-canvas) 40%);
+    --color-accent-soft: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface) 82%);
+    --color-accent-contrast: color-mix(in srgb, var(--color-surface) 92%, white 8%);
+    --color-radius: 12px;
+    --color-radius-sm: 6px;
+    --color-shadow: none;
+    --green: #4f8a45;
+    --red: #c94f6b;
+  }
+  * { box-sizing: border-box; }
+  :root[data-retro="true"] { --color-radius: 0px; --color-radius-sm: 0px; --color-shadow: 3px 3px 0 var(--color-border); }
+  :root[data-kawaii="true"] { --color-radius: 18px; --color-shadow: 0 6px 18px rgba(120, 90, 160, 0.18); }
+  body {
+    margin: 0; background: var(--color-canvas); color: var(--color-ink);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  :root[data-retro="true"] body, :root[data-kawaii="true"] body { font-family: ui-monospace, "Courier New", monospace; }
+  button, input, textarea, select { font-family: inherit; }
+
+  .app { max-width: 900px; margin: 0 auto; padding: 1.25rem 1rem 3rem; display: flex; flex-direction: column; gap: 1.1rem; }
+
+  /* ---- Topbar ---- */
+  .topbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+  .btn {
+    border-radius: var(--color-radius-sm); padding: 0.55rem 1rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-ink);
+  }
+  .btn:hover { background: var(--color-surface-alt); }
+  .btn-accent { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-accent-contrast); }
+  .btn-accent:hover { filter: brightness(1.05); background: var(--color-accent); }
+  .btn-ghost { opacity: 0.55; cursor: default; }
+  .btn-ghost:hover { background: var(--color-surface); }
+  .btn-sm { padding: 0.4rem 0.7rem; font-size: 0.78rem; }
+
+  .dropdown { position: relative; }
+  .dropdown-menu {
+    position: absolute; left: 0; top: calc(100% + 4px); z-index: 20; min-width: 220px;
+    background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--color-radius);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12); padding: 0.35rem; display: none; flex-direction: column; gap: 0.15rem;
+  }
+  .dropdown-menu.open { display: flex; }
+  .dropdown-menu button {
+    text-align: left; border: none; background: none; padding: 0.55rem 0.6rem; border-radius: var(--color-radius-sm);
+    font-size: 0.83rem; color: var(--color-ink); cursor: pointer;
+  }
+  .dropdown-menu button:hover { background: var(--color-surface-alt); }
+  .dropdown-menu .desc { display: block; font-size: 0.7rem; color: var(--color-ink-muted); font-weight: 400; margin-top: 0.1rem; }
+
+  /* ---- Topic grid ---- */
+  .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.9rem; }
+  .topic-card {
+    background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--color-radius);
+    box-shadow: var(--color-shadow); padding: 1rem; display: flex; flex-direction: column; gap: 0.7rem; cursor: pointer;
+  }
+  .topic-card:hover { background: var(--color-surface-alt); }
+  .topic-card .tc-head { display: flex; flex-direction: column; gap: 0.15rem; }
+  .topic-card h3 { margin: 0; font-size: 1rem; }
+  .topic-card .tc-count { font-size: 0.75rem; color: var(--color-ink-muted); }
+  .topic-card .tc-start {
+    align-self: flex-start; border: 1px solid var(--color-accent); background: var(--color-accent-soft); color: var(--color-accent);
+    border-radius: var(--color-radius-sm); padding: 0.5rem 0.9rem; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+  }
+  .topic-card .tc-start:hover { background: var(--color-accent); color: var(--color-accent-contrast); }
+  .tc-results {
+    border-top: 1px solid var(--color-border); padding-top: 0.6rem; display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.78rem;
+  }
+  .tc-results .tc-score { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .tc-results .tc-score b.ok { color: var(--green); }
+  .tc-results .tc-score b.bad { color: var(--red); }
+  .tc-results .tc-missed-toggle { background: none; border: none; color: var(--color-accent); font-size: 0.75rem; cursor: pointer; padding: 0; text-align: left; }
+  .tc-missed-list { display: none; flex-direction: column; gap: 0.3rem; margin-top: 0.2rem; }
+  .tc-missed-list.open { display: flex; }
+  .tc-missed-item {
+    border: 1px solid var(--color-border); border-radius: var(--color-radius-sm); padding: 0.4rem 0.55rem; background: var(--color-canvas);
+    cursor: pointer;
+  }
+  .tc-missed-item:hover { background: var(--color-surface-alt); }
+  .tc-missed-item .term { font-weight: 700; font-size: 0.78rem; }
+  .tc-missed-item .meaning { font-size: 0.72rem; color: var(--color-ink-muted); display: none; margin-top: 0.2rem; }
+  .tc-missed-item.expanded .meaning { display: block; }
+  .tc-empty { padding: 2.5rem 1rem; text-align: center; color: var(--color-ink-muted); font-size: 0.88rem; }
+
+  /* ---- Topic edit page ---- */
+  .edit-header { display: flex; align-items: center; gap: 0.7rem; }
+  .back-btn {
+    flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--color-border); background: var(--color-surface);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--color-ink);
+  }
+  .back-btn:hover { background: var(--color-surface-alt); }
+  .edit-header h2 { margin: 0; font-size: 1.1rem; flex: 1; min-width: 0; }
+  .edit-header input.title-input {
+    flex: 1; min-width: 0; font-size: 1.1rem; font-weight: 700; border: none; background: none; color: var(--color-ink); padding: 0.2rem;
+    border-bottom: 1.5px solid transparent;
+  }
+  .edit-header input.title-input:focus { outline: none; border-bottom-color: var(--color-accent); }
+
+  .vocab-table { border: 1px solid var(--color-border); border-radius: var(--color-radius); overflow: hidden; background: var(--color-surface); }
+  .vt-row { display: grid; grid-template-columns: 1fr 1.6fr 34px; gap: 0; border-bottom: 1px solid var(--color-border); }
+  .vt-row:last-child { border-bottom: none; }
+  .vt-row.head { background: var(--color-surface-alt); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--color-ink-muted); font-weight: 700; }
+  .vt-row.head > div { padding: 0.5rem 0.7rem; }
+  .vt-cell { padding: 0.55rem 0.7rem; border-left: 1px solid var(--color-border); display: flex; align-items: flex-start; }
+  .vt-row > .vt-cell:first-child { border-left: none; }
+  .vt-cell input, .vt-cell textarea {
+    width: 100%; border: none; background: none; color: var(--color-ink); font-size: 0.85rem; font-family: inherit; resize: vertical; padding: 0.15rem;
+  }
+  .vt-cell textarea { min-height: 2.4em; }
+  .vt-cell input:focus, .vt-cell textarea:focus { outline: none; background: var(--color-canvas); border-radius: var(--color-radius-sm); }
+  .vt-cell.meaning-cell { flex-direction: column; gap: 0.3rem; }
+  .attach-row { display: flex; gap: 0.3rem; }
+  .attach-btn {
+    border: 1px dashed var(--color-border); background: none; color: var(--color-ink-muted); border-radius: var(--color-radius-sm);
+    font-size: 0.68rem; padding: 0.2rem 0.5rem; cursor: default; opacity: 0.7;
+  }
+  .vt-del { display: flex; align-items: center; justify-content: center; border-left: 1px solid var(--color-border); background: none; border-top: none; border-right: none; border-bottom: none; color: var(--color-ink-muted); cursor: pointer; }
+  .vt-del:hover { color: var(--red); background: var(--color-surface-alt); }
+  .add-word-row { padding: 0.6rem 0.7rem; }
+  .add-word-row button {
+    border: 1px dashed var(--color-accent); background: none; color: var(--color-accent); border-radius: var(--color-radius-sm);
+    padding: 0.5rem 0.8rem; font-size: 0.82rem; font-weight: 600; cursor: pointer; width: 100%;
+  }
+  .add-word-row button:hover { background: var(--color-accent-soft); }
+
+  /* ---- Training view ---- */
+  .train-header { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+  .train-progress { font-size: 0.82rem; color: var(--color-ink-muted); font-weight: 600; }
+  .direction-toggle { display: inline-flex; border: 1px solid var(--color-border); border-radius: 999px; overflow: hidden; }
+  .direction-toggle button {
+    border: none; background: var(--color-surface); color: var(--color-ink-muted); padding: 0.4rem 0.8rem; font-size: 0.75rem; cursor: pointer;
+  }
+  .direction-toggle button.active { background: var(--color-accent); color: var(--color-accent-contrast); font-weight: 700; }
+  .exit-btn { border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-ink); border-radius: var(--color-radius-sm); padding: 0.45rem 0.8rem; font-size: 0.8rem; cursor: pointer; }
+  .exit-btn:hover { background: var(--color-surface-alt); }
+
+  .flashcard-wrap { display: flex; flex-direction: column; align-items: center; gap: 1.2rem; padding: 2rem 0; }
+  .flashcard {
+    width: 100%; max-width: 460px; min-height: 220px; border: 1px solid var(--color-border); border-radius: var(--color-radius);
+    background: var(--color-surface); box-shadow: var(--color-shadow); display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 2rem 1.5rem; text-align: center; cursor: pointer; gap: 0.8rem;
+  }
+  .flashcard .side-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-ink-muted); }
+  .flashcard .card-text { font-size: 1.4rem; font-weight: 700; }
+  .flashcard .card-answer { font-size: 1.1rem; color: var(--color-accent); border-top: 1px dashed var(--color-border); padding-top: 0.8rem; margin-top: 0.4rem; width: 100%; }
+  .flashcard .hint { font-size: 0.75rem; color: var(--color-ink-muted); }
+
+  .grade-row { display: flex; gap: 0.7rem; }
+  .grade-btn { border-radius: var(--color-radius-sm); padding: 0.7rem 1.4rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; border: 1.5px solid; }
+  .grade-btn.wrong { border-color: var(--red); color: var(--red); background: color-mix(in srgb, var(--red) 10%, var(--color-surface)); }
+  .grade-btn.wrong:hover { background: var(--red); color: white; }
+  .grade-btn.correct { border-color: var(--green); color: var(--green); background: color-mix(in srgb, var(--green) 10%, var(--color-surface)); }
+  .grade-btn.correct:hover { background: var(--green); color: white; }
+
+  .session-done { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 2rem 0; }
+  .session-done .big-score { font-size: 1.3rem; font-weight: 700; }
+  .session-done .big-score .ok { color: var(--green); }
+  .session-done .big-score .bad { color: var(--red); }
+
+  /* ---- Add-topic dialog ---- */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 40; display: none; align-items: center; justify-content: center; padding: 1rem; }
+  .overlay.open { display: flex; }
+  .dialog { width: 100%; max-width: 360px; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--color-radius); box-shadow: var(--color-shadow); overflow: hidden; }
+  .dialog-head { border-bottom: 1px solid var(--color-border); padding: 0.9rem 1.1rem; font-weight: 700; }
+  .dialog-body { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.6rem; }
+  .dialog-body input, .dialog-body select {
+    border: 1px solid var(--color-border); border-radius: var(--color-radius-sm); background: var(--color-canvas); color: var(--color-ink);
+    padding: 0.55rem 0.65rem; font-size: 0.85rem;
+  }
+  .dialog-foot { border-top: 1px solid var(--color-border); padding: 0.75rem 1.1rem; display: flex; justify-content: flex-end; gap: 0.5rem; }
+  .checkbox-list { display: flex; flex-direction: column; gap: 0.4rem; max-height: 200px; overflow-y: auto; }
+  .checkbox-list label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+
+  .resume-banner {
+    display: none; align-items: center; justify-content: space-between; gap: 0.6rem; background: var(--color-accent-soft);
+    border: 1px solid var(--color-accent); border-radius: var(--color-radius-sm); padding: 0.6rem 0.9rem; font-size: 0.82rem;
+  }
+  .resume-banner.show { display: flex; }
+  .resume-banner button { flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="app" id="app"></div>
+
+<div class="overlay" id="add-topic-overlay">
+  <div class="dialog">
+    <div class="dialog-head">Add Topic</div>
+    <div class="dialog-body">
+      <input type="text" id="add-topic-input" placeholder="Topic name…" />
+    </div>
+    <div class="dialog-foot">
+      <button class="btn" id="add-topic-cancel">Cancel</button>
+      <button class="btn btn-accent" id="add-topic-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="mixed-overlay">
+  <div class="dialog">
+    <div class="dialog-head">Start Mixed Training</div>
+    <div class="dialog-body">
+      <span style="font-size:0.78rem;color:var(--color-ink-muted)">Pick topics to pull due/missed words from:</span>
+      <div class="checkbox-list" id="mixed-checklist"></div>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn" id="mixed-cancel">Cancel</button>
+      <button class="btn btn-accent" id="mixed-start">Start</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const THEME_STORAGE_KEY = "me-planner:theme";
+  const VOCAB_STORAGE_KEY = "me-planner:mock-vocabulary-DEMO";
+
+  function applyTheme() {
+    const raw = localStorage.getItem(THEME_STORAGE_KEY);
+    let theme = { mode: "light", retro: false, kawaii: false };
+    if (raw) { try { theme = { ...theme, ...JSON.parse(raw) }; } catch {} }
+    const root = document.documentElement;
+    root.dataset.retro = theme.retro && !theme.kawaii ? "true" : "false";
+    root.dataset.kawaii = theme.kawaii ? "true" : "false";
+    const dark = theme.mode === "dark" || (theme.mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const paletteKey = theme.kawaii ? null : (theme.retro ? (dark ? "retroDark" : "retroLight") : (dark ? "dark" : "light"));
+    const palette = theme.kawaii
+      ? { bg: "#f2ddec", surface: "#fffdfd", text: "#4a3b6b", accent: "#ff6fa5", border: "#ffffff" }
+      : (theme.palettes && theme.palettes[paletteKey]);
+    if (palette) {
+      const s = document.documentElement.style;
+      s.setProperty("--color-canvas", palette.bg);
+      s.setProperty("--color-surface", palette.surface);
+      s.setProperty("--color-ink", palette.text);
+      s.setProperty("--color-accent", palette.accent);
+      s.setProperty("--color-border", palette.border);
+    }
+  }
+  applyTheme();
+  window.addEventListener("storage", (e) => { if (e.key === THEME_STORAGE_KEY) applyTheme(); });
+  if (window.parent !== window) {
+    document.addEventListener("click", () => window.parent.postMessage({ type: "me-planner:wake-bunny" }, window.location.origin));
+  }
+
+  // Registered once (not per-render) so it never holds a stale reference to
+  // a dropdown that's since been replaced by navigating to a different
+  // view — checks for the elements' current existence every time instead.
+  document.addEventListener("click", (e) => {
+    const wrap = document.getElementById("train-dropdown");
+    const menu = document.getElementById("train-dropdown-menu");
+    if (wrap && menu && !wrap.contains(e.target)) menu.classList.remove("open");
+  });
+
+  // ---------------------------------------------------------------------
+  // Data model + storage
+  // ---------------------------------------------------------------------
+  function uid() { return Math.random().toString(36).slice(2, 10); }
+  function todayKey() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+  function addDays(key, n) { const [y,m,d] = key.split("-").map(Number); const dt = new Date(y, m-1, d); dt.setDate(dt.getDate()+n); return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`; }
+
+  function newSrs() { return { interval: 0, dueDate: todayKey(), mistakeCount: 0, correctCount: 0, isNew: true }; }
+
+  function seedState() {
+    const today = todayKey();
+    function w(term, meaning, srsOverrides) { return { id: uid(), term, meaning, links: [], srs: { ...newSrs(), ...srsOverrides } }; }
+    return {
+      topics: [
+        (() => {
+          const words = [
+            w("hola", "hello — casual greeting", { isNew: false, interval: 4, dueDate: today, correctCount: 3, mistakeCount: 2 }),
+            w("gracias", "thank you", { isNew: false, interval: 8, dueDate: addDays(today, 3), correctCount: 4, mistakeCount: 0 }),
+            w("adiós", "goodbye", { isNew: false, interval: 1, dueDate: today, correctCount: 1, mistakeCount: 3 }),
+            w("por favor", "please\ne.g. \"Un café, por favor\" — a coffee, please", { isNew: false, interval: 2, dueDate: today, correctCount: 2, mistakeCount: 1 }),
+            w("sí", "yes", { isNew: true }),
+            w("no", "no", { isNew: true }),
+          ];
+          return {
+            id: uid(), name: "Spanish Basics", words,
+            lastResult: { correct: 4, wrong: 2, missedWordIds: [words[2].id, words[3].id], at: addDays(today, -1) },
+          };
+        })(),
+        {
+          id: uid(), name: "JavaScript Terms",
+          words: [
+            w("closure", "a function that remembers the variables from where it was created, even after that scope has exited"),
+            w("hoisting", "variable/function declarations are moved to the top of their scope before code runs"),
+            w("promise", "an object representing eventual completion (or failure) of an async operation"),
+            w("callback", "a function passed into another function to be run later"),
+            w("debounce", "delay running a function until a burst of calls has stopped for a set time"),
+          ],
+          lastResult: null,
+        },
+        {
+          id: uid(), name: "Business Idioms",
+          words: [
+            w("low-hanging fruit", "the easiest wins to go after first"),
+            w("circle back", "revisit a topic later"),
+            w("move the needle", "make a meaningful, measurable difference"),
+            w("boil the ocean", "attempt something needlessly huge/impossible in scope"),
+          ],
+          lastResult: null,
+        },
+      ],
+      pausedSession: null,
+    };
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(VOCAB_STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return seedState();
+  }
+  function saveState() { localStorage.setItem(VOCAB_STORAGE_KEY, JSON.stringify(state)); }
+
+  const state = loadState();
+
+  // ---------------------------------------------------------------------
+  // SRS
+  // ---------------------------------------------------------------------
+  // Simplified SM-2-style scheduling: correct answers grow the interval
+  // (roughly x2.2, min +1 day), wrong answers reset it to 1 day so the
+  // word comes back up tomorrow. mistakeCount never resets — it's the
+  // running "how often has this been missed, ever" signal used to
+  // prioritize which due words surface first in a session.
+  function grade(word, correct) {
+    const srs = word.srs;
+    srs.isNew = false;
+    if (correct) {
+      srs.correctCount++;
+      srs.interval = srs.interval <= 0 ? 1 : Math.max(srs.interval + 1, Math.round(srs.interval * 2.2));
+    } else {
+      srs.mistakeCount++;
+      srs.interval = 1;
+    }
+    srs.dueDate = addDays(todayKey(), srs.interval);
+  }
+
+  function isDue(word) { return word.srs.isNew || word.srs.dueDate <= todayKey(); }
+
+  // Frequently-missed due words first, then other due words, oldest-due first.
+  function buildQueue(words, cap) {
+    const due = words.filter(isDue);
+    due.sort((a, b) => (b.srs.mistakeCount - a.srs.mistakeCount) || (a.srs.dueDate < b.srs.dueDate ? -1 : 1));
+    return due.slice(0, cap || 20);
+  }
+
+  // ---------------------------------------------------------------------
+  // Navigation state
+  // ---------------------------------------------------------------------
+  let view = "list"; // "list" | "edit" | "train"
+  let editingTopicId = null;
+  let session = null; // { topicIds, direction, wordRefs:[{topicId,wordId}], index, correct, wrong, missed:[{topicId,wordId}], flipped }
+
+  function findTopic(id) { return state.topics.find((t) => t.id === id); }
+  function findWord(topicId, wordId) { const t = findTopic(topicId); return t && t.words.find((w) => w.id === wordId); }
+
+  // ---------------------------------------------------------------------
+  // Session lifecycle
+  // ---------------------------------------------------------------------
+  function startSession(topicIds, direction) {
+    const wordRefs = [];
+    topicIds.forEach((tid) => {
+      const t = findTopic(tid);
+      buildQueue(t.words, 20).forEach((w) => wordRefs.push({ topicId: tid, wordId: w.id }));
+    });
+    if (wordRefs.length === 0) { alert("Nothing due for training in that selection right now — nice work!"); return; }
+    session = { topicIds, direction, wordRefs, index: 0, correct: 0, wrong: 0, missed: [], flipped: false };
+    state.pausedSession = null;
+    saveState();
+    view = "train";
+    render();
+  }
+
+  function resumePausedSession() {
+    session = state.pausedSession;
+    session.flipped = false;
+    state.pausedSession = null;
+    view = "train";
+    render();
+  }
+
+  function exitSession(save) {
+    if (save && session && session.index < session.wordRefs.length) {
+      state.pausedSession = { ...session, flipped: false };
+    }
+    finishSessionBookkeeping();
+    session = null;
+    view = "list";
+    saveState();
+    render();
+  }
+
+  function finishSessionBookkeeping() {
+    if (!session) return;
+    // Partition results per topic so each topic's card shows only its own slice.
+    session.topicIds.forEach((tid) => {
+      const t = findTopic(tid);
+      const missedHere = session.missed.filter((m) => m.topicId === tid).map((m) => m.wordId);
+      const correctHere = session.wordRefs.filter((r, i) => r.topicId === tid && i < session.index).length - missedHere.length;
+      if (session.wordRefs.some((r) => r.topicId === tid && session.wordRefs.indexOf(r) < session.index)) {
+        const priorWrong = t.lastResult && !session._freshTopics?.has(tid) ? 0 : 0;
+        t.lastResult = {
+          correct: Math.max(0, correctHere),
+          wrong: missedHere.length,
+          missedWordIds: missedHere,
+          at: todayKey(),
+        };
+      }
+    });
+  }
+
+  function currentCard() {
+    if (!session) return null;
+    const ref = session.wordRefs[session.index];
+    if (!ref) return null;
+    return { ref, word: findWord(ref.topicId, ref.wordId), topic: findTopic(ref.topicId) };
+  }
+
+  function flipCard() { if (session) { session.flipped = true; render(); } }
+
+  function gradeCard(correct) {
+    const c = currentCard();
+    if (!c) return;
+    grade(c.word, correct);
+    if (correct) session.correct++;
+    else { session.wrong++; session.missed.push({ topicId: c.ref.topicId, wordId: c.word.id }); }
+    session.index++;
+    session.flipped = false;
+    saveState();
+    render();
+  }
+
+  // ---------------------------------------------------------------------
+  // Rendering
+  // ---------------------------------------------------------------------
+  const app = document.getElementById("app");
+
+  function render() {
+    if (view === "list") renderListView();
+    else if (view === "edit") renderEditView();
+    else if (view === "train") renderTrainView();
+  }
+
+  function esc(s) { return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  function renderListView() {
+    const paused = state.pausedSession;
+    app.innerHTML = `
+      ${paused ? `
+        <div class="resume-banner show">
+          <span>You have a paused session (${paused.index}/${paused.wordRefs.length} cards) — pick up where you left off?</span>
+          <button class="btn btn-sm btn-accent" id="resume-btn">Resume</button>
+        </div>` : ""}
+      <div class="topbar">
+        <button class="btn btn-accent" id="add-topic-btn">+ Add Topic</button>
+        <div class="dropdown" id="train-dropdown">
+          <button class="btn" id="train-dropdown-btn">Start Training ▾</button>
+          <div class="dropdown-menu" id="train-dropdown-menu">
+            <button id="start-training-opt">Start Training<span class="desc">Pick one topic card to train on</span></button>
+            <button id="start-mixed-opt">Start Mixed Training<span class="desc">Combine due words from multiple topics</span></button>
+          </div>
+        </div>
+        <button class="btn btn-ghost" title="Coming soon">Import</button>
+      </div>
+      <div class="topic-grid" id="topic-grid"></div>
+    `;
+    const grid = document.getElementById("topic-grid");
+    if (state.topics.length === 0) {
+      grid.innerHTML = `<div class="tc-empty" style="grid-column:1/-1">No topics yet — add one to start building your vocabulary.</div>`;
+    }
+    state.topics.forEach((t) => {
+      const card = document.createElement("div");
+      card.className = "topic-card";
+      const dueCount = buildQueue(t.words, 999).length;
+      card.innerHTML = `
+        <div class="tc-head">
+          <h3></h3>
+          <span class="tc-count">${t.words.length} word${t.words.length === 1 ? "" : "s"} · ${dueCount} due</span>
+        </div>
+        <button class="tc-start">▶ Start Training</button>
+        ${t.lastResult ? `
+          <div class="tc-results">
+            <div class="tc-score">Last session: <b class="ok">Correct ${t.lastResult.correct}</b> | <b class="bad">Wrong ${t.lastResult.wrong}</b></div>
+            ${t.lastResult.missedWordIds.length > 0 ? `<button class="tc-missed-toggle">Review ${t.lastResult.missedWordIds.length} missed word${t.lastResult.missedWordIds.length===1?"":"s"} ▾</button>
+            <div class="tc-missed-list">${t.lastResult.missedWordIds.map((wid) => {
+              const w = findWord(t.id, wid);
+              if (!w) return "";
+              return `<div class="tc-missed-item"><div class="term"></div><div class="meaning"></div></div>`;
+            }).join("")}</div>` : ""}
+          </div>` : ""}
+      `;
+      card.querySelector("h3").textContent = t.name;
+      if (t.lastResult && t.lastResult.missedWordIds.length > 0) {
+        const items = card.querySelectorAll(".tc-missed-item");
+        t.lastResult.missedWordIds.forEach((wid, i) => {
+          const w = findWord(t.id, wid);
+          if (!w || !items[i]) return;
+          items[i].querySelector(".term").textContent = w.term;
+          items[i].querySelector(".meaning").textContent = w.meaning;
+          items[i].addEventListener("click", (e) => { e.stopPropagation(); items[i].classList.toggle("expanded"); });
+        });
+        card.querySelector(".tc-missed-toggle").addEventListener("click", (e) => {
+          e.stopPropagation();
+          card.querySelector(".tc-missed-list").classList.toggle("open");
+        });
+      }
+      card.addEventListener("click", () => { editingTopicId = t.id; view = "edit"; render(); });
+      card.querySelector(".tc-start").addEventListener("click", (e) => { e.stopPropagation(); startSession([t.id], "term-to-meaning"); });
+      grid.appendChild(card);
+    });
+
+    document.getElementById("add-topic-btn").addEventListener("click", () => document.getElementById("add-topic-overlay").classList.add("open"));
+    const dd = document.getElementById("train-dropdown-menu");
+    document.getElementById("train-dropdown-btn").addEventListener("click", (e) => { e.stopPropagation(); dd.classList.toggle("open"); });
+    document.getElementById("start-training-opt").addEventListener("click", () => {
+      dd.classList.remove("open");
+      alert("Pick a topic card's own \"Start Training\" button to begin (per the spec: this mode prompts you to choose a topic first).");
+    });
+    document.getElementById("start-mixed-opt").addEventListener("click", () => { dd.classList.remove("open"); openMixedDialog(); });
+    if (paused) document.getElementById("resume-btn").addEventListener("click", resumePausedSession);
+  }
+
+  function openMixedDialog() {
+    const list = document.getElementById("mixed-checklist");
+    list.innerHTML = state.topics.map((t) => `
+      <label><input type="checkbox" value="${t.id}" checked /> ${esc(t.name)} <span style="color:var(--color-ink-muted)">(${buildQueue(t.words,999).length} due)</span></label>
+    `).join("");
+    document.getElementById("mixed-overlay").classList.add("open");
+  }
+
+  function renderEditView() {
+    const t = findTopic(editingTopicId);
+    if (!t) { view = "list"; render(); return; }
+    app.innerHTML = `
+      <div class="edit-header">
+        <button class="back-btn" id="back-btn" aria-label="Back">←</button>
+        <input class="title-input" id="topic-title-input" value="${esc(t.name)}" />
+        <button class="btn btn-accent" id="edit-start-training">▶ Start Training</button>
+      </div>
+      <div class="vocab-table" id="vocab-table">
+        <div class="vt-row head"><div>Word / Term</div><div>Meaning</div><div></div></div>
+      </div>
+    `;
+    const table = document.getElementById("vocab-table");
+    t.words.forEach((w) => {
+      const row = document.createElement("div");
+      row.className = "vt-row";
+      row.innerHTML = `
+        <div class="vt-cell"><input type="text" value="${esc(w.term)}" /></div>
+        <div class="vt-cell meaning-cell">
+          <textarea rows="2">${esc(w.meaning)}</textarea>
+          <div class="attach-row">
+            <button class="attach-btn" type="button" title="Coming soon">🔗 Add link</button>
+            <button class="attach-btn" type="button" title="Coming soon">📎 Attach file</button>
+          </div>
+        </div>
+        <button class="vt-del" aria-label="Delete word">✕</button>
+      `;
+      row.querySelector('input[type="text"]').addEventListener("blur", (e) => { w.term = e.target.value.trim() || w.term; saveState(); });
+      row.querySelector("textarea").addEventListener("blur", (e) => { w.meaning = e.target.value; saveState(); });
+      row.querySelector(".vt-del").addEventListener("click", () => {
+        t.words = t.words.filter((x) => x.id !== w.id);
+        saveState();
+        renderEditView();
+      });
+      table.appendChild(row);
+    });
+    const addRow = document.createElement("div");
+    addRow.className = "add-word-row";
+    addRow.innerHTML = `<button type="button">+ Add word</button>`;
+    addRow.querySelector("button").addEventListener("click", () => {
+      t.words.push({ id: uid(), term: "", meaning: "", links: [], srs: newSrs() });
+      saveState();
+      renderEditView();
+      const inputs = table.querySelectorAll('input[type="text"]');
+      inputs[inputs.length - 1].focus();
+    });
+    table.appendChild(addRow);
+
+    document.getElementById("back-btn").addEventListener("click", () => { view = "list"; render(); });
+    document.getElementById("topic-title-input").addEventListener("blur", (e) => {
+      t.name = e.target.value.trim() || t.name;
+      saveState();
+    });
+    document.getElementById("edit-start-training").addEventListener("click", () => startSession([t.id], "term-to-meaning"));
+  }
+
+  function renderTrainView() {
+    const c = currentCard();
+    if (!c) {
+      const correct = session.correct, wrong = session.wrong;
+      app.innerHTML = `
+        <div class="session-done">
+          <h2 style="margin:0">Session complete</h2>
+          <div class="big-score"><span class="ok">Correct: ${correct}</span> &nbsp;|&nbsp; <span class="bad">Wrong: ${wrong}</span></div>
+          <button class="btn btn-accent" id="done-btn">Back to Topics</button>
+        </div>
+      `;
+      document.getElementById("done-btn").addEventListener("click", () => exitSession(false));
+      return;
+    }
+    const dir = session.direction;
+    const frontIsTerm = dir === "term-to-meaning";
+    const frontText = frontIsTerm ? c.word.term : c.word.meaning;
+    const backText = frontIsTerm ? c.word.meaning : c.word.term;
+    const frontLabel = frontIsTerm ? "Word / Term" : "Meaning";
+    const backLabel = frontIsTerm ? "Meaning" : "Word / Term";
+
+    app.innerHTML = `
+      <div class="train-header">
+        <span class="train-progress">Card ${session.index + 1} of ${session.wordRefs.length} — ${esc(c.topic.name)}</span>
+        <div style="display:flex;align-items:center;gap:0.6rem;">
+          <div class="direction-toggle">
+            <button data-dir="term-to-meaning" class="${dir === "term-to-meaning" ? "active" : ""}">Word → Meaning</button>
+            <button data-dir="meaning-to-term" class="${dir === "meaning-to-term" ? "active" : ""}">Meaning → Word</button>
+          </div>
+          <button class="exit-btn" id="exit-btn">Exit</button>
+        </div>
+      </div>
+      <div class="flashcard-wrap">
+        <div class="flashcard" id="flashcard">
+          <span class="side-label">${frontLabel}</span>
+          <span class="card-text"></span>
+          ${session.flipped ? `<div class="card-answer"><span class="side-label">${backLabel}</span><br/><span class="card-answer-text" style="white-space:pre-wrap"></span></div>` : `<span class="hint">Click to flip</span>`}
+        </div>
+        ${session.flipped ? `
+          <div class="grade-row">
+            <button class="grade-btn wrong" id="grade-wrong">✕ Wrong</button>
+            <button class="grade-btn correct" id="grade-correct">✓ Correct</button>
+          </div>` : ""}
+      </div>
+    `;
+    app.querySelector(".card-text").textContent = frontText;
+    if (session.flipped) app.querySelector(".card-answer-text").textContent = backText;
+
+    document.getElementById("flashcard").addEventListener("click", () => { if (!session.flipped) flipCard(); });
+    if (session.flipped) {
+      document.getElementById("grade-wrong").addEventListener("click", () => gradeCard(false));
+      document.getElementById("grade-correct").addEventListener("click", () => gradeCard(true));
+    }
+    document.getElementById("exit-btn").addEventListener("click", () => exitSession(true));
+    app.querySelectorAll(".direction-toggle button").forEach((btn) => {
+      btn.addEventListener("click", () => { session.direction = btn.dataset.dir; render(); });
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Add-topic / mixed-training dialogs
+  // ---------------------------------------------------------------------
+  document.getElementById("add-topic-cancel").addEventListener("click", () => {
+    document.getElementById("add-topic-overlay").classList.remove("open");
+    document.getElementById("add-topic-input").value = "";
+  });
+  document.getElementById("add-topic-save").addEventListener("click", () => {
+    const input = document.getElementById("add-topic-input");
+    const name = input.value.trim();
+    if (!name) return;
+    state.topics.push({ id: uid(), name, words: [], lastResult: null });
+    saveState();
+    input.value = "";
+    document.getElementById("add-topic-overlay").classList.remove("open");
+    render();
+  });
+  document.getElementById("mixed-cancel").addEventListener("click", () => document.getElementById("mixed-overlay").classList.remove("open"));
+  document.getElementById("mixed-start").addEventListener("click", () => {
+    const ids = [...document.querySelectorAll("#mixed-checklist input:checked")].map((el) => el.value);
+    document.getElementById("mixed-overlay").classList.remove("open");
+    if (ids.length === 0) return;
+    startSession(ids, "term-to-meaning");
+  });
+
+  render();
+</script>
+</body>
+</html>

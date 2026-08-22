@@ -4,6 +4,7 @@ import { DndContext, closestCenter, useSensor, useSensors, MouseSensor, TouchSen
 import { SortableContext, rectSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { loadBookReviews, saveBookReviews } from "@/lib/book-reviews/book-review-storage";
 import type { BookReview } from "@/lib/book-reviews/book-review-types";
+import { matchesDateQuery } from "@/lib/search/date-search";
 import BookReviewCard from "./book-review-card";
 import SortableBookReviewCard from "./sortable-book-review-card";
 import BookReviewDeleteConfirm from "./book-review-delete-confirm";
@@ -79,7 +80,7 @@ export default function BookReviewsPage() {
     if (!q) return books;
     return books.filter((b) => {
       const haystack = [b.title, b.author, b.summary, b.review, b.quotes, b.tropes].join(" ").toLowerCase();
-      return haystack.includes(q);
+      return haystack.includes(q) || matchesDateQuery(new Date(b.createdAt), q);
     });
   }, [books, query]);
 

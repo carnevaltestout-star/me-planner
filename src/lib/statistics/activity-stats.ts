@@ -53,7 +53,7 @@ export function computeActivityStats(range: TimeRange, today: Date): ActivitySta
 
   const sections: ActivitySection[] = [
     { label: "Journal", count: journalInRange },
-    { label: "Trackers", count: trackerInRange },
+    { label: "Energy & Habit Tracker", count: trackerInRange },
     { label: "Book Reviews", count: bookInRange },
   ];
   const topSection = sections.reduce((max, s) => (s.count > max.count ? s : max), sections[0]);

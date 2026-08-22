@@ -155,6 +155,13 @@ export default function PlannerGrid({ view, anchor, events, onCellClick, onBlock
                       const leftPct = col * widthPct;
                       const color = ev.color || "var(--color-accent)";
                       const tintPercent = ev.priority ? PRIORITY_TINT_PERCENT[ev.priority] : DEFAULT_TINT_PERCENT;
+                      // Only a lone event in its time slot gets to spill its
+                      // full title past a too-short block's own height —
+                      // with siblings sharing that slot there's nowhere for
+                      // overflow text to go without covering them, so those
+                      // stay clipped and rely on the title="" hover tooltip
+                      // instead.
+                      const overlapping = cols > 1;
                       return (
                         <div
                           key={ev.id}
@@ -162,7 +169,10 @@ export default function PlannerGrid({ view, anchor, events, onCellClick, onBlock
                             e.stopPropagation();
                             onBlockClick(ev, key);
                           }}
-                          className="absolute flex cursor-pointer flex-col justify-start overflow-hidden rounded-theme-sm pb-0 pl-[0.4rem] pr-[0.4rem] pt-[0.12rem] text-[0.7rem] text-ink"
+                          title={overlapping ? ev.title : undefined}
+                          className={`isolate absolute flex cursor-pointer flex-col justify-start rounded-theme-sm pb-0 pl-[0.4rem] pr-[0.4rem] pt-[0.12rem] text-[0.7rem] text-ink ${
+                            overlapping ? "z-[1] overflow-hidden" : "z-[2] overflow-visible"
+                          }`}
                           style={{
                             top: ev.start * HOUR_HEIGHT,
                             height: (ev.end - ev.start) * HOUR_HEIGHT,
@@ -172,11 +182,17 @@ export default function PlannerGrid({ view, anchor, events, onCellClick, onBlock
                             borderLeft: `3px solid ${color}`,
                           }}
                         >
-                          <span className="min-w-0 truncate font-semibold leading-[1.15]">
+                          <span
+                            className={`min-w-0 font-semibold leading-[1.15] ${overlapping ? "truncate" : "text-black"}`}
+                          >
                             {ev.title}
                             {ev.repeat !== "none" ? " ↻" : ""}
                           </span>
-                          <span className="min-w-0 truncate leading-[1.15] text-ink-muted">
+                          {/* mix-blend-difference against the block's own
+                              (isolate-scoped) tinted background instead of a
+                              fixed muted color — stays readable no matter how
+                              light or dark the event's own color/tint ends up. */}
+                          <span className="min-w-0 truncate leading-[1.15] text-white mix-blend-difference">
                             {fmtHour(ev.start)}–{fmtHour(ev.end)}
                           </span>
                         </div>

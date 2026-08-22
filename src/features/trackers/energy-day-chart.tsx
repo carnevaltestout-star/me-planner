@@ -27,12 +27,17 @@ const PAD_Y = 10;
 const Y_GUTTER = 16; // width reserved for the H/M/L column
 const X_GUTTER = 16; // height reserved for the hour-label row
 
+// Labels past midnight wrap back to the 1-3 range (27 is "3am the next
+// day", not literally hour 27) while the underlying `time` stays on the
+// continuous 5-27 scale used for plotting.
 const X_TICKS: { time: number; label: string }[] = [
+  { time: 5, label: "5" },
   { time: 8, label: "8" },
   { time: 12, label: "12" },
   { time: 16, label: "16" },
   { time: 20, label: "20" },
   { time: 24, label: "24" },
+  { time: 27, label: "3" },
 ];
 
 // A real drag (adjusting an existing dot's value) has to move the pointer
@@ -306,7 +311,7 @@ export default function EnergyDayChart({ points, onChange, locked }: EnergyDayCh
           ))}
         </div>
       </div>
-      <p className="m-0 text-right text-[0.65rem] text-ink-muted">X: Time of day</p>
+      <p className="m-0 text-right text-[0.65rem] text-ink-muted">X: O'clock</p>
       {sorted.length === 0 && (
         <p className="m-0 text-center text-xs text-ink-muted">
           {locked ? "Nothing recorded." : "Click the chart to log your energy at a time."}

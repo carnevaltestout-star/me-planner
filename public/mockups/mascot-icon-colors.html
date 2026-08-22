@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Mascot icon — softer color variations</title>
+<style>
+  body {
+    margin: 0; background: #fbf8f6; color: #362e38; font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    padding: 2rem 1.5rem;
+  }
+  h1 { font-size: 1.1rem; margin: 0 0 0.3rem; }
+  h2 { font-size: 0.85rem; margin: 2rem 0 0.75rem; color: #6b5a68; text-transform: uppercase; letter-spacing: 0.03em; }
+  p.sub { font-size: 0.85rem; color: #7a7480; margin: 0 0 1rem; max-width: 640px; line-height: 1.5; }
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; max-width: 950px;
+  }
+  .card {
+    background: #ffffff; border: 1px solid #e4d9e3; border-radius: 12px; padding: 1.1rem 0.9rem;
+    display: flex; flex-direction: column; align-items: center; gap: 0.55rem; text-align: center;
+  }
+  .card.new { border-color: #ff9fc4; box-shadow: 0 0 0 1px #ff9fc4 inset; }
+  .card svg { width: 44px; height: 44px; image-rendering: pixelated; }
+  .num { font-size: 0.7rem; font-weight: 700; color: #8b6ba8; }
+  .name { font-size: 0.8rem; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>Kitty / Pup — softer color variations, + 2 new icons</h1>
+<p class="sub">Same shapes as options 14/15 before, all repainted in muted/dusty palettes instead of the original saturated pink and blue. Two new mascot icons at the end (Bear, Bunny) in the same face style and one of the softer palettes.</p>
+
+<script>
+  function svg(layers, size) {
+    const cell = 20 / 8;
+    const groups = layers.map(({ grid, color }) => {
+      let rects = "";
+      grid.forEach((row, y) => { [...row].forEach((c, x) => { if (c === "1") rects += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}"/>`; }); });
+      return `<g style="fill:${color}">${rects}</g>`;
+    }).join("");
+    return `<svg viewBox="0 0 20 20" width="${size||44}" height="${size||44}">${groups}</svg>`;
+  }
+  function highlightOf(grid) {
+    const h = grid.length;
+    return grid.map((row, y) => (y <= Math.floor(h / 2) - 1 ? [...row].map((c, x) => (c === "1" && x <= 3 ? "1" : "0")).join("") : "00000000"));
+  }
+  function shadowOf(grid) {
+    const h = grid.length;
+    return grid.map((row, y) => (y >= Math.ceil(h / 2) ? [...row].map((c, x) => (c === "1" && x >= 4 ? "1" : "0")).join("") : "00000000"));
+  }
+  function shaded(grid, color) {
+    return [
+      { grid: shadowOf(grid), color: `color-mix(in srgb, ${color} 80%, black)` },
+      { grid, color },
+      { grid: highlightOf(grid), color: `color-mix(in srgb, ${color} 75%, white)` },
+    ];
+  }
+
+  // ---- Shapes (unchanged from routine-icon-options.html's 14/15) ----
+  const KITTY_FACE = ["01100110","11111111","11111111","11111111","11111111","11111111","01111110","00000000"];
+  const KITTY_EYES = ["00000000","00000000","00000000","01000010","00000000","00000000","00000000","00000000"];
+  const KITTY_NOSE = ["00000000","00000000","00000000","00000000","00011000","00000000","00000000","00000000"];
+  const KITTY_WHISKERS = ["00000000","00000000","00000000","00000000","10000001","00000000","00000000","00000000"];
+  const KITTY_BOW = ["00000010","00000111","00000010","00000000","00000000","00000000","00000000","00000000"];
+
+  const PUP_HEAD = ["00000000","01000010","11100111","11111111","11111111","11111111","01111110","00000000"];
+  const PUP_EYES = ["00000000","00000000","00000000","00000000","01000010","00000000","00000000","00000000"];
+  const PUP_BLUSH = ["00000000","00000000","00000000","00000000","00000000","10000001","00000000","00000000"];
+
+  // ---- New shapes, same face-family conventions ----
+  const BEAR_HEAD = ["01000010","11100111","11111111","11111111","11111111","11111111","01111110","00000000"];
+  const BEAR_EYES = ["00000000","00000000","00000000","01000010","00000000","00000000","00000000","00000000"];
+  const BEAR_NOSE = ["00000000","00000000","00000000","00000000","00011000","00000000","00000000","00000000"];
+  const BEAR_BLUSH = ["00000000","00000000","00000000","00000000","00000000","10000001","00000000","00000000"];
+
+  const BUNNY_FACE = ["00100100","00100100","00100100","01111110","11111111","11111111","01111110","00000000"];
+  const BUNNY_EAR_INNER = ["00000000","00100100","00000000","00000000","00000000","00000000","00000000","00000000"];
+  const BUNNY_EYES = ["00000000","00000000","00000000","00000000","01000010","00000000","00000000","00000000"];
+  const BUNNY_NOSE = ["00000000","00000000","00000000","00000000","00000000","00011000","00000000","00000000"];
+  const BUNNY_BLUSH = ["00000000","00000000","00000000","00000000","00000000","10000001","00000000","00000000"];
+
+  // ---- Palette families: [faceTint, accent, eyeColor] — saturated enough
+  // to read clearly against a white card, softer than the original neon
+  // pink/blue but no longer close enough to white to blend into it. ----
+  const PALETTES = {
+    Blush:    { face: "#f0c3cc", accent: "#c94f6b", eye: "#4a2530" },
+    Sage:     { face: "#bcd8ad", accent: "#4f8a45", eye: "#2c3a24" },
+    Sand:     { face: "#f0cf8f", accent: "#c98a2a", eye: "#4a3418" },
+    Lavender: { face: "#cdbbe8", accent: "#7d54ad", eye: "#362a4a" },
+    Sky:      { face: "#a9d3ea", accent: "#3d7ba3", eye: "#1f3a4a" },
+  };
+
+  function kitty(pal) {
+    return svg([...shaded(KITTY_FACE, pal.face), {grid:KITTY_EYES,color:pal.eye}, {grid:KITTY_NOSE,color:pal.accent}, {grid:KITTY_WHISKERS,color:`color-mix(in srgb, ${pal.face} 40%, ${pal.eye})`}, {grid:KITTY_BOW,color:pal.accent}]);
+  }
+  function pup(pal) {
+    return svg([...shaded(PUP_HEAD, pal.face), {grid:PUP_EYES,color:pal.eye}, {grid:PUP_BLUSH,color:pal.accent}]);
+  }
+  function bear(pal) {
+    return svg([...shaded(BEAR_HEAD, pal.face), {grid:BEAR_EYES,color:pal.eye}, {grid:BEAR_NOSE,color:pal.eye}, {grid:BEAR_BLUSH,color:pal.accent}]);
+  }
+  function bunny(pal) {
+    return svg([...shaded(BUNNY_FACE, pal.face), {grid:BUNNY_EAR_INNER,color:pal.accent}, {grid:BUNNY_EYES,color:pal.eye}, {grid:BUNNY_NOSE,color:pal.accent}, {grid:BUNNY_BLUSH,color:pal.accent}]);
+  }
+
+  function renderSection(title, sub, cards) {
+    const h2 = document.createElement("h2");
+    h2.textContent = title;
+    document.body.appendChild(h2);
+    if (sub) {
+      const p = document.createElement("p");
+      p.className = "sub";
+      p.textContent = sub;
+      document.body.appendChild(p);
+    }
+    const grid = document.createElement("div");
+    grid.className = "grid";
+    document.body.appendChild(grid);
+    cards.forEach((c) => {
+      const card = document.createElement("div");
+      card.className = "card" + (c.isNew ? " new" : "");
+      card.innerHTML = `<span class="num">${c.num}</span>${c.svg}<span class="name">${c.name}</span>`;
+      grid.appendChild(card);
+    });
+  }
+
+  let n = 1;
+  renderSection("Kitty Face — color variations", null, Object.entries(PALETTES).map(([name, pal]) => ({ num: n++, name, svg: kitty(pal) })));
+  renderSection("Fluffy Pup — color variations", null, Object.entries(PALETTES).map(([name, pal]) => ({ num: n++, name, svg: pup(pal) })));
+  renderSection("Two new icons, same face style", "Bear in \"Sand\", Bunny in \"Blush\" — say the word if you'd rather see either in a different palette from above.", [
+    { num: n++, name: "Bear Face (Sand)", svg: bear(PALETTES.Sand), isNew: true },
+    { num: n++, name: "Bunny Face (Blush)", svg: bunny(PALETTES.Blush), isNew: true },
+  ]);
+</script>
+</body>
+</html>

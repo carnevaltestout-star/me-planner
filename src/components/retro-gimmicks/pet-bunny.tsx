@@ -14,7 +14,18 @@ const SIT_MAX_MS = 3200;
 const STEP_RANGE_PX = 22;
 const WANDER_RADIUS_PX = 40;
 const ICON_SIZE_PX = 32;
+const ICON_SIZE_PX_MOBILE = 22;
 const EDGE_MARGIN_PX = 16;
+// Sits near the bottom edge on mobile — the footer bar below (see the
+// render) gives it a dedicated strip to stand in instead of floating loose
+// over page content. Kept a bit clear of the true edge (not flush) since
+// some phones' bottom gesture bar/home indicator overlaps the last few px
+// of viewport and would otherwise clip the bunny and its mood bubble.
+const EDGE_MARGIN_PX_MOBILE = 12;
+// Sized to the resting icon + its edge margin — a hop's ~7px bounce (see
+// @keyframes hop-arc in index.css) pokes slightly above it, which reads as
+// the bunny actually leaving the ground rather than a sizing bug.
+const FOOTER_HEIGHT_PX_MOBILE = 34;
 const MOOD_MIN_MS = 7000;
 const MOOD_MAX_MS = 12000;
 const MOOD_DISPLAY_MIN_MS = 4000;
@@ -45,9 +56,8 @@ const MOODS = [
   "suffer productively",
   "Get up, one task, one victory",
   "Get it together, respectfully",
-  "Be nervous and a badass",
+  "Be a nervous badass",
   "F*ck perfect, show up",
-  "You're (probably) not under surveillance, relax",
   "keep walking <3",
   "What u fear controls u",
   "we all die eventually, just do it",
@@ -60,20 +70,22 @@ const MOODS = [
   "Replace \"What if\'s!?\" with \"Let\'s find out!\"",
   "Anxiety always wins a debate",
   "Choose: Pain of discipline or regret?!",
-  "Notice, don\t react to all thoughts, dumbass",
+  "Notice, don\'t react to all thoughts, dummy",
   "Kiss yourself",
-  "I know it hurts a lot",
+  "discipline over feelings",
   "Slow down, to regain control",
   "Always stay critical, question and debate! ;3",
   "Do what u fear",
+  "Just do your thing..whatever it is.",
   "Touch some grass",
+  "Be there for someone : 3",
   "bounce back and learn :3"
 ];
 
-function homePosition() {
+function homePosition(iconSize: number, edgeMargin: number) {
   return {
-    x: window.innerWidth - ICON_SIZE_PX - EDGE_MARGIN_PX,
-    y: window.innerHeight - ICON_SIZE_PX - EDGE_MARGIN_PX,
+    x: window.innerWidth - iconSize - edgeMargin,
+    y: window.innerHeight - iconSize - edgeMargin,
   };
 }
 
@@ -90,19 +102,25 @@ function homePosition() {
 // motion), just without the pop animation.
 export default function PetBunny() {
   const theme = useTheme();
-  const active = (theme.retro || theme.kawaii) && theme.gimmicks.bouncingBuddy;
+  const active = theme.gimmicks.bouncingBuddy;
   const Bunny = theme.kawaii ? KawaiiBunnyIcon : BunnyIcon;
   const [awake, setAwake] = useState(false);
   const [walking, setWalking] = useState(false);
   const [facingLeft, setFacingLeft] = useState(false);
   const [mood, setMood] = useState<string | null>(null);
+  // Smaller sprite (and correspondingly smaller emotes/bubble, see the JSX
+  // below) on narrow screens — less room to spare, so less footprint that
+  // could sit on top of real UI.
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const iconSize = isMobile ? ICON_SIZE_PX_MOBILE : ICON_SIZE_PX;
+  const edgeMargin = isMobile ? EDGE_MARGIN_PX_MOBILE : EDGE_MARGIN_PX;
   const trackRef = useRef<HTMLDivElement>(null);
   const isAwakeRef = useRef(false);
   // Seeded with the real home position (not {x:0, y:0}) so the very first
   // paint already places the bunny correctly — otherwise it starts at the
   // top-left corner and the transition-transform class animates a visible
   // slide down to home on every mount.
-  const posRef = useRef(homePosition());
+  const posRef = useRef(homePosition(iconSize, edgeMargin));
   const asleepTimeoutRef = useRef<number>();
   const walkTimeoutRef = useRef<number>();
   const moodTimeoutRef = useRef<number>();
@@ -127,10 +145,10 @@ export default function PetBunny() {
       // just clamping the old value — otherwise shrinking the window then
       // growing it back leaves the bunny stuck floating at the old, smaller
       // height instead of snapping back down to the bottom.
-      const maxX = window.innerWidth - ICON_SIZE_PX - EDGE_MARGIN_PX;
+      const maxX = window.innerWidth - iconSize - edgeMargin;
       posRef.current = {
-        x: Math.min(Math.max(posRef.current.x, EDGE_MARGIN_PX), Math.max(EDGE_MARGIN_PX, maxX)),
-        y: window.innerHeight - ICON_SIZE_PX - EDGE_MARGIN_PX,
+        x: Math.min(Math.max(posRef.current.x, edgeMargin), Math.max(edgeMargin, maxX)),
+        y: window.innerHeight - iconSize - edgeMargin,
       };
       applyTransform();
     }
@@ -144,7 +162,7 @@ export default function PetBunny() {
 
     function step() {
       if (!isAwakeRef.current) return;
-      const home = homePosition();
+      const home = homePosition(iconSize, edgeMargin);
       const delta = (Math.random() * 2 - 1) * STEP_RANGE_PX;
       const proposedX = posRef.current.x + delta;
       const clampedToWander = Math.min(
@@ -152,8 +170,8 @@ export default function PetBunny() {
         Math.max(home.x - WANDER_RADIUS_PX, proposedX),
       );
       const nextX = Math.min(
-        window.innerWidth - ICON_SIZE_PX - EDGE_MARGIN_PX,
-        Math.max(EDGE_MARGIN_PX, clampedToWander),
+        window.innerWidth - iconSize - edgeMargin,
+        Math.max(edgeMargin, clampedToWander),
       );
       setFacingLeft(nextX < posRef.current.x);
       posRef.current = { ...posRef.current, x: nextX };
@@ -186,7 +204,7 @@ export default function PetBunny() {
 
       if (!isAwakeRef.current) {
         isAwakeRef.current = true;
-        posRef.current = homePosition();
+        posRef.current = homePosition(iconSize, edgeMargin);
         applyTransform();
         setAwake(true);
         if (!prefersReducedMotion) step();
@@ -221,7 +239,15 @@ export default function PetBunny() {
       window.clearTimeout(moodTimeoutRef.current);
       window.clearTimeout(heartEyesTimeoutRef.current);
     };
-  }, [active]);
+  }, [active, iconSize, edgeMargin]);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 768px)");
+    const update = () => setIsMobile(!mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, []);
 
   function spawnHearts() {
     const burst = [0, 1, 2].map(() => ({ id: (heartIdRef.current += 1), left: Math.random() * 16 - 8 }));
@@ -267,19 +293,39 @@ export default function PetBunny() {
   if (!active) return null;
 
   return (
-    <div
-      ref={trackRef}
-      className="pointer-events-none fixed left-0 top-0 z-40 h-8 w-8 transition-transform ease-in-out"
-      style={{
-        transitionDuration: `${WALK_DURATION_MS}ms`,
-        transform: `translate(${posRef.current.x}px, ${posRef.current.y}px)`,
-      }}
+    <>
+      {/* Mobile only — gives the bunny (now resting right at the bottom
+          edge, see EDGE_MARGIN_PX_MOBILE) a dedicated strip of its own
+          background color to stand in, instead of floating loose directly
+          over whatever page content happens to scroll underneath it.
+          data-theme-surface="chrome" (same as the topbar/header) rather than
+          a hardcoded --color-surface, so it gets whatever treatment the
+          current skin applies to chrome surfaces (e.g. kawaii's gradient,
+          starfield's translucency) instead of looking mismatched under
+          those. */}
+      <div
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface md:hidden"
+        style={{ height: FOOTER_HEIGHT_PX_MOBILE }}
+        data-theme-surface="chrome"
+        aria-hidden="true"
+      />
+      <div
+        ref={trackRef}
+        className="pointer-events-none fixed left-0 top-0 z-40 transition-transform ease-in-out"
+        style={{
+          width: iconSize,
+          height: iconSize,
+          transitionDuration: `${WALK_DURATION_MS}ms`,
+          transform: `translate(${posRef.current.x}px, ${posRef.current.y}px)`,
+        }}
       aria-hidden="true"
     >
       {mood && (
         <span
-          className="gimmick-mood-pop absolute right-full top-1/2 mr-3 -translate-y-1/2 whitespace-nowrap rounded-2xl border-[3px] px-3 py-1.5 text-xs font-semibold"
-          style={{ color: "#4a3b6b", background: "#ffffff", borderColor: "#ff6fa5" }}
+          className={`gimmick-mood-pop absolute right-full top-1/2 mr-3 max-w-[46vw] -translate-y-1/2 whitespace-nowrap rounded-2xl border-[3px] font-semibold sm:max-w-none ${
+            isMobile ? "px-2 py-1 text-[0.62rem]" : "px-3 py-1.5 text-xs"
+          }`}
+          style={{ color: "var(--color-ink)", background: "var(--color-surface)", borderColor: "var(--color-accent)" }}
           aria-hidden="true"
         >
           {mood}
@@ -288,7 +334,7 @@ export default function PetBunny() {
       {hearts.map((h) => (
         <span
           key={h.id}
-          className="gimmick-heart-float pointer-events-none absolute bottom-[80%] left-1/2 text-xs"
+          className={`gimmick-heart-float pointer-events-none absolute bottom-[80%] left-1/2 ${isMobile ? "text-[0.6rem]" : "text-xs"}`}
           style={{ marginLeft: h.left }}
           aria-hidden="true"
         >
@@ -318,11 +364,12 @@ export default function PetBunny() {
             className="h-full w-full"
             style={{ color: "var(--color-accent)", imageRendering: "pixelated" }}
           />
-          <span className="absolute -right-1 -top-3 text-[10px]" aria-hidden="true">
+          <span className={`absolute -right-1 -top-3 ${isMobile ? "text-[8px]" : "text-[10px]"}`} aria-hidden="true">
             💤
           </span>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

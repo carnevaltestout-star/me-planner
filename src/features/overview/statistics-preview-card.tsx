@@ -4,6 +4,7 @@ import JournalStatsCard from "../statistics/journal-stats-card";
 import TrackerConsistencyCard from "../statistics/tracker-consistency-card";
 import TrackerMoodCard from "../statistics/tracker-mood-card";
 import TrackerFrequencyCard from "../statistics/tracker-frequency-card";
+import EnergyLevelCard from "../statistics/energy-level-card";
 import BookReviewActivityCard from "../statistics/book-review-activity-card";
 import BookReviewRatingsCard from "../statistics/book-review-ratings-card";
 import GoalsTodosStatsCard from "../statistics/goals-todos-stats-card";
@@ -31,6 +32,7 @@ export default function StatisticsPreviewCard({ path, label, icon: Icon, iconCla
         <TrackerConsistencyCard range={range} today={today} />
         <TrackerMoodCard range={range} chartType={chartType} today={today} />
         <TrackerFrequencyCard range={range} chartType={chartType} today={today} />
+        <EnergyLevelCard range={range} chartType={chartType} today={today} />
         <BookReviewActivityCard range={range} chartType={chartType} today={today} />
         <BookReviewRatingsCard range={range} chartType={chartType} today={today} />
         <GoalsTodosStatsCard range={range} chartType={chartType} today={today} />

@@ -612,6 +612,7 @@
     btn.setAttribute("aria-pressed", "true");
     frame.dataset.mode = currentIsDark() ? "dark" : "light";
     applyPaletteToFrame(currentPaletteKey());
+    saveThemeToApp();
   });
 
   // ---- Presets ----
@@ -636,6 +637,7 @@
       const key = currentPaletteKey();
       paletteState[key] = { ...paletteState[key], bg: p.bg, accent: p.accent, text: p.text };
       applyPaletteToFrame(key);
+      saveThemeToApp();
     });
     presetsEl.appendChild(btn);
   });
@@ -733,6 +735,7 @@
   const swatchesEl = document.getElementById("swatches");
   const inputs = {};
   let lastFocusedSwatchKey = "accent";
+  let swatchSaveTimeoutId = null;
 
   function applyFavoriteColor(color) {
     const input = inputs[lastFocusedSwatchKey];
@@ -759,6 +762,11 @@
       paletteState[key] = { ...paletteState[key], [s.key]: inputs[s.key].value };
       frame.style.setProperty(`--f-${s.key}`, inputs[s.key].value);
       [...presetsEl.children].forEach((b) => b.setAttribute("aria-pressed", "false"));
+      // Debounced — native color pickers fire "input" continuously while
+      // dragging, so this waits for the drag to settle rather than writing
+      // to localStorage dozens of times per color pick.
+      clearTimeout(swatchSaveTimeoutId);
+      swatchSaveTimeoutId = setTimeout(saveThemeToApp, 200);
     });
     inputs[s.key].addEventListener("focus", () => { lastFocusedSwatchKey = s.key; });
     wrap.addEventListener("mousedown", () => { lastFocusedSwatchKey = s.key; });
@@ -792,6 +800,41 @@
   const packsEl = document.getElementById("icon-packs");
   let activePack = iconPacks[0];
 
+  // ---- Save & apply to the real app ----
+  // Same origin as localhost:1420, same localStorage key the app's
+  // ThemeProvider reads (src/lib/theme/theme-storage.ts) — saving here
+  // updates the running app live via the "storage" event if it's open in
+  // another tab, or on its next load otherwise. Every control below calls
+  // this itself the moment it changes (autosave) — the button (wired at the
+  // bottom of this script) is just an explicit, reassuring "yes, this is
+  // saved" affordance on top of that, not the only way changes take effect.
+  // Defined here (before setRetro/setKawaii/the gimmick setters, and before
+  // the "restore state" block that calls them on load) since those all call
+  // this function too — defining it later would throw a
+  // "used before initialization" error the moment the page tries to restore
+  // a previously-saved theme.
+  const saveStatus = document.getElementById("save-status");
+  let saveStatusTimeoutId = null;
+  function saveThemeToApp() {
+    const pressedMode = modeGroup.querySelector('button[aria-pressed="true"]');
+    const theme = {
+      mode: pressedMode ? pressedMode.dataset.mode : "light",
+      retro: frame.dataset.retro === "on",
+      kawaii: frame.dataset.kawaii === "on",
+      palettes: paletteState,
+      iconPack: activePack.key,
+      gimmicks: {
+        starfield: frame.dataset.gimmickStars === "on",
+        pawDivider: frame.dataset.gimmickDivider === "on",
+        bouncingBuddy: frame.dataset.gimmickMascot === "on",
+      },
+    };
+    localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(theme));
+    saveStatus.textContent = "Saved — applied to the app (open tabs update instantly, others on next load).";
+    clearTimeout(saveStatusTimeoutId);
+    saveStatusTimeoutId = setTimeout(() => { saveStatus.textContent = ""; }, 5000);
+  }
+
   iconPacks.forEach((pack, i) => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -803,6 +846,7 @@
       [...packsEl.children].forEach((b) => b.setAttribute("aria-pressed", "false"));
       btn.setAttribute("aria-pressed", "true");
       activePack = pack;
+      saveThemeToApp();
     });
     packsEl.appendChild(btn);
   });
@@ -821,12 +865,15 @@
   const gimmicksSection = document.getElementById("gimmicks-section");
 
   function updateGimmicksVisibility() {
+    // Bunny buddy works in every skin (Classic included) — only Starfield
+    // and Paw-print divider are still Retro-specific effects in the real
+    // app, so those two (and only those two) still auto-off when neither
+    // skin is on, same as before.
     const anySkin = frame.dataset.retro === "on" || frame.dataset.kawaii === "on";
-    gimmicksSection.style.display = anySkin ? "flex" : "none";
+    gimmicksSection.style.display = "flex";
     if (!anySkin) {
       setGimmickStars(false);
       setGimmickDivider(false);
-      setGimmickMascot(false);
     }
   }
 
@@ -843,6 +890,7 @@
     updateGimmicksVisibility();
     renderMascotBuddy();
     renderTopbarIcon();
+    saveThemeToApp();
   }
   retroSwitch.addEventListener("click", () => setRetro(retroSwitch.getAttribute("aria-checked") !== "true"));
   retroSwitch.addEventListener("keydown", (e) => {
@@ -869,6 +917,7 @@
     updateGimmicksVisibility();
     renderMascotBuddy();
     renderTopbarIcon();
+    saveThemeToApp();
   }
   kawaiiSwitch.addEventListener("click", () => setKawaii(kawaiiSwitch.getAttribute("aria-checked") !== "true"));
   kawaiiSwitch.addEventListener("keydown", (e) => {
@@ -957,6 +1006,7 @@
       if (prefersReducedMotion) drawStars(0);
       else starAnimId = requestAnimationFrame(starLoop);
     }
+    saveThemeToApp();
   }
   wireSwitch(gimmickStarsSwitch, setGimmickStars);
 
@@ -971,6 +1021,7 @@
   function setGimmickDivider(on) {
     gimmickDividerSwitch.setAttribute("aria-checked", String(on));
     frame.dataset.gimmickDivider = on ? "on" : "off";
+    saveThemeToApp();
   }
   wireSwitch(gimmickDividerSwitch, setGimmickDivider);
 
@@ -1000,6 +1051,7 @@
   function setGimmickMascot(on) {
     gimmickMascotSwitch.setAttribute("aria-checked", String(on));
     frame.dataset.gimmickMascot = on ? "on" : "off";
+    saveThemeToApp();
   }
   wireSwitch(gimmickMascotSwitch, setGimmickMascot);
 
@@ -1028,29 +1080,6 @@
     setRetro(false);
   }
 
-  // ---- Save & apply to the real app ----
-  // Same origin as localhost:1420, same localStorage key the app's
-  // ThemeProvider reads (src/lib/theme/theme-storage.ts) — saving here
-  // updates the running app live via the "storage" event if it's open in
-  // another tab, or on its next load otherwise.
   const saveBtn = document.getElementById("save-btn");
-  const saveStatus = document.getElementById("save-status");
-  saveBtn.addEventListener("click", () => {
-    const pressedMode = modeGroup.querySelector('button[aria-pressed="true"]');
-    const theme = {
-      mode: pressedMode ? pressedMode.dataset.mode : "light",
-      retro: frame.dataset.retro === "on",
-      kawaii: frame.dataset.kawaii === "on",
-      palettes: paletteState,
-      iconPack: activePack.key,
-      gimmicks: {
-        starfield: frame.dataset.gimmickStars === "on",
-        pawDivider: frame.dataset.gimmickDivider === "on",
-        bouncingBuddy: frame.dataset.gimmickMascot === "on",
-      },
-    };
-    localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(theme));
-    saveStatus.textContent = "Saved — applied to the app (open tabs update instantly, others on next load).";
-    setTimeout(() => { saveStatus.textContent = ""; }, 5000);
-  });
+  saveBtn.addEventListener("click", saveThemeToApp);
 </script>

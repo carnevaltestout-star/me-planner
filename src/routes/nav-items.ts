@@ -4,6 +4,7 @@ import {
   BookReviewsIcon,
   FinanceIcon,
   GoalsIcon,
+  HomeIcon,
   JournalIcon,
   LearningIcon,
   OverviewIcon,
@@ -20,22 +21,26 @@ export interface NavItem {
   icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
-// Order matches the spec's tab order (Planner is the default/home tab),
-// independent of the order tabs are actually built in. Trackers sits right
-// under Journal per explicit request, ahead of its original spec position;
-// Statistics now sits right under Trackers for the same reason. Overview
-// sits above Planner — a future card-grid view of every tab in one place.
+// Order matches the spec's tab order, independent of the order tabs are
+// actually built in. Trackers sits right under Journal per explicit
+// request, ahead of its original spec position; Statistics now sits right
+// under Trackers for the same reason. Overview (the daily agenda — todos,
+// habits, calendar, journal at a glance) is the very first tab and the
+// app's default landing page; Dashboard (the card-grid view of every tab)
+// sits right after it. Principles/Routines sits right under Goals/To-Dos
+// per explicit request, ahead of its original spec position.
 export const navItems: NavItem[] = [
-  { path: "/overview", label: "Overview", icon: OverviewIcon },
-  { path: "/planner", label: "Planner", icon: PlannerIcon },
+  { path: "/overview", label: "Overview", icon: HomeIcon },
+  { path: "/dashboard", label: "Dashboard", icon: OverviewIcon },
+  { path: "/planner", label: "Calendar", icon: PlannerIcon },
   { path: "/goals", label: "Goals / To-Dos", icon: GoalsIcon },
+  { path: "/principles", label: "Principles / Routines", icon: PrinciplesIcon },
   { path: "/journal", label: "Journal", icon: JournalIcon },
-  { path: "/trackers", label: "Trackers", icon: TrackersIcon },
+  { path: "/trackers", label: "Energy & Habit Tracker", icon: TrackersIcon },
   { path: "/statistics", label: "Statistics", icon: StatisticsIcon },
-  { path: "/principles", label: "Principles", icon: PrinciplesIcon },
-  { path: "/vocabulary", label: "Vocabulary", icon: VocabularyIcon },
+  { path: "/vocabulary", label: "Vocabulary Training", icon: VocabularyIcon },
+  { path: "/learning", label: "Learning", icon: LearningIcon },
   { path: "/attachments", label: "Attachments", icon: AttachmentsIcon },
   { path: "/book-reviews", label: "Book Reviews", icon: BookReviewsIcon },
   { path: "/finance-overview", label: "Finance Overview", icon: FinanceIcon },
-  { path: "/learning", label: "Learning", icon: LearningIcon },
 ];

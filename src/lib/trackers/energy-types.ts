@@ -2,14 +2,14 @@
 // fixed slots, so the chart can place a point anywhere along a continuous
 // scale instead of snapping to preset times.
 export interface EnergyPoint {
-  time: number; // decimal hour, 8 (8am) – 24 (midnight)
+  time: number; // decimal hour, 5 (5am) – 27 (3am the next day, continuous past midnight)
   value: number; // 0 (Low) – 100 (High)
 }
 
 export type EnergyState = Record<string, EnergyPoint[]>; // dateKey -> points, sorted by time
 
-export const ENERGY_TIME_MIN = 8;
-export const ENERGY_TIME_MAX = 24;
+export const ENERGY_TIME_MIN = 5;
+export const ENERGY_TIME_MAX = 27;
 export const ENERGY_VALUE_MIN = 0;
 export const ENERGY_VALUE_MAX = 100;
 
