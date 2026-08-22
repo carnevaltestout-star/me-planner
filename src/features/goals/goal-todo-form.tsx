@@ -1,5 +1,5 @@
 import { useState, type KeyboardEvent } from "react";
-import { ITEM_COLORS, type ChecklistStep, type GoalTodoItem } from "@/lib/goals/goal-todo-types";
+import { ITEM_COLORS, PRIORITY_TINT_PERCENT, type ChecklistStep, type GoalPriority, type GoalTodoItem } from "@/lib/goals/goal-todo-types";
 
 interface GoalTodoFormProps {
   item: GoalTodoItem;
@@ -11,12 +11,20 @@ const inputClass =
   "w-full rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-sm text-ink focus:outline focus:outline-2 focus:outline-accent";
 const labelClass = "text-xs text-ink-muted";
 
+const PRIORITIES: { value: GoalPriority; label: string }[] = [
+  { value: 1, label: "1 · Highest" },
+  { value: 2, label: "2" },
+  { value: 3, label: "3" },
+  { value: 4, label: "4 · Lowest" },
+];
+
 export default function GoalTodoForm({ item, onClose, onSave }: GoalTodoFormProps) {
   const [title, setTitle] = useState(item.title);
   const [category, setCategory] = useState(item.category);
   const [color, setColor] = useState(item.color);
   const [deadline, setDeadline] = useState(item.deadline);
   const [manualPercent, setManualPercent] = useState(item.manualPercent);
+  const [priority, setPriority] = useState<GoalPriority | undefined>(item.priority);
   const [steps, setSteps] = useState<ChecklistStep[]>(item.steps);
   const [newStep, setNewStep] = useState("");
   const [error, setError] = useState("");
@@ -52,6 +60,7 @@ export default function GoalTodoForm({ item, onClose, onSave }: GoalTodoFormProp
       color,
       deadline,
       manualPercent,
+      priority,
       steps: finalSteps,
     });
   }
@@ -146,6 +155,37 @@ export default function GoalTodoForm({ item, onClose, onSave }: GoalTodoFormProp
                     +
                   </span>
                 </span>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <span className={labelClass}>Priority</span>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  aria-pressed={priority === undefined}
+                  onClick={() => setPriority(undefined)}
+                  style={{ background: `color-mix(in srgb, ${color} 18%, var(--color-surface))` }}
+                  className={`rounded-theme-sm border px-2.5 py-1.5 text-xs text-ink ${
+                    priority === undefined ? "border-ink font-semibold" : "border-border hover:brightness-95"
+                  }`}
+                >
+                  None
+                </button>
+                {PRIORITIES.map((p) => (
+                  <button
+                    key={p.value}
+                    type="button"
+                    aria-pressed={priority === p.value}
+                    onClick={() => setPriority(p.value)}
+                    style={{ background: `color-mix(in srgb, ${color} ${PRIORITY_TINT_PERCENT[p.value]}%, var(--color-surface))` }}
+                    className={`rounded-theme-sm border px-2.5 py-1.5 text-xs text-ink ${
+                      priority === p.value ? "border-ink font-semibold" : "border-border hover:brightness-95"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
               </div>
             </div>
 

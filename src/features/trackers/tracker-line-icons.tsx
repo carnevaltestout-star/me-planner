@@ -249,6 +249,60 @@ function PaletteIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+// Reaching arm + opposite extended leg form one continuous diagonal through
+// the figure, per spec — the other arm/leg stay upright for support/balance.
+function StretchingIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <circle cx="13.3" cy="4.3" r="1.7" fill="currentColor" stroke="none" />
+      <line x1="12.6" y1="6.2" x2="10.5" y2="13" />
+      <line x1="12" y1="8" x2="17.7" y2="3.2" />
+      <line x1="11.3" y1="9.3" x2="7.3" y2="10.7" />
+      <line x1="10.5" y1="13" x2="12.5" y2="20.5" />
+      <line x1="10.5" y1="13" x2="5.3" y2="18" />
+    </svg>
+  );
+}
+
+function TennisIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <ellipse cx="9" cy="8" rx="5.2" ry="6.3" />
+      <line x1="9" y1="1.9" x2="9" y2="14.1" strokeWidth={1} opacity={0.55} />
+      <line x1="3.9" y1="8" x2="14.1" y2="8" strokeWidth={1} opacity={0.55} />
+      <path d="M9 14.1 5.2 20.8" />
+      <circle cx="18.2" cy="17" r="2.1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function SmileyIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="9" cy="10" r="0.9" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="10" r="0.9" fill="currentColor" stroke="none" />
+      <path d="M8 14.2c1 1.6 2.6 2.5 4 2.5s3-.9 4-2.5" />
+    </svg>
+  );
+}
+
+// Seated cross-legged — a head + a wide triangular base, the same
+// "silhouette over literal anatomy" approach as PillowIcon. An earlier
+// version added praying-hands detail up top, but at icon size that just
+// crowded into an unreadable blob; the plain head+triangle reads clearly
+// as a seated figure on its own, the same way it does in most meditation
+// pictograms.
+function MeditationIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <circle cx="12" cy="5" r="1.8" fill="currentColor" stroke="none" />
+      <line x1="12" y1="7.4" x2="12" y2="11" />
+      <path d="M12 11c-2.9 0-5.2 1-7 2.9-1.1 1.2-1.9 2.7-2.1 4.4h18.2c-.2-1.7-1-3.2-2.1-4.4-1.8-1.9-4.1-2.9-7-2.9Z" />
+    </svg>
+  );
+}
+
 export const TRACKER_LINE_ICONS: Record<TrackerIconKey, ComponentType<SVGProps<SVGSVGElement>>> = {
   water: WaterIcon,
   pillow: PillowIcon,
@@ -270,4 +324,8 @@ export const TRACKER_LINE_ICONS: Record<TrackerIconKey, ComponentType<SVGProps<S
   utensils: UtensilsIcon,
   palette: PaletteIcon,
   drop: DropOutlineIcon,
+  stretching: StretchingIcon,
+  tennis: TennisIcon,
+  smiley: SmileyIcon,
+  meditation: MeditationIcon,
 };

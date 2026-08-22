@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { keyToDate } from "@/lib/journal/journal-dates";
 import { entrySearchText, type JournalEntry } from "@/lib/journal/journal-types";
-import { CalendarIcon, SaveIcon, SearchIcon, TrashIcon } from "./journal-icons";
+import { CalendarIcon, ColumnsIcon, SaveIcon, SearchIcon, TrashIcon } from "./journal-icons";
 
 interface SearchMatch {
   dateKey: string;
@@ -19,6 +19,7 @@ interface JournalHeaderProps {
   onPrevDay: () => void;
   onNextDay: () => void;
   onOpenYearView: () => void;
+  onOpenOverview: () => void;
   onJumpToDate: (d: Date) => void;
   onSave: () => void;
   onDeleteRequest: () => void;
@@ -34,6 +35,7 @@ export default function JournalHeader({
   onPrevDay,
   onNextDay,
   onOpenYearView,
+  onOpenOverview,
   onJumpToDate,
   onSave,
   onDeleteRequest,
@@ -80,6 +82,15 @@ export default function JournalHeader({
           className="flex-shrink-0 rounded-theme border border-border bg-surface px-2 py-1 text-xs font-semibold text-ink hover:bg-surface-alt md:px-3 md:py-1.5 md:text-sm"
         >
           Today
+        </button>
+        <button
+          type="button"
+          onClick={onOpenOverview}
+          aria-label="Overview — compare the last 3 days"
+          className="flex flex-shrink-0 items-center gap-1 rounded-theme border border-border bg-surface px-2 py-1 text-xs text-ink hover:bg-surface-alt md:gap-1.5 md:px-3 md:py-1.5 md:text-sm"
+        >
+          <ColumnsIcon className="h-3.5 w-3.5 flex-shrink-0 text-ink-muted md:h-4 md:w-4" />
+          <span className="hidden sm:inline">Overview</span>
         </button>
         <button
           type="button"

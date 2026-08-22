@@ -6,7 +6,8 @@ type Bitmap = string[];
 // Pixel-art re-draws of each tab's own icon (not the kawaii mascot packs) —
 // swapped in for the nav list specifically while Retro Mode is on.
 const BITMAPS: Record<string, Bitmap> = {
-  overview: ["01110111", "01110111", "01110111", "00000000", "01110111", "01110111", "01110111", "00000000"],
+  home: ["00011000", "00111100", "01111110", "11111111", "11100111", "11100111", "11101111", "11111111"],
+  dashboard: ["01110111", "01110111", "01110111", "00000000", "01110111", "01110111", "01110111", "00000000"],
   planner: ["11111111", "10000001", "10101101", "10000001", "10101101", "10000001", "10000001", "11111111"],
   journal: ["01100110", "11111111", "11111111", "11111111", "01111110", "00111100", "00011000", "00000000"],
   principles: ["00011000", "00111100", "01111110", "11111111", "11111111", "01111110", "00111100", "00011000"],
@@ -27,7 +28,8 @@ function icon(key: keyof typeof BITMAPS): IconComponent {
 // Keyed by nav path (see routes/nav-items.ts) so the sidebar can look each
 // one up directly.
 export const RETRO_NAV_ICONS: Record<string, IconComponent> = {
-  "/overview": icon("overview"),
+  "/overview": icon("home"),
+  "/dashboard": icon("dashboard"),
   "/planner": icon("planner"),
   "/journal": icon("journal"),
   "/principles": icon("principles"),

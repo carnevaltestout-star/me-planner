@@ -61,6 +61,13 @@
 .trackers-grid .border-border {
   border-color: var(--color-accent);
 }
+/* Kawaii's --color-border is white (by design, for its borderless-card
+   look), which makes the Word/Term | Meaning column divider on the
+   Vocabulary edit table disappear against its near-white surface — give it
+   the same visible pink used for .kawaii-icon-sticker's border instead. */
+:root[data-kawaii="true"] .vocab-col-divider {
+  border-color: #ffd6ea;
+}
 
 /* Lets the starfield gimmick show through — main goes fully transparent so
    the night sky isn't washed out; chrome (nav/topbar) stays mostly solid
@@ -195,4 +202,14 @@
 
 @media (prefers-reduced-motion: reduce) {
   .learning-flash-success, .learning-flash-error { animation: none; }
+}
+
+/* Statistics tab only — every card shares one height (the tallest card's
+   natural height), so a short card (e.g. a stub placeholder) just ends up
+   with extra padding at the bottom instead of looking mismatched next to a
+   tall one. Scoped to .statistics-cards-grid so the same StatCardShell used
+   inside the Overview page's stacked Statistics preview tile (a scrolling
+   column, not a grid) is unaffected. */
+.statistics-cards-grid .stat-card-shell {
+  min-height: 430px;
 }

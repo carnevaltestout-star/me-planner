@@ -1,11 +1,10 @@
 
 ## Workflow rule (IMPORTANT)
--on the start of each new chat, run the app in localhost
--always make sure to ask before you download packages and keep in mind the space available on the system u work on.
 - read this md file, then the requirements.md to know which step you currently are at, before continuing mention your next steps to me.
 - Only install necessary packages, check if new feature can be developed with existing package, if not, download new one.
 - Before you implement a new feature tell me what u want to install and the size of it.
--
+-Create a new feature branch from dev,
+after i allow you to, merge changes into global dev, then pull dev, and repeat with the next feature
 Before implementing any new feature/tab, send a GUI mockup (ASCII/wireframe description or
 an HTML/React preview) for approval first.
 After developing a feature, do a thorough testing, also in mobile view. If for example the save, edit, etc doesnt work, redo the feature
@@ -19,7 +18,6 @@ or do a bugfix.
 -keep your developments modular, so if u generate custom gifs, place them in one folder for visibility and maintenance, and mention what size and format u used.
 -only update the requirements.md if absolutely necessary, with minimal token usage as goal.
 -If you develop a new feature, make sure, all themes still work with the new feature.
--If you implement a new feature, stick to the style, behavior, design of existing identical features for example search bars, download button, save buttons, since we want to keep the throughout usability of the application identical.
 
 Mobile-View Requirements:
 1. Responsive Design:

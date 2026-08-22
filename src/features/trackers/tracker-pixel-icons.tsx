@@ -29,6 +29,10 @@ const BASE: Record<TrackerIconKey, Bitmap> = {
   utensils: ["10101111", "10101111", "10100111", "01100011", "01100010", "01100010", "01100010", "01100010"],
   palette: ["00111100", "01111110", "11111111", "11111111", "11100011", "11111111", "01111110", "00111100"],
   drop: ["00011000", "00011000", "00111100", "01111110", "11111111", "11111111", "01111110", "00111100"],
+  stretching: ["00110000", "00011000", "01111100", "11011110", "00011000", "00110110", "01100110", "11000011"],
+  tennis: ["00111100", "01111110", "11111111", "11111111", "01111110", "00011000", "00011000", "00000011"],
+  smiley: ["00111100", "01000010", "10100101", "10000001", "01000010", "00111100", "01000010", "00111100"],
+  meditation: ["00011000", "00011000", "00111100", "01111110", "11111111", "11111111", "11111111", "11111111"],
 };
 
 // The cute accent layer per icon: bubbles in the glass, polka dots on the
@@ -93,6 +97,10 @@ export const TRACKER_PIXEL_ICONS: Record<TrackerIconKey, IconComponent> = {
   utensils: trackerIcon("utensils"),
   palette: trackerIcon("palette"),
   drop: trackerIcon("drop"),
+  stretching: trackerIcon("stretching"),
+  tennis: trackerIcon("tennis"),
+  smiley: trackerIcon("smiley"),
+  meditation: trackerIcon("meditation"),
 };
 
 // Small decorative strawberries scattered around the tracker grid in

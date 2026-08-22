@@ -23,6 +23,19 @@ export function OverviewIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+// The "Overview" tab's own icon (the app's default/first tab) — a plain
+// house, distinct from the 2x2-grid icon above which now belongs to
+// "Dashboard" (the grid-of-cards tab).
+export function HomeIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <path d="M3.5 11.5 12 4l8.5 7.5" />
+      <path d="M5.5 10v9a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-9" />
+      <rect x="9.5" y="13.5" width="5" height="6.5" rx="1" />
+    </svg>
+  );
+}
+
 export function PlannerIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...baseProps(props)}>
@@ -122,16 +135,6 @@ export function FinanceIcon(props: SVGProps<SVGSVGElement>) {
       <rect x="3.5" y="6" width="17" height="13" rx="2" />
       <path d="M3.5 10h17" />
       <circle cx="16.5" cy="14" r="1.4" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-export function LearningIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg {...baseProps(props)}>
-      <path d="M9 18h6" />
-      <path d="M10 21h4" />
-      <path d="M12 3a6.5 6.5 0 0 0-3.8 11.8c.5.4.8 1 .8 1.7V17h6v-.5c0-.7.3-1.3.8-1.7A6.5 6.5 0 0 0 12 3Z" />
     </svg>
   );
 }

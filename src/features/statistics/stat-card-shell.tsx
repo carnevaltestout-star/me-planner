@@ -17,7 +17,7 @@ export function StatCardShell({ icon: Icon, iconPath, title, children, wide }: S
   const DisplayIcon = pixelated ? RETRO_NAV_ICONS[iconPath] ?? Icon : Icon;
   return (
     <div
-      className={`flex flex-col gap-3 rounded-theme border border-border bg-surface p-3.5 shadow-theme md:p-4 ${
+      className={`stat-card-shell flex flex-col gap-3 rounded-theme border border-border bg-surface p-3.5 shadow-theme md:p-4 ${
         wide ? "md:col-span-2 xl:col-span-3" : ""
       }`}
     >
@@ -38,7 +38,7 @@ export function StatCardShell({ icon: Icon, iconPath, title, children, wide }: S
   );
 }
 
-export function MiniStat({ label, value }: { label: string; value: string | number }) {
+export function MiniStat({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5 rounded-theme-sm bg-canvas px-2 py-1.5">
       <span className="text-[0.62rem] uppercase tracking-wide text-ink-muted">{label}</span>

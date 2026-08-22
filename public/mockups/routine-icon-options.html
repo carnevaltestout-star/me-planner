@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Routine item icon — options</title>
+<style>
+  body {
+    margin: 0; background: #fbf8f6; color: #362e38; font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    padding: 2rem 1.5rem;
+  }
+  h1 { font-size: 1.1rem; margin: 0 0 0.3rem; }
+  p.sub { font-size: 0.85rem; color: #7a7480; margin: 0 0 1.75rem; max-width: 640px; line-height: 1.5; }
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; max-width: 950px;
+  }
+  .card {
+    background: #ffffff; border: 1px solid #e4d9e3; border-radius: 12px; padding: 1.25rem 1rem;
+    display: flex; flex-direction: column; align-items: center; gap: 0.6rem; text-align: center;
+  }
+  .card.new { border-color: #ff9fc4; box-shadow: 0 0 0 1px #ff9fc4 inset; }
+  .card svg { width: 44px; height: 44px; image-rendering: pixelated; }
+  .num { font-size: 0.7rem; font-weight: 700; color: #8b6ba8; }
+  .name { font-size: 0.82rem; font-weight: 600; }
+  .in-context { margin-top: 0.3rem; display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #362e38; background: #fbf8f6; border-radius: 6px; padding: 0.35rem 0.6rem; }
+  .in-context svg { width: 18px; height: 18px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<h1>Routine list-item icon — pick a number</h1>
+<p class="sub">
+  Every icon now gets automatic top-left highlight + bottom-right shadow (derived straight from its own
+  base shape/color) for more depth, plus a few hand-added touches (blush, sprinkles, boba pearls). Two new
+  mascot-style icons at the end (14, 15) are original designs loosely in the "round cute animal with big
+  ears/bow" kawaii style — not reproductions of any trademarked character.
+</p>
+
+<div class="grid" id="grid"></div>
+
+<script>
+  function svg(layers, size) {
+    const cell = 20 / 8;
+    const groups = layers.map(({ grid, color }) => {
+      let rects = "";
+      grid.forEach((row, y) => { [...row].forEach((c, x) => { if (c === "1") rects += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}"/>`; }); });
+      return `<g style="fill:${color}">${rects}</g>`;
+    }).join("");
+    return `<svg viewBox="0 0 20 20" width="${size||44}" height="${size||44}">${groups}</svg>`;
+  }
+
+  // Derives a highlight subset (top-left-most filled pixels) and a shadow
+  // subset (bottom-right-most filled pixels) straight from a base grid, so
+  // every icon gets a consistent light-from-top-left shaded look without
+  // hand-picking pixels per icon.
+  function highlightOf(grid) {
+    const h = grid.length;
+    return grid.map((row, y) => (y <= Math.floor(h / 2) - 1 ? [...row].map((c, x) => (c === "1" && x <= 3 ? "1" : "0")).join("") : "00000000"));
+  }
+  function shadowOf(grid) {
+    const h = grid.length;
+    return grid.map((row, y) => (y >= Math.ceil(h / 2) ? [...row].map((c, x) => (c === "1" && x >= 4 ? "1" : "0")).join("") : "00000000"));
+  }
+  // Base layer + auto highlight (mixed lighter) + auto shadow (mixed darker), in that stacking order.
+  function shaded(grid, color) {
+    return [
+      { grid: shadowOf(grid), color: `color-mix(in srgb, ${color} 72%, black)` },
+      { grid, color },
+      { grid: highlightOf(grid), color: `color-mix(in srgb, ${color} 60%, white)` },
+    ];
+  }
+
+  const STRAWBERRY_LEAF = ["00111100","01000010","00000000","00000000","00000000","00000000","00000000","00000000"];
+  const STRAWBERRY_BODY = ["00000000","00111100","01111110","11111111","11111111","11111111","01111110","00011000"];
+  const STRAWBERRY_SEEDS = ["00000000","00000000","00000000","01000010","00100100","01000010","00100100","00000000"];
+
+  const HEART = ["01100110","11111111","11111111","11111111","01111110","00111100","00011000","00000000"];
+
+  const STAR = ["00011000","00011000","00111100","11111111","01111110","00111100","01100110","11000011"];
+
+  const PAW = ["00011000","01100110","00000000","00111100","01111110","11111111","11111111","01111110"];
+
+  const DONUT_BASE = ["00111100","01111110","11100111","11000011","11000011","11100111","01111110","00111100"];
+  const DONUT_HOLE = ["00000000","00000000","00011000","00100100","00100100","00011000","00000000","00000000"];
+  // Three little sprinkles scattered on the icing for extra character.
+  const DONUT_SPRINKLES = ["00000000","01000000","00000000","10000000","00000000","00000010","00000000","00000000"];
+
+  const CLOVER = ["00100100","01111110","11111111","01111110","00011000","00011000","00011000","00000000"];
+
+  const SUN = ["01000010","00111100","10111101","01111110","01111110","10111101","00111100","01000010"];
+  // Tiny closed-eye + blush face for character, matching the kawaii-food trope.
+  const FACE_EYES = ["00000000","00000000","00000000","01000010","00000000","00000000","00000000","00000000"];
+  const FACE_BLUSH = ["00000000","00000000","00000000","10000001","00000000","00000000","00000000","00000000"];
+
+  const CHERRIES_STEM = ["00011000","00011000","00111100","00000000","00000000","00000000","00000000","00000000"];
+  const CHERRIES_BODY = ["00000000","00000000","00000000","01100110","11111111","11111111","01111110","00000000"];
+  const CHERRIES_SHINE = ["00000000","00000000","00000000","01000000","00000000","00000000","00000000","00000000"];
+
+  const FLOWER_PETALS = ["00011000","01100110","10000001","10100101","10000001","01100110","00011000","00000000"];
+  const FLOWER_CENTER = ["00000000","00000000","00000000","00011000","00000000","00000000","00000000","00000000"];
+
+  const SPARKLE = ["00011000","00011000","00111100","11111111","11111111","00111100","00011000","00011000"];
+
+  const BOBA_CUP = ["00011000","00011000","01111110","01111110","01111110","01111110","00111100","00011000"];
+  const BOBA_PEARLS = ["00000000","00000000","00000000","00000000","00000000","01010010","00100100","00000000"];
+
+  const ONIGIRI_RICE = ["00011000","00111100","01111110","01111110","11111111","11000011","11000011","11111111"];
+  const ONIGIRI_NORI = ["00000000","00000000","00000000","00000000","00000000","11000011","11000011","11111111"];
+  const ONIGIRI_FACE = ["00000000","00000000","01000010","00000000","00000000","00000000","00000000","00000000"];
+
+  const MOON = ["00111000","01111000","11110000","11110000","11110000","11110000","01111000","00111000"];
+  const MOON_STARS = ["00000010","00000000","10000000","00000000","00000000","00000000","00000001","00000000"];
+  const MOON_FACE = ["00000000","00000000","01000000","00000000","01000000","00000000","00000000","00000000"];
+
+  // ---- New mascot-style options (14, 15) — generic "big-eared cute
+  // animal" designs in the broad kawaii tradition, not reproductions of any
+  // specific trademarked character's exact proportions/features. ----
+  const KITTY_FACE = ["01100110","11111111","11111111","11111111","11111111","11111111","01111110","00000000"];
+  const KITTY_EYES = ["00000000","00000000","00000000","01000010","00000000","00000000","00000000","00000000"];
+  const KITTY_NOSE = ["00000000","00000000","00000000","00000000","00011000","00000000","00000000","00000000"];
+  const KITTY_WHISKERS = ["00000000","00000000","00000000","00000000","10000001","00000000","00000000","00000000"];
+  const KITTY_BOW = ["00000010","00000111","00000010","00000000","00000000","00000000","00000000","00000000"];
+
+  const PUP_HEAD = ["00000000","01000010","11100111","11111111","11111111","11111111","01111110","00000000"];
+  const PUP_EYES = ["00000000","00000000","00000000","00000000","01000010","00000000","00000000","00000000"];
+  const PUP_BLUSH = ["00000000","00000000","00000000","00000000","00000000","10000001","00000000","00000000"];
+
+  const options = [
+    { name: "Strawberry", svg: svg([...shaded(STRAWBERRY_BODY, "#fa8072"), {grid:STRAWBERRY_LEAF,color:"#5fae5a"}, {grid:STRAWBERRY_SEEDS,color:"#ffd54a"}]) },
+    { name: "Heart", svg: svg(shaded(HEART, "#ff6fa5")) },
+    { name: "Star", svg: svg(shaded(STAR, "#f4c542")) },
+    { name: "Paw print", svg: svg(shaded(PAW, "#8b6ba8")) },
+    { name: "Donut (+ sprinkles)", svg: svg([...shaded(DONUT_BASE, "#e28fb0"), {grid:DONUT_HOLE,color:"#fbf8f6"}, {grid:DONUT_SPRINKLES,color:"#8b6ba8"}]) },
+    { name: "Clover", svg: svg(shaded(CLOVER, "#5b8a72")) },
+    { name: "Sun (+ face)", svg: svg([...shaded(SUN, "#f2b642"), {grid:FACE_EYES,color:"#5a4a3a"}, {grid:FACE_BLUSH,color:"#ff9fa8"}]) },
+    { name: "Cherries", svg: svg([...shaded(CHERRIES_BODY, "#d1445a"), {grid:CHERRIES_STEM,color:"#5fae5a"}, {grid:CHERRIES_SHINE,color:"#ffb3c0"}]) },
+    { name: "Flower", svg: svg([...shaded(FLOWER_PETALS, "#ff9fc4"), {grid:FLOWER_CENTER,color:"#f4c542"}]) },
+    { name: "Sparkle", svg: svg(shaded(SPARKLE, "#8b6ba8")) },
+    { name: "Boba tea (+ pearls)", svg: svg([...shaded(BOBA_CUP, "#e2b48c"), {grid:BOBA_PEARLS,color:"#5a3a2a"}]) },
+    { name: "Onigiri (+ face)", svg: svg([...shaded(ONIGIRI_RICE, "#f5f5f0"), {grid:ONIGIRI_NORI,color:"#3a3a3a"}, {grid:ONIGIRI_FACE,color:"#5a4a3a"}]) },
+    { name: "Crescent Moon (+ stars)", svg: svg([...shaded(MOON, "#f2c14e"), {grid:MOON_STARS,color:"#f4c542"}, {grid:MOON_FACE,color:"#8a6a2a"}]) },
+    { name: "Kitty Face (generic, cat-with-bow style)", svg: svg([...shaded(KITTY_FACE, "#ffe1ec"), {grid:KITTY_EYES,color:"#3a3038"}, {grid:KITTY_NOSE,color:"#f4c542"}, {grid:KITTY_WHISKERS,color:"#d9a8b8"}, {grid:KITTY_BOW,color:"#ff6fa5"}]) },
+    { name: "Fluffy Pup (generic, big-ears style)", svg: svg([...shaded(PUP_HEAD, "#eaf4fd"), {grid:PUP_EYES,color:"#4b8fc2"}, {grid:PUP_BLUSH,color:"#ffb3c6"}]) },
+  ];
+
+  const grid = document.getElementById("grid");
+  options.forEach((opt, i) => {
+    const card = document.createElement("div");
+    card.className = "card" + (i >= 13 ? " new" : "");
+    card.innerHTML = `
+      <span class="num">${i + 1}</span>
+      ${opt.svg}
+      <span class="name">${opt.name}</span>
+      <div class="in-context"></div>
+    `;
+    grid.appendChild(card);
+    // in-context row: small icon + sample text, matching real list-item size
+    const ctx = card.querySelector(".in-context");
+    const iconSpan = document.createElement("span");
+    iconSpan.innerHTML = opt.svg.replace('width="44" height="44"', 'width="18" height="18"');
+    ctx.appendChild(iconSpan);
+    const textSpan = document.createElement("span");
+    textSpan.textContent = "Drink a glass of water";
+    ctx.appendChild(textSpan);
+  });
+</script>
+</body>
+</html>

@@ -43,12 +43,15 @@ export default function TrackersPage() {
     return () => mql.removeEventListener("change", update);
   }, []);
 
-  // Mobile only: land scrolled to today's column instead of day 1, and once
-  // the person has scrolled away from the very start, pin a compact
-  // icon-only label column so it's still clear which row is which. Scrolling
-  // all the way back to the start reverts to the normal full label.
+  // Lands scrolled to today's column, centered in the visible day area,
+  // instead of day 1 at the far left — on both mobile and desktop. On
+  // mobile specifically, once the person has scrolled away from the very
+  // start, this also pins a compact icon-only label column so it's still
+  // clear which row is which; scrolling all the way back to the start
+  // reverts to the normal full label (desktop always shows the full label
+  // regardless of pinned, see labelColPx below).
   useEffect(() => {
-    if (!isMobile || !hScrollRef.current) return;
+    if (!hScrollRef.current) return;
     const el = hScrollRef.current;
     const todayIndex = days.findIndex((d) => dateKey(d) === todayKey);
     if (todayIndex >= 0) {
@@ -182,7 +185,7 @@ export default function TrackersPage() {
       <div
         ref={hScrollRef}
         onScroll={handleGridScroll}
-        className="trackers-grid min-h-0 flex-1 overflow-x-auto overscroll-x-contain rounded-theme border border-border bg-surface shadow-theme [-webkit-overflow-scrolling:touch]"
+        className="trackers-grid flex-shrink-0 overflow-x-auto overscroll-x-contain rounded-theme border border-border bg-surface shadow-theme [-webkit-overflow-scrolling:touch]"
       >
         <div style={{ minWidth: labelColPx + days.length * DAY_COL_PX }}>
           <div className="grid border-b border-border" style={{ gridTemplateColumns: gridCols }}>

@@ -2,14 +2,17 @@ import { useMemo, useState } from "react";
 import type { SVGProps } from "react";
 import { dateKey, isFuture, monthLabel, shiftDay } from "@/lib/trackers/tracker-dates";
 import { loadEnergyState, saveEnergyState } from "@/lib/trackers/energy-storage";
+import { loadEnergyNotes, saveEnergyNotes } from "@/lib/trackers/energy-note-storage";
 import type { EnergyPoint } from "@/lib/trackers/energy-types";
 import TrackerMonthPicker from "./tracker-month-picker";
 import EnergyDayChart from "./energy-day-chart";
 import EnergyMonthView from "./energy-month-view";
+import EnergyNotesField from "./energy-notes-field";
+import EnergyOverviewPanel from "./energy-overview-panel";
 
 type EnergyView = "day" | "month";
 
-function BoltIcon(props: SVGProps<SVGSVGElement>) {
+export function BoltIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 20 20" fill="currentColor" {...props}>
       <path d="M11 2 4.5 11.5h4L8 18l7.5-9.5h-4L12.5 2Z" />
@@ -26,18 +29,58 @@ export default function EnergyTrackerCard() {
   const [anchor, setAnchor] = useState(today);
   const [view, setView] = useState<EnergyView>("day");
   const [state, setState] = useState(() => loadEnergyState());
+  const [notes, setNotes] = useState(() => loadEnergyNotes());
   const [monthPickerOpen, setMonthPickerOpen] = useState(false);
+  // Never persisted — always starts closed on a fresh page load, by design.
+  const [overviewOpen, setOverviewOpen] = useState(false);
+  const [showAllNotesOpen, setShowAllNotesOpen] = useState(false);
 
   const anchorKey = dateKey(anchor);
   const locked = isFuture(anchor);
+
+  const allNonEmptyNotes = useMemo(
+    () => Object.entries(notes).filter(([, n]) => n.text.trim()).sort(([a], [b]) => (a < b ? 1 : -1)),
+    [notes],
+  );
 
   function persist(next: typeof state) {
     setState(next);
     saveEnergyState(next);
   }
 
+  function persistNotes(next: typeof notes) {
+    setNotes(next);
+    saveEnergyNotes(next);
+  }
+
   function handleChangePoints(points: EnergyPoint[]) {
     persist({ ...state, [anchorKey]: points });
+  }
+
+  function handleChangeDayPoints(key: string, points: EnergyPoint[]) {
+    persist({ ...state, [key]: points });
+  }
+
+  function handleCommitNoteText(key: string, text: string) {
+    const existing = notes[key];
+    if (!text.trim() && !existing?.isPrinciple) {
+      const next = { ...notes };
+      delete next[key];
+      persistNotes(next);
+      return;
+    }
+    persistNotes({ ...notes, [key]: { text, isPrinciple: existing?.isPrinciple ?? false, updatedAt: existing?.updatedAt ?? "" } });
+  }
+
+  function handleToggleNotePrinciple(key: string, value: boolean) {
+    const existing = notes[key];
+    if (!value && !existing?.text.trim()) {
+      const next = { ...notes };
+      delete next[key];
+      persistNotes(next);
+      return;
+    }
+    persistNotes({ ...notes, [key]: { text: existing?.text ?? "", isPrinciple: value, updatedAt: existing?.updatedAt ?? "" } });
   }
 
   function shiftMonth(date: Date, delta: number) {
@@ -101,6 +144,16 @@ export default function EnergyTrackerCard() {
           >
             ›
           </button>
+          <button
+            type="button"
+            aria-pressed={overviewOpen}
+            onClick={() => setOverviewOpen((o) => !o)}
+            className={`rounded-full border px-2.5 py-1 text-xs font-semibold shadow-theme hover:bg-surface-alt ${
+              overviewOpen ? "border-accent bg-accent-soft text-accent" : "border-border bg-sidenav text-ink"
+            }`}
+          >
+            Overview
+          </button>
         </div>
         <div className="inline-flex overflow-hidden rounded-full border border-border">
           <button
@@ -138,8 +191,48 @@ export default function EnergyTrackerCard() {
         <h3 className="m-0 text-sm font-semibold text-ink">Energy Tracker</h3>
       </div>
 
-      {view === "day" ? (
-        <EnergyDayChart points={state[anchorKey] ?? []} onChange={handleChangePoints} locked={locked} />
+      {overviewOpen ? (
+        <EnergyOverviewPanel
+          state={state}
+          notes={notes}
+          onChangeDay={handleChangeDayPoints}
+          onCommitNoteText={handleCommitNoteText}
+          onToggleNotePrinciple={handleToggleNotePrinciple}
+          onClose={() => setOverviewOpen(false)}
+        />
+      ) : view === "day" ? (
+        <>
+          <EnergyDayChart points={state[anchorKey] ?? []} onChange={handleChangePoints} locked={locked} />
+          <EnergyNotesField
+            key={anchorKey}
+            note={notes[anchorKey]}
+            locked={locked}
+            onCommitText={(text) => handleCommitNoteText(anchorKey, text)}
+            onTogglePrinciple={(value) => handleToggleNotePrinciple(anchorKey, value)}
+            showAllNotes={{ active: showAllNotesOpen, onToggle: () => setShowAllNotesOpen((o) => !o) }}
+          />
+          {showAllNotesOpen && (
+            <div className="flex max-h-64 flex-col gap-2 overflow-y-auto rounded-theme-sm border border-border bg-canvas p-2.5">
+              {allNonEmptyNotes.length === 0 ? (
+                <p className="m-0 text-xs text-ink-muted">No notes yet.</p>
+              ) : (
+                allNonEmptyNotes.map(([key, n]) => (
+                  <div key={key} className="flex flex-col gap-0.5 border-b border-border pb-2 last:border-b-0 last:pb-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-semibold text-ink">
+                        {new Date(`${key}T00:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                      </span>
+                      {n.isPrinciple && (
+                        <span className="rounded-full bg-accent-soft px-1.5 py-0.5 text-[0.6rem] font-semibold text-accent">Principle</span>
+                      )}
+                    </div>
+                    <p className="m-0 whitespace-pre-wrap text-xs text-ink-muted">{n.text}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </>
       ) : (
         <EnergyMonthView anchor={anchor} state={state} />
       )}

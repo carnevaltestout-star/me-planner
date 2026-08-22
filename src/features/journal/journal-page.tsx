@@ -1,16 +1,18 @@
 import { useRef, useState } from "react";
 import { dateKey, isFuture, shiftDay } from "@/lib/journal/journal-dates";
 import { loadEntries, saveEntries } from "@/lib/journal/journal-storage";
-import { emptyEntry, isEntryEmpty, type JournalEntry } from "@/lib/journal/journal-types";
+import { emptyEntry, isEntryEmpty, type JournalEntry, type PrincipleType } from "@/lib/journal/journal-types";
 import JournalHeader from "./journal-header";
 import JournalPrompts from "./journal-prompts";
 import JournalYearView from "./journal-year-view";
+import JournalOverview from "./journal-overview";
 import JournalDeleteConfirm from "./journal-delete-confirm";
 
 export default function JournalPage() {
   const [current, setCurrent] = useState(() => new Date());
   const [entries, setEntries] = useState<Record<string, JournalEntry>>(() => loadEntries());
   const [yearViewOpen, setYearViewOpen] = useState(false);
+  const [overviewOpen, setOverviewOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   // Bumped on delete so JournalPrompts remounts and drops its local field
   // state — its `key` alone doesn't change here since the date stays the
@@ -50,6 +52,30 @@ export default function JournalPage() {
     pulseSaved();
   }
 
+  function handleTogglePrinciple(value: boolean) {
+    const next = { ...(entries[key] ?? emptyEntry(key)), isPrinciple: value };
+    const updated = { ...entries };
+    if (isEntryEmpty(next)) {
+      delete updated[key];
+    } else {
+      updated[key] = next;
+    }
+    persist(updated);
+    pulseSaved();
+  }
+
+  function handlePrincipleTypeChange(value: PrincipleType) {
+    const next = { ...(entries[key] ?? emptyEntry(key)), principleType: value };
+    const updated = { ...entries };
+    if (isEntryEmpty(next)) {
+      delete updated[key];
+    } else {
+      updated[key] = next;
+    }
+    persist(updated);
+    pulseSaved();
+  }
+
   function handleDelete() {
     const updated = { ...entries };
     delete updated[key];
@@ -70,6 +96,7 @@ export default function JournalPage() {
         onPrevDay={() => setCurrent((d) => shiftDay(d, -1))}
         onNextDay={() => setCurrent((d) => shiftDay(d, 1))}
         onOpenYearView={() => setYearViewOpen(true)}
+        onOpenOverview={() => setOverviewOpen(true)}
         onJumpToDate={setCurrent}
         onSave={() => {
           if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
@@ -78,7 +105,14 @@ export default function JournalPage() {
         onDeleteRequest={() => setDeleteConfirmOpen(true)}
       />
 
-      <JournalPrompts key={`${key}-${resetToken}`} entry={entry} locked={locked} onFieldCommit={handleFieldCommit} />
+      <JournalPrompts
+        key={`${key}-${resetToken}`}
+        entry={entry}
+        locked={locked}
+        onFieldCommit={handleFieldCommit}
+        onTogglePrinciple={handleTogglePrinciple}
+        onPrincipleTypeChange={handlePrincipleTypeChange}
+      />
 
       {/* Kept as an empty placeholder — reserves the same vertical space the
           footer note used to take, so removing the text doesn't shift the
@@ -97,6 +131,17 @@ export default function JournalPage() {
       )}
 
       {deleteConfirmOpen && <JournalDeleteConfirm onCancel={() => setDeleteConfirmOpen(false)} onConfirm={handleDelete} />}
+
+      {overviewOpen && (
+        <JournalOverview
+          entries={entries}
+          onSelect={(d) => {
+            setCurrent(d);
+            setOverviewOpen(false);
+          }}
+          onClose={() => setOverviewOpen(false)}
+        />
+      )}
     </div>
   );
 }

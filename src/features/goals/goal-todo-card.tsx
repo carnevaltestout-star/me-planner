@@ -19,7 +19,21 @@ export default function GoalTodoCard({ item, today, onToggleDone, onToggleStep, 
   const overdue = isOverdue(item.deadline, today);
 
   return (
-    <div className={`flex flex-col gap-2.5 rounded-theme border border-border bg-surface p-3 shadow-theme ${item.done ? "opacity-60" : ""}`}>
+    <div
+      className={`relative flex flex-col gap-2.5 rounded-theme bg-surface p-3 shadow-theme ${
+        item.priority === undefined ? "border border-border" : ""
+      } ${item.done ? "opacity-60" : ""}`}
+      style={item.priority !== undefined ? { border: `2px solid ${item.color}` } : undefined}
+    >
+      {item.priority !== undefined && (
+        <span
+          aria-hidden="true"
+          style={{ background: item.color }}
+          className="absolute -left-2.5 -top-2.5 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 border-surface text-[0.65rem] font-bold text-white shadow-theme"
+        >
+          P{item.priority}
+        </span>
+      )}
       <div className="flex items-start gap-2.5">
         <button
           type="button"

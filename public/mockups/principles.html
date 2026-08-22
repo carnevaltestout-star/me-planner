@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Me — Principles (Mockup)</title>
+<style>
+  :root {
+    --color-canvas: #fbf8f6;
+    --color-surface: #ffffff;
+    --color-ink: #362e38;
+    --color-accent: #8b6ba8;
+    --color-border: #e4d9e3;
+    --color-surface-alt: color-mix(in srgb, var(--color-surface) 85%, var(--color-accent) 15%);
+    --color-ink-muted: color-mix(in srgb, var(--color-ink) 60%, var(--color-canvas) 40%);
+    --color-accent-soft: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface) 82%);
+    --color-accent-contrast: color-mix(in srgb, var(--color-surface) 92%, white 8%);
+    --color-radius: 12px;
+    --color-radius-sm: 6px;
+    --color-shadow: none;
+  }
+  * { box-sizing: border-box; }
+  :root[data-retro="true"] {
+    --color-radius: 0px;
+    --color-radius-sm: 0px;
+    --color-shadow: 3px 3px 0 var(--color-border);
+  }
+  :root[data-kawaii="true"] {
+    --color-radius: 18px;
+    --color-shadow: 0 6px 18px rgba(120, 90, 160, 0.18);
+  }
+  body {
+    margin: 0; background: var(--color-canvas); color: var(--color-ink);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  :root[data-retro="true"] body, :root[data-kawaii="true"] body { font-family: ui-monospace, "Courier New", monospace; }
+
+  .app { max-width: 900px; margin: 0 auto; padding: 1.25rem 1rem 3rem; display: flex; flex-direction: column; gap: 1.75rem; }
+
+  h1 { font-size: 1.05rem; margin: 0; }
+  .section-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-ink-muted); margin: 0 0 0.5rem; }
+
+  /* ---- Routines row ---- */
+  .routines-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 560px) { .routines-grid { grid-template-columns: 1fr; } }
+
+  .routine-card {
+    background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--color-radius);
+    box-shadow: var(--color-shadow); padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;
+    min-height: 300px;
+  }
+  .routine-head { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 600; }
+  .routine-head .emoji { font-size: 1.1rem; }
+  .routine-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
+  .routine-item { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.85rem; line-height: 1.4; }
+  .routine-item .icon-slot { width: 18px; height: 18px; flex-shrink: 0; margin-top: 0.1rem; color: var(--color-accent); }
+  .routine-item .icon-slot svg { width: 100%; height: 100%; }
+  :root[data-retro="true"] .routine-item .icon-slot svg, :root[data-kawaii="true"] .routine-item .icon-slot svg { image-rendering: pixelated; }
+  .routine-item .item-text { flex: 1; min-width: 0; word-break: break-word; }
+  .routine-item .remove-btn {
+    flex-shrink: 0; width: 20px; height: 20px; border: none; background: none; color: var(--color-ink-muted);
+    cursor: pointer; border-radius: 50%; font-size: 0.85rem; line-height: 1; display: flex; align-items: center; justify-content: center;
+  }
+  .routine-item .remove-btn:hover { background: var(--color-surface-alt); color: #c22a4d; }
+  .routine-empty { font-size: 0.78rem; color: var(--color-ink-muted); font-style: italic; }
+  .routine-add-row { display: flex; gap: 0.4rem; margin-top: auto; }
+  .routine-add-row input {
+    flex: 1; min-width: 0; border: 1.5px solid var(--color-border); border-radius: var(--color-radius-sm);
+    background: var(--color-canvas); color: var(--color-ink); padding: 0.45rem 0.6rem; font-size: 0.82rem; font-family: inherit;
+  }
+  .routine-add-row input:focus { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+  .routine-add-row button {
+    flex-shrink: 0; width: 34px; border-radius: var(--color-radius-sm); border: 1.5px solid var(--color-accent);
+    background: var(--color-surface); color: var(--color-accent); cursor: pointer; font-size: 1rem;
+  }
+  .routine-add-row button:hover { background: var(--color-accent-soft); }
+
+  /* ---- Principles section ---- */
+  .principles-section { display: flex; flex-direction: column; gap: 0.85rem; }
+  .principles-title-row { display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+  .principles-title-row .bunny-slot { width: 20px; height: 20px; color: var(--color-accent); display: none; }
+  .principles-title-row .bunny-slot svg { width: 100%; height: 100%; image-rendering: pixelated; }
+  :root[data-retro="true"] .principles-title-row .bunny-slot,
+  :root[data-kawaii="true"] .principles-title-row .bunny-slot { display: block; }
+  .principles-title-row h1 { text-align: center; }
+
+  .principles-topbar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; }
+  .add-principle-btn {
+    flex-shrink: 0; border: 1px solid var(--color-accent); background: var(--color-accent); color: var(--color-accent-contrast);
+    border-radius: var(--color-radius-sm); padding: 0.5rem 0.9rem; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .add-principle-btn:hover { filter: brightness(1.05); }
+  .principles-search { position: relative; flex: 1 1 200px; min-width: 160px; }
+  .principles-search input {
+    width: 100%; border: 1.5px solid var(--color-border); border-radius: 999px; background: var(--color-surface);
+    color: var(--color-ink); padding: 0.5rem 2.4rem 0.5rem 0.9rem; font-size: 0.83rem; font-family: inherit;
+  }
+  .principles-search input:focus { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+  .principles-search .search-icon { position: absolute; right: 0.7rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--color-ink-muted); pointer-events: none; }
+  .principles-search .search-icon svg { width: 100%; height: 100%; }
+
+  .type-filters { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .type-filters button {
+    border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-ink-muted);
+    border-radius: 999px; padding: 0.35rem 0.85rem; font-size: 0.78rem; cursor: pointer; font-family: inherit;
+  }
+  .type-filters button[aria-pressed="true"] { border-color: var(--color-accent); background: var(--color-accent-soft); color: var(--color-accent); font-weight: 600; }
+
+  .principles-list { display: flex; flex-direction: column; gap: 0.65rem; }
+  .principle-card {
+    background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--color-radius);
+    box-shadow: var(--color-shadow); padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.55rem;
+  }
+  .principle-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; }
+  .principle-text { font-size: 0.9rem; line-height: 1.45; flex: 1; min-width: 0; }
+  .type-badge { flex-shrink: 0; font-size: 0.68rem; font-weight: 700; padding: 0.2rem 0.55rem; border-radius: 999px; white-space: nowrap; }
+  .principle-meta { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; font-size: 0.7rem; color: var(--color-ink-muted); }
+  .journal-tag { font-size: 0.68rem; font-weight: 600; color: var(--color-accent); }
+  .principles-empty { padding: 2rem 1rem; text-align: center; font-size: 0.85rem; color: var(--color-ink-muted); }
+
+  /* ---- Add Principle dialog ---- */
+  .dialog-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 40; display: none; align-items: center; justify-content: center; padding: 1rem; }
+  .dialog-overlay.open { display: flex; }
+  .dialog-card {
+    width: 100%; max-width: 380px; background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: var(--color-radius); box-shadow: var(--color-shadow); overflow: hidden; display: flex; flex-direction: column;
+  }
+  .dialog-head { border-bottom: 1px solid var(--color-border); padding: 0.9rem 1.1rem; }
+  .dialog-head h2 { margin: 0; font-size: 1rem; }
+  .dialog-body { padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 1rem; }
+  .dialog-body label { display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.75rem; color: var(--color-ink-muted); }
+  .dialog-body input, .dialog-body select, .dialog-body textarea {
+    border: 1px solid var(--color-border); border-radius: var(--color-radius-sm); background: var(--color-canvas);
+    color: var(--color-ink); padding: 0.55rem 0.65rem; font-size: 0.85rem; font-family: inherit;
+  }
+  .dialog-body textarea { resize: vertical; min-height: 4em; }
+  .dialog-body input:focus, .dialog-body select:focus, .dialog-body textarea:focus { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+  .dialog-foot { border-top: 1px solid var(--color-border); padding: 0.75rem 1.1rem; display: flex; justify-content: flex-end; gap: 0.5rem; }
+  .dialog-foot button { border-radius: var(--color-radius-sm); padding: 0.5rem 0.9rem; font-size: 0.85rem; cursor: pointer; font-family: inherit; }
+  .dialog-foot .cancel-btn { border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-ink); }
+  .dialog-foot .cancel-btn:hover { background: var(--color-surface-alt); }
+  .dialog-foot .save-btn { border: 1px solid var(--color-accent); background: var(--color-accent); color: var(--color-accent-contrast); font-weight: 600; }
+  .dialog-foot .save-btn:hover { filter: brightness(1.05); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div>
+    <p class="section-label">Routines</p>
+    <div class="routines-grid">
+      <div class="routine-card">
+        <div class="routine-head"><span class="emoji">☀️</span><span>Morning Routine</span></div>
+        <ul class="routine-list" id="morning-list"></ul>
+        <div class="routine-add-row">
+          <input type="text" id="morning-input" placeholder="Add to your morning…" />
+          <button type="button" id="morning-add" aria-label="Add">+</button>
+        </div>
+      </div>
+      <div class="routine-card">
+        <div class="routine-head"><span class="emoji">🌙</span><span>Evening Routine</span></div>
+        <ul class="routine-list" id="evening-list"></ul>
+        <div class="routine-add-row">
+          <input type="text" id="evening-input" placeholder="Add to your evening…" />
+          <button type="button" id="evening-add" aria-label="Add">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="principles-section">
+    <div class="principles-title-row">
+      <span class="bunny-slot" id="bunny-left"></span>
+      <h1>Principles</h1>
+      <span class="bunny-slot" id="bunny-right"></span>
+    </div>
+
+    <div class="principles-topbar">
+      <button type="button" class="add-principle-btn" id="add-principle-btn">+ Add Principle</button>
+      <div class="principles-search">
+        <input type="text" id="search-input" placeholder="Search by name, type, or date…" autocomplete="off" />
+        <span class="search-icon" id="search-icon"></span>
+      </div>
+    </div>
+
+    <div class="type-filters" id="type-filters"></div>
+
+    <div class="principles-list" id="principles-list"></div>
+  </div>
+</div>
+
+<div class="dialog-overlay" id="dialog-overlay">
+  <div class="dialog-card">
+    <div class="dialog-head"><h2>Add Principle</h2></div>
+    <div class="dialog-body">
+      <label>
+        Principle
+        <textarea id="dialog-text" placeholder="A rule you try to live by…"></textarea>
+      </label>
+      <label>
+        Type
+        <select id="dialog-type"></select>
+      </label>
+    </div>
+    <div class="dialog-foot">
+      <button type="button" class="cancel-btn" id="dialog-cancel">Cancel</button>
+      <button type="button" class="save-btn" id="dialog-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const THEME_STORAGE_KEY = "me-planner:theme";
+  // Real key the actual app stores journal entries under — read-only here,
+  // so the "journal-flagged principles show up too" behavior can be
+  // demonstrated with whatever's already been checked as a Principle in
+  // the real Journal tab, instead of only ever showing fake mockup data.
+  const JOURNAL_STORAGE_KEY = "me-planner:mock-journal-entries";
+  const ROUTINES_STORAGE_KEY = "me-planner:mock-principles-routines-DEMO";
+  const PRINCIPLES_STORAGE_KEY = "me-planner:mock-principles-DEMO";
+
+  const PRINCIPLE_TYPES = ["All", "Personal", "Social", "Work", "Finance"];
+  const TYPE_COLORS = { All: "#8a8a8a", Personal: "#c2708c", Social: "#4b8fc2", Work: "#7c7c9c", Finance: "#5b8a72" };
+
+  function pixelIcon(bitmap, viewBox) {
+    const size = viewBox || 20;
+    const cell = size / 8;
+    let rects = "";
+    bitmap.forEach((row, y) => { [...row].forEach((c, x) => { if (c === "1") rects += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}"/>`; }); });
+    return `<svg viewBox="0 0 ${size} ${size}" fill="currentColor">${rects}</svg>`;
+  }
+  function pixelIconLayers(layers, viewBox) {
+    const size = viewBox || 20;
+    const cell = size / 8;
+    const groups = layers.map(({ grid, color }) => {
+      let rects = "";
+      grid.forEach((row, y) => { [...row].forEach((c, x) => { if (c === "1") rects += `<rect x="${x * cell}" y="${y * cell}" width="${cell}" height="${cell}"/>`; }); });
+      return `<g style="fill:${color}">${rects}</g>`;
+    }).join("");
+    return `<svg viewBox="0 0 ${size} ${size}">${groups}</svg>`;
+  }
+
+  const BUNNY = ["00100100", "00100100", "00111100", "01111110", "11111111", "11011011", "11111111", "01111110"];
+  const STRAWBERRY_LEAF = ["00111100", "01000010", "00000000", "00000000", "00000000", "00000000", "00000000", "00000000"];
+  const STRAWBERRY_BODY = ["00000000", "00111100", "01111110", "11111111", "11111111", "11111111", "01111110", "00011000"];
+  const STRAWBERRY_SEEDS = ["00000000", "00000000", "00000000", "01000010", "00100100", "01000010", "00100100", "00000000"];
+  const DEFAULT_SEARCH_SVG = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="8.3" cy="8.3" r="5.3"/><line x1="16" y1="16" x2="12.6" y2="12.6"/></svg>`;
+  const DEFAULT_ROUTINE_ITEM_SVG = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.2"/><path d="M7 10.2l2 2 4-4.4"/></svg>`;
+
+  let currentTheme = { retro: false, kawaii: false };
+
+  function routineItemIconHtml() {
+    const retro = currentTheme.retro && !currentTheme.kawaii;
+    const kawaii = currentTheme.kawaii;
+    if (retro || kawaii) {
+      return pixelIconLayers([
+        { grid: STRAWBERRY_LEAF, color: "#5fae5a" },
+        { grid: STRAWBERRY_BODY, color: "#fa8072" },
+        { grid: STRAWBERRY_SEEDS, color: "#ffd54a" },
+      ]);
+    }
+    return DEFAULT_ROUTINE_ITEM_SVG;
+  }
+
+  function renderIcons() {
+    const retro = currentTheme.retro && !currentTheme.kawaii;
+    const kawaii = currentTheme.kawaii;
+    document.getElementById("search-icon").innerHTML = DEFAULT_SEARCH_SVG;
+    const bunnyHtml = pixelIcon(BUNNY);
+    document.getElementById("bunny-left").innerHTML = bunnyHtml;
+    document.getElementById("bunny-right").innerHTML = bunnyHtml;
+    document.querySelectorAll(".routine-item .icon-slot").forEach((el) => { el.innerHTML = routineItemIconHtml(); });
+  }
+
+  function applyTheme() {
+    const raw = localStorage.getItem(THEME_STORAGE_KEY);
+    let theme = { mode: "light", retro: false, kawaii: false };
+    if (raw) { try { theme = { ...theme, ...JSON.parse(raw) }; } catch {} }
+    currentTheme = theme;
+    const root = document.documentElement;
+    root.dataset.retro = theme.retro && !theme.kawaii ? "true" : "false";
+    root.dataset.kawaii = theme.kawaii ? "true" : "false";
+    const dark = theme.mode === "dark" || (theme.mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const paletteKey = theme.kawaii ? null : (theme.retro ? (dark ? "retroDark" : "retroLight") : (dark ? "dark" : "light"));
+    const palette = theme.kawaii
+      ? { bg: "#f2ddec", surface: "#fffdfd", text: "#4a3b6b", accent: "#ff6fa5", border: "#ffffff" }
+      : (theme.palettes && theme.palettes[paletteKey]);
+    if (palette) {
+      const s = document.documentElement.style;
+      s.setProperty("--color-canvas", palette.bg);
+      s.setProperty("--color-surface", palette.surface);
+      s.setProperty("--color-ink", palette.text);
+      s.setProperty("--color-accent", palette.accent);
+      s.setProperty("--color-border", palette.border);
+    }
+    renderIcons();
+  }
+  applyTheme();
+  window.addEventListener("storage", (e) => { if (e.key === THEME_STORAGE_KEY) applyTheme(); });
+
+  if (window.parent !== window) {
+    document.addEventListener("click", () => {
+      window.parent.postMessage({ type: "me-planner:wake-bunny" }, window.location.origin);
+    });
+  }
+
+  // ---- Routines ----
+  function seedRoutines() {
+    return {
+      morning: ["Drink a glass of water", "5 minutes of stretching", "Look over today's plan"],
+      evening: ["Lay out clothes for tomorrow", "10pm: phone away", "Write one line in the journal"],
+    };
+  }
+  function loadRoutines() {
+    try {
+      const raw = localStorage.getItem(ROUTINES_STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return seedRoutines();
+  }
+  function saveRoutines() { localStorage.setItem(ROUTINES_STORAGE_KEY, JSON.stringify(routines)); }
+  const routines = loadRoutines();
+
+  function renderRoutineList(key) {
+    const listEl = document.getElementById(`${key}-list`);
+    const items = routines[key];
+    if (items.length === 0) {
+      listEl.innerHTML = `<li class="routine-empty">Nothing yet — add your first item below.</li>`;
+      return;
+    }
+    listEl.innerHTML = "";
+    items.forEach((text, i) => {
+      const li = document.createElement("li");
+      li.className = "routine-item";
+      li.innerHTML = `<span class="icon-slot"></span><span class="item-text"></span><button type="button" class="remove-btn" aria-label="Remove">×</button>`;
+      li.querySelector(".item-text").textContent = text;
+      li.querySelector(".icon-slot").innerHTML = routineItemIconHtml();
+      li.querySelector(".remove-btn").addEventListener("click", () => {
+        routines[key].splice(i, 1);
+        saveRoutines();
+        renderRoutineList(key);
+      });
+      listEl.appendChild(li);
+    });
+  }
+  function wireRoutineAdd(key) {
+    const input = document.getElementById(`${key}-input`);
+    const addBtn = document.getElementById(`${key}-add`);
+    function commit() {
+      const v = input.value.trim();
+      if (!v) return;
+      routines[key].push(v);
+      input.value = "";
+      saveRoutines();
+      renderRoutineList(key);
+    }
+    addBtn.addEventListener("click", commit);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); commit(); } });
+  }
+  renderRoutineList("morning");
+  renderRoutineList("evening");
+  wireRoutineAdd("morning");
+  wireRoutineAdd("evening");
+
+  // ---- Principles (manual + derived from Journal) ----
+  function seedPrinciples() {
+    const now = Date.now();
+    return [
+      { id: "seed-1", text: "Say no to things that don't align with what I actually want.", type: "Personal", savedAt: new Date(now - 86400000 * 2).toISOString() },
+      { id: "seed-2", text: "Reply to messages within a day, even just to say I need more time.", type: "Social", savedAt: new Date(now - 86400000 * 5).toISOString() },
+      { id: "seed-3", text: "Review recurring subscriptions every quarter.", type: "Finance", savedAt: new Date(now - 86400000 * 9).toISOString() },
+      { id: "seed-4", text: "Write down the plan before starting, even a messy one.", type: "Work", savedAt: new Date(now - 86400000 * 14).toISOString() },
+    ];
+  }
+  function loadPrinciples() {
+    try {
+      const raw = localStorage.getItem(PRINCIPLES_STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return seedPrinciples();
+  }
+  function savePrinciples() { localStorage.setItem(PRINCIPLES_STORAGE_KEY, JSON.stringify(principles)); }
+  const principles = loadPrinciples();
+
+  function journalDerivedPrinciples() {
+    try {
+      const raw = localStorage.getItem(JOURNAL_STORAGE_KEY);
+      if (!raw) return [];
+      const entries = JSON.parse(raw);
+      return Object.values(entries)
+        .filter((e) => e && e.isPrinciple && (e.learned || "").trim())
+        .map((e) => ({
+          id: `journal-${e.dateKey}`,
+          text: e.learned.trim(),
+          type: e.principleType || "All",
+          savedAt: `${e.dateKey}T00:00:00`,
+          fromJournal: true,
+        }));
+    } catch {
+      return [];
+    }
+  }
+
+  let activeFilter = "All";
+  let searchQuery = "";
+
+  function renderTypeFilters() {
+    const wrap = document.getElementById("type-filters");
+    wrap.innerHTML = "";
+    PRINCIPLE_TYPES.forEach((t) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = t;
+      btn.setAttribute("aria-pressed", String(t === activeFilter));
+      btn.addEventListener("click", () => { activeFilter = t; renderTypeFilters(); renderPrinciplesList(); });
+      wrap.appendChild(btn);
+    });
+  }
+
+  function formatSavedDate(iso) {
+    const d = new Date(iso);
+    return `Saved ${d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
+  }
+
+  function renderPrinciplesList() {
+    const listEl = document.getElementById("principles-list");
+    const all = [...principles, ...journalDerivedPrinciples()].sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+    const q = searchQuery.trim().toLowerCase();
+    const filtered = all.filter((p) => {
+      if (activeFilter !== "All" && p.type !== activeFilter) return false;
+      if (!q) return true;
+      const dateStr = new Date(p.savedAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }).toLowerCase();
+      return p.text.toLowerCase().includes(q) || p.type.toLowerCase().includes(q) || dateStr.includes(q);
+    });
+
+    if (filtered.length === 0) {
+      listEl.innerHTML = `<div class="principles-empty">No principles match yet.</div>`;
+      return;
+    }
+    listEl.innerHTML = "";
+    filtered.forEach((p) => {
+      const card = document.createElement("div");
+      card.className = "principle-card";
+      const color = TYPE_COLORS[p.type] || TYPE_COLORS.All;
+      card.innerHTML = `
+        <div class="principle-top">
+          <div class="principle-text"></div>
+          <span class="type-badge" style="background:color-mix(in srgb, ${color} 18%, var(--color-surface));color:${color}">${p.type}</span>
+        </div>
+        <div class="principle-meta">
+          <span>${formatSavedDate(p.savedAt)}</span>
+          ${p.fromJournal ? `<span class="journal-tag">From Journal</span>` : ""}
+        </div>
+      `;
+      card.querySelector(".principle-text").textContent = p.text;
+      listEl.appendChild(card);
+    });
+  }
+
+  document.getElementById("search-input").addEventListener("input", (e) => { searchQuery = e.target.value; renderPrinciplesList(); });
+
+  // ---- Add Principle dialog ----
+  const dialogOverlay = document.getElementById("dialog-overlay");
+  const dialogText = document.getElementById("dialog-text");
+  const dialogType = document.getElementById("dialog-type");
+  dialogType.innerHTML = PRINCIPLE_TYPES.map((t) => `<option value="${t}" ${t === "Personal" ? "selected" : ""}>${t}</option>`).join("");
+
+  function openDialog() {
+    dialogText.value = "";
+    dialogType.value = "Personal";
+    dialogOverlay.classList.add("open");
+    dialogText.focus();
+  }
+  function closeDialog() { dialogOverlay.classList.remove("open"); }
+  document.getElementById("add-principle-btn").addEventListener("click", openDialog);
+  document.getElementById("dialog-cancel").addEventListener("click", closeDialog);
+  dialogOverlay.addEventListener("click", (e) => { if (e.target === dialogOverlay) closeDialog(); });
+  document.getElementById("dialog-save").addEventListener("click", () => {
+    const text = dialogText.value.trim();
+    if (!text) return;
+    principles.unshift({ id: `manual-${Date.now()}`, text, type: dialogType.value, savedAt: new Date().toISOString() });
+    savePrinciples();
+    closeDialog();
+    renderPrinciplesList();
+  });
+
+  renderTypeFilters();
+  renderPrinciplesList();
+</script>
+</body>
+</html>

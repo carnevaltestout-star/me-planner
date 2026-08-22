@@ -19,6 +19,17 @@ export function CalendarIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+// Three side-by-side columns — "compare days" affordance for the Overview button.
+export function ColumnsIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinejoin="round" strokeLinecap="round" {...props}>
+      <rect x="2.5" y="4" width="4" height="12" rx="1" />
+      <rect x="8" y="4" width="4" height="12" rx="1" />
+      <rect x="13.5" y="4" width="4" height="12" rx="1" />
+    </svg>
+  );
+}
+
 export function TrashIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinejoin="round" strokeLinecap="round" {...props}>

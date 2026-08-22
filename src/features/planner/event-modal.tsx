@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   DEFAULT_TINT_PERCENT,
   EVENT_COLORS,
@@ -63,6 +63,7 @@ export default function EventModal({ mode, initial, onSave, onDelete, onClose }:
   const [color, setColor] = useState(initial.color || EVENT_COLORS[0]);
   const [priority, setPriority] = useState<EventPriority | undefined>(initial.priority);
   const [error, setError] = useState("");
+  const customColorInputRef = useRef<HTMLInputElement>(null);
 
   const dateLabel = new Date(`${initial.occurrenceDate}T00:00:00`).toLocaleDateString(undefined, {
     weekday: "long",
@@ -183,7 +184,7 @@ export default function EventModal({ mode, initial, onSave, onDelete, onClose }:
 
             <div className="flex flex-col gap-1.5">
               <span className="text-xs text-ink-muted">Color</span>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
                 {EVENT_COLORS.map((c) => (
                   <button
                     key={c}
@@ -195,6 +196,26 @@ export default function EventModal({ mode, initial, onSave, onDelete, onClose }:
                     className={`h-[26px] w-[26px] rounded-full border-2 ${c === color ? "border-ink" : "border-transparent"}`}
                   />
                 ))}
+                <button
+                  type="button"
+                  onClick={() => customColorInputRef.current?.click()}
+                  className="flex items-center gap-1.5 rounded-theme-sm border border-dashed border-border px-2 py-1 text-xs text-ink-muted hover:border-accent hover:text-accent"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="h-[18px] w-[18px] flex-shrink-0 rounded-full border border-border"
+                    style={{ background: color }}
+                  />
+                  Custom color
+                </button>
+                <input
+                  ref={customColorInputRef}
+                  type="color"
+                  value={color}
+                  onChange={(e) => setColor(e.target.value)}
+                  aria-label="Pick a custom event color"
+                  className="sr-only"
+                />
               </div>
             </div>
 

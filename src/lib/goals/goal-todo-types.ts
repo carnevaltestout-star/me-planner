@@ -2,6 +2,14 @@ export type ItemKind = "goal" | "todo";
 
 export type TimeHorizon = "day" | "week" | "month" | "quarter" | "year";
 
+// Same 1 (highest) - 4 (lowest) convention as Planner's EventPriority, and
+// the same tint treatment in the edit form — kept as its own local type
+// rather than importing Planner's, since the two features are otherwise
+// unrelated and shouldn't need to depend on each other for this.
+export type GoalPriority = 1 | 2 | 3 | 4;
+
+export const PRIORITY_TINT_PERCENT: Record<GoalPriority, number> = { 1: 95, 2: 75, 3: 55, 4: 35 };
+
 export const HORIZONS: { key: TimeHorizon; label: string }[] = [
   { key: "day", label: "Day" },
   { key: "week", label: "Week" },
@@ -42,8 +50,13 @@ export interface GoalTodoItem {
   // views alike, for whichever of those currently contains this date,
   // instead of being siloed under just the one horizon it was created in.
   date: string;
+  // Which horizon tab the item was created under — gates *how narrow* a
+  // view it can show up in (see isVisibleInHorizon below), separately from
+  // effectiveDate() above, which gates *which specific period*.
+  horizon: TimeHorizon;
   steps: ChecklistStep[]; // goals only — if present, progress is derived from these
   manualPercent: number; // goals only — used when steps is empty
+  priority?: GoalPriority; // undefined = no priority set
   done: boolean;
   doneAt: string; // ISO timestamp, "" if not done
   createdAt: string; // ISO timestamp
@@ -53,7 +66,7 @@ export interface GoalTodoItem {
   order: number;
 }
 
-export function emptyItem(id: string, kind: ItemKind, date: string): GoalTodoItem {
+export function emptyItem(id: string, kind: ItemKind, date: string, horizon: TimeHorizon = "day"): GoalTodoItem {
   return {
     id,
     kind,
@@ -62,6 +75,7 @@ export function emptyItem(id: string, kind: ItemKind, date: string): GoalTodoIte
     color: ITEM_COLORS[0],
     deadline: "",
     date,
+    horizon,
     steps: [],
     manualPercent: 0,
     done: false,
@@ -74,6 +88,17 @@ export function emptyItem(id: string, kind: ItemKind, date: string): GoalTodoIte
     // the bottom.
     order: -Date.now(),
   };
+}
+
+// An item is only ever visible in the horizon it was created under, or a
+// broader one — Day < Week < Month < Quarter < Year. A goal filed under
+// Quarter is too big-picture to clutter the granular Day/Week task views,
+// but still needs to surface in Quarter/Year; a Day to-do, being the
+// narrowest horizon, keeps showing up everywhere broader like before.
+export function isVisibleInHorizon(item: GoalTodoItem, viewedHorizon: TimeHorizon): boolean {
+  const itemIndex = HORIZONS.findIndex((h) => h.key === item.horizon);
+  const viewedIndex = HORIZONS.findIndex((h) => h.key === viewedHorizon);
+  return viewedIndex >= itemIndex;
 }
 
 // Which date an item is actually filed under for horizon/period filtering —

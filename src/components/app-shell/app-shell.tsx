@@ -10,6 +10,7 @@ import KawaiiStickers from "@/components/retro-gimmicks/kawaii-stickers";
 import { BunnyIcon, KawaiiBunnyIcon } from "@/components/kawaii-icons/kawaii-icons";
 import { RETRO_NAV_ICONS } from "@/components/retro-gimmicks/retro-nav-icons";
 import { useTheme } from "@/components/theme-provider/theme-context";
+import SettingsDialog from "@/components/settings-dialog/settings-dialog";
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const theme = useTheme();
@@ -54,7 +55,17 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
 // It's `absolute` so growing wider overlays the page instead of pushing it
 // — the flex layout only reserves the collapsed 44px via the spacer sibling
 // rendered alongside it.
-function MobileNav({ open, onToggle, onNavigate }: { open: boolean; onToggle: () => void; onNavigate: () => void }) {
+function MobileNav({
+  open,
+  onToggle,
+  onNavigate,
+  onOpenSettings,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  onNavigate: () => void;
+  onOpenSettings: () => void;
+}) {
   const theme = useTheme();
   const pixelated = theme.retro || theme.kawaii;
 
@@ -98,7 +109,7 @@ function MobileNav({ open, onToggle, onNavigate }: { open: boolean; onToggle: ()
         <button
           type="button"
           onClick={() => {
-            openThemeMockup();
+            onOpenSettings();
             onNavigate();
           }}
           title="Settings and theme"
@@ -120,13 +131,6 @@ function MobileNav({ open, onToggle, onNavigate }: { open: boolean; onToggle: ()
       </button>
     </div>
   );
-}
-
-// Opens the theme-system mockup for now — there's no in-app settings panel
-// yet, only the underlying engine (Context/storage/CSS vars). Bring the real
-// panel and this can go away.
-function openThemeMockup() {
-  window.open("/mockups/theme-system.html", "_blank", "noopener,noreferrer");
 }
 
 // Flanks the topbar's tab name in retro/kawaii mode — unlike IdleBunny this
@@ -157,6 +161,7 @@ function BrandMark() {
 }
 
 export default function AppShell() {
+  const theme = useTheme();
   const location = useLocation();
   // Matches nested routes too (e.g. /book-reviews/:bookId under /book-reviews)
   // so the topbar title doesn't go blank on a tab's detail/edit sub-pages.
@@ -165,6 +170,7 @@ export default function AppShell() {
       (item) => location.pathname === item.path || location.pathname.startsWith(`${item.path}/`),
     )?.label ?? "";
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <div className="relative flex h-screen bg-canvas text-ink" data-theme-surface="app-root">
@@ -180,16 +186,11 @@ export default function AppShell() {
           <NavList />
           <button
             type="button"
-            onClick={openThemeMockup}
+            onClick={() => setSettingsOpen(true)}
             className="mt-auto flex items-center gap-2 rounded-theme px-2.5 py-2 text-left text-sm text-ink-muted hover:bg-surface-alt hover:text-ink"
           >
             <SettingsIcon className="h-[17px] w-[17px]" />
-            <span>
-              Settings &amp; theme{" "}
-              <span className="ml-1 rounded-full border border-dashed border-border px-2 py-0.5 text-[10px] uppercase tracking-wide">
-                mockup preview
-              </span>
-            </span>
+            <span>Settings &amp; theme</span>
           </button>
         </aside>
 
@@ -201,6 +202,7 @@ export default function AppShell() {
           open={mobileNavOpen}
           onToggle={() => setMobileNavOpen((o) => !o)}
           onNavigate={() => setMobileNavOpen(false)}
+          onOpenSettings={() => setSettingsOpen(true)}
         />
         {mobileNavOpen && (
           <div className="fixed inset-0 z-20 md:hidden" onClick={() => setMobileNavOpen(false)} aria-hidden="true" />
@@ -208,7 +210,7 @@ export default function AppShell() {
 
         <PawDividerRail />
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="relative flex min-w-0 flex-1 flex-col">
           <div
             className="flex flex-shrink-0 items-center gap-2 border-b border-border bg-surface px-2.5 py-1.5 md:px-4 md:py-3"
             data-theme-surface="chrome"
@@ -220,16 +222,24 @@ export default function AppShell() {
             </div>
             <button
               type="button"
-              onClick={openThemeMockup}
+              onClick={() => setSettingsOpen(true)}
               className="rounded-theme p-1 text-ink-muted hover:bg-surface-alt hover:text-ink md:p-1.5"
               aria-label="Settings and theme"
             >
               <SettingsIcon className="h-[16px] w-[16px] md:h-[19px] md:w-[19px]" />
             </button>
           </div>
-          <main className="flex-1 overflow-y-auto bg-canvas" data-theme-surface="main">
+          {/* Reserves room for PetBunny's mobile-only fixed footer bar (see
+              FOOTER_HEIGHT_PX_MOBILE in pet-bunny.tsx) so page content —
+              including a horizontally-scrolling grid's own scrollbar, like
+              the Trackers page's — doesn't end up rendering underneath it. */}
+          <main
+            className={`flex-1 overflow-y-auto bg-canvas ${theme.gimmicks.bouncingBuddy ? "pb-[34px] md:pb-0" : ""}`}
+            data-theme-surface="main"
+          >
             <Outlet />
           </main>
+          {settingsOpen && <SettingsDialog onClose={() => setSettingsOpen(false)} />}
         </div>
       </div>
     </div>

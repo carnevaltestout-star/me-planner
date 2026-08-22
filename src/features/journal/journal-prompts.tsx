@@ -1,15 +1,18 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-import { Q5_POOL, STATIC_QUESTIONS, type JournalEntry } from "@/lib/journal/journal-types";
+import { SELECTABLE_PRINCIPLE_TYPES, Q5_POOL, STATIC_QUESTIONS, type JournalEntry, type PrincipleType } from "@/lib/journal/journal-types";
 import { useTheme } from "@/components/theme-provider/theme-context";
+import AutoGrowTextarea from "./auto-grow-textarea";
 
 interface JournalPromptsProps {
   entry: JournalEntry;
   locked: boolean;
   onFieldCommit: (field: keyof JournalEntry, value: string) => void;
+  onTogglePrinciple: (value: boolean) => void;
+  onPrincipleTypeChange: (value: PrincipleType) => void;
 }
 
 const textareaClass =
-  "min-h-[3em] resize-y border-0 bg-transparent px-0.5 pb-[0.55rem] pt-1.5 text-[0.86rem] leading-relaxed text-ink placeholder:text-ink-muted focus:outline-none disabled:cursor-default";
+  "min-h-[3em] border-0 bg-transparent px-0.5 pb-[0.55rem] pt-1.5 text-[0.86rem] leading-relaxed text-ink placeholder:text-ink-muted focus:outline-none disabled:cursor-default";
 const sectionDivider = "border-b border-[color-mix(in_srgb,var(--color-border)_55%,transparent)]";
 const fieldUnderline =
   "border-0 border-b-[1.5px] border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] bg-transparent px-0.5 py-1.5 text-sm font-semibold text-ink focus:border-accent focus:outline-none disabled:cursor-default";
@@ -35,20 +38,21 @@ function DashDivider() {
 // Remounted with key={entry.dateKey} by the parent whenever the viewed date
 // changes, so each field's local (blur-to-commit) state naturally resets —
 // no effect-based sync needed.
-export default function JournalPrompts({ entry, locked, onFieldCommit }: JournalPromptsProps) {
+export default function JournalPrompts({ entry, locked, onFieldCommit, onTogglePrinciple, onPrincipleTypeChange }: JournalPromptsProps) {
   const theme = useTheme();
   const pixelated = theme.retro || theme.kawaii;
   const [values, setValues] = useState({
     wentWell: entry.wentWell,
+    wentBad: entry.wentBad,
     differently: entry.differently,
     learned: entry.learned,
     forSomeone: entry.forSomeone,
     q5Text: entry.q5Text,
     notes: entry.notes,
   });
-  const [q5Label, setQ5Label] = useState(
-    entry.q5Label || Q5_POOL[Math.floor(Math.random() * Q5_POOL.length)].question,
-  );
+  const [isPrinciple, setIsPrinciple] = useState(entry.isPrinciple);
+  const [principleType, setPrincipleType] = useState<PrincipleType>(entry.principleType);
+  const [q5Label, setQ5Label] = useState(entry.q5Label || Q5_POOL[0].question);
   const [q5Custom, setQ5Custom] = useState(
     () => Boolean(entry.q5Label) && !Q5_POOL.some((q) => q.question === entry.q5Label),
   );
@@ -99,11 +103,49 @@ export default function JournalPrompts({ entry, locked, onFieldCommit }: Journal
       {STATIC_QUESTIONS.map((q) => (
         <Fragment key={q.key}>
           <div className={`flex flex-col gap-2.5 py-[1.15rem] transition-colors focus-within:border-accent ${pixelated ? "" : sectionDivider}`}>
-            <div className="flex items-center gap-2.5 border-l-[3px] border-accent pl-2.5 text-sm font-semibold text-ink">
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 border-l-[3px] border-accent pl-2.5 text-sm font-semibold text-ink">
               <span className="text-base">{q.emoji}</span>
               <span>{q.label}</span>
+              {q.key === "learned" && (
+                <>
+                  <label className="flex flex-shrink-0 items-center gap-1.5">
+                    <input
+                      type="checkbox"
+                      checked={isPrinciple}
+                      disabled={locked}
+                      onChange={(e) => {
+                        setIsPrinciple(e.target.checked);
+                        onTogglePrinciple(e.target.checked);
+                      }}
+                      className="h-3.5 w-3.5 accent-accent"
+                    />
+                    Principle
+                  </label>
+                  {isPrinciple && (
+                    <label className="flex flex-shrink-0 items-center gap-1.5">
+                      Type:
+                      <select
+                        value={principleType}
+                        disabled={locked}
+                        onChange={(e) => {
+                          const value = e.target.value as PrincipleType;
+                          setPrincipleType(value);
+                          onPrincipleTypeChange(value);
+                        }}
+                        className="rounded-theme-sm border border-accent bg-accent-soft px-1.5 py-0.5 text-sm font-semibold text-ink focus:outline-none focus:outline-2 focus:outline-accent disabled:cursor-default"
+                      >
+                        {SELECTABLE_PRINCIPLE_TYPES.map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                </>
+              )}
             </div>
-            <textarea
+            <AutoGrowTextarea
               rows={2}
               placeholder={q.placeholder}
               value={values[q.key]}
@@ -150,7 +192,7 @@ export default function JournalPrompts({ entry, locked, onFieldCommit }: Journal
                   onClick={() => setQ5MenuOpen((o) => !o)}
                   aria-haspopup="listbox"
                   aria-expanded={q5MenuOpen}
-                  className={`flex w-full items-start justify-between gap-2 text-left ${fieldUnderline}`}
+                  className="flex w-full items-start justify-between gap-2 rounded-theme-sm border border-accent bg-accent-soft px-2.5 py-1.5 text-left text-sm font-semibold text-ink focus:outline-none focus:outline-2 focus:outline-accent disabled:cursor-default"
                 >
                   <span className="min-w-0 flex-1 whitespace-normal break-words">{q5Label}</span>
                   <span className="flex-shrink-0 text-ink-muted">{q5MenuOpen ? "︿" : "﹀"}</span>
@@ -191,7 +233,7 @@ export default function JournalPrompts({ entry, locked, onFieldCommit }: Journal
             </>
           )}
         </div>
-        <textarea
+        <AutoGrowTextarea
           rows={2}
           placeholder={q5Placeholder}
           value={values.q5Text}
@@ -208,14 +250,14 @@ export default function JournalPrompts({ entry, locked, onFieldCommit }: Journal
           <span className="text-base">📝</span>
           <span>Notes</span>
         </div>
-        <textarea
+        <AutoGrowTextarea
           rows={5}
           placeholder="Anything else on your mind…"
           value={values.notes}
           disabled={locked}
           onChange={(e) => setValue("notes", e.target.value)}
           onBlur={(e) => onFieldCommit("notes", e.target.value)}
-          className="journal-notes-paper min-h-[8em] resize-y border-0 px-0.5 py-2.5 text-[0.86rem] leading-[20px] text-ink placeholder:text-ink-muted focus:outline-none disabled:cursor-default"
+          className="journal-notes-paper min-h-[8em] border-0 px-0.5 py-2.5 text-[0.86rem] leading-[20px] text-ink placeholder:text-ink-muted focus:outline-none disabled:cursor-default"
         />
       </div>
     </div>

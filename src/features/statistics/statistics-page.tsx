@@ -1,12 +1,17 @@
 import { useMemo, useState } from "react";
+import { DndContext, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
 import { CHART_TYPES, TIME_RANGES, type ChartType, type TimeRange } from "@/lib/statistics/stat-types";
 import { PrinciplesIcon, VocabularyIcon } from "@/components/tab-icons/tab-icons";
+import { loadCardOrder, saveCardOrder } from "@/lib/card-order/card-order-storage";
+import SortableCard from "@/components/sortable-cards/sortable-card";
 import { BarChartTypeIcon, HistogramTypeIcon, LineChartTypeIcon, PieChartTypeIcon } from "./chart-type-icons";
 import ActivityOverviewCard from "./activity-overview-card";
 import JournalStatsCard from "./journal-stats-card";
 import TrackerConsistencyCard from "./tracker-consistency-card";
 import TrackerMoodCard from "./tracker-mood-card";
 import TrackerFrequencyCard from "./tracker-frequency-card";
+import EnergyLevelCard from "./energy-level-card";
 import BookReviewActivityCard from "./book-review-activity-card";
 import BookReviewRatingsCard from "./book-review-ratings-card";
 import GoalsTodosStatsCard from "./goals-todos-stats-card";
@@ -19,10 +24,65 @@ const CHART_TYPE_ICONS: Record<ChartType, typeof BarChartTypeIcon> = {
   histogram: HistogramTypeIcon,
 };
 
+const STATS_ORDER_KEY = "me-planner:statistics-card-order";
+
 export default function StatisticsPage() {
   const [range, setRange] = useState<TimeRange>("month");
   const [chartType, setChartType] = useState<ChartType>("bar");
   const today = useMemo(() => new Date(), []);
+
+  const statCards: { id: string; node: JSX.Element }[] = [
+    { id: "activity", node: <ActivityOverviewCard range={range} chartType={chartType} today={today} /> },
+    { id: "journal", node: <JournalStatsCard range={range} chartType={chartType} today={today} /> },
+    { id: "tracker-consistency", node: <TrackerConsistencyCard range={range} today={today} /> },
+    { id: "tracker-mood", node: <TrackerMoodCard range={range} chartType={chartType} today={today} /> },
+    { id: "tracker-frequency", node: <TrackerFrequencyCard range={range} chartType={chartType} today={today} /> },
+    { id: "energy-level", node: <EnergyLevelCard range={range} chartType={chartType} today={today} /> },
+    { id: "book-activity", node: <BookReviewActivityCard range={range} chartType={chartType} today={today} /> },
+    { id: "book-ratings", node: <BookReviewRatingsCard range={range} chartType={chartType} today={today} /> },
+    { id: "goals-todos", node: <GoalsTodosStatsCard range={range} chartType={chartType} today={today} /> },
+    {
+      id: "principles-stub",
+      node: (
+        <StubStatCard
+          icon={PrinciplesIcon}
+          iconPath="/principles"
+          title="Principles / Routines"
+          message="Statistics will appear once you start using Principles / Routines."
+        />
+      ),
+    },
+    {
+      id: "vocabulary-stub",
+      node: (
+        <StubStatCard
+          icon={VocabularyIcon}
+          iconPath="/vocabulary"
+          title="Vocabulary Training"
+          message="Statistics will appear once you start using Vocabulary Training."
+        />
+      ),
+    },
+  ];
+
+  const [order, setOrder] = useState<string[]>(() => loadCardOrder(STATS_ORDER_KEY, statCards.map((c) => c.id)));
+  const orderedCards = order.map((id) => statCards.find((c) => c.id === id)).filter((c): c is (typeof statCards)[number] => Boolean(c));
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = order.indexOf(String(active.id));
+    const newIndex = order.indexOf(String(over.id));
+    if (oldIndex === -1 || newIndex === -1) return;
+    const next = arrayMove(order, oldIndex, newIndex);
+    setOrder(next);
+    saveCardOrder(STATS_ORDER_KEY, next);
+  }
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-y-auto p-2 md:gap-4 md:p-4">
@@ -68,28 +128,17 @@ export default function StatisticsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-        <ActivityOverviewCard range={range} chartType={chartType} today={today} />
-        <JournalStatsCard range={range} chartType={chartType} today={today} />
-        <TrackerConsistencyCard range={range} today={today} />
-        <TrackerMoodCard range={range} chartType={chartType} today={today} />
-        <TrackerFrequencyCard range={range} chartType={chartType} today={today} />
-        <BookReviewActivityCard range={range} chartType={chartType} today={today} />
-        <BookReviewRatingsCard range={range} chartType={chartType} today={today} />
-        <GoalsTodosStatsCard range={range} chartType={chartType} today={today} />
-        <StubStatCard
-          icon={PrinciplesIcon}
-          iconPath="/principles"
-          title="Principles"
-          message="Statistics will appear once you start using Principles."
-        />
-        <StubStatCard
-          icon={VocabularyIcon}
-          iconPath="/vocabulary"
-          title="Vocabulary"
-          message="Statistics will appear once you start using Vocabulary."
-        />
-      </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={order} strategy={rectSortingStrategy}>
+          <div className="statistics-cards-grid grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {orderedCards.map((card) => (
+              <SortableCard key={card.id} id={card.id}>
+                {card.node}
+              </SortableCard>
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }
