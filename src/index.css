@@ -173,3 +173,26 @@
 @media (prefers-reduced-motion: reduce) {
   .gimmick-idle-bob, .gimmick-hop-arc, .gimmick-mood-pop, .gimmick-heart-float { animation: none; }
 }
+
+/* Shared tap-feedback flashes for the Learning tab's memory games — a
+   quick scale pulse for a correct tap, a short shake for a wrong one, so
+   every game reads the same "yes/no" feedback language instead of each
+   inventing its own. */
+@keyframes learning-flash-success {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+@keyframes learning-flash-error {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.learning-flash-success { animation: learning-flash-success 0.3s ease-out; }
+.learning-flash-error { animation: learning-flash-error 0.35s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .learning-flash-success, .learning-flash-error { animation: none; }
+}

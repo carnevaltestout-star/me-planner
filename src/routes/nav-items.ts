@@ -2,10 +2,10 @@ import type { ComponentType, SVGProps } from "react";
 import {
   AttachmentsIcon,
   BookReviewsIcon,
+  BrainIcon,
   FinanceIcon,
   GoalsIcon,
   JournalIcon,
-  LearningIcon,
   OverviewIcon,
   PlannerIcon,
   PrinciplesIcon,
@@ -37,5 +37,5 @@ export const navItems: NavItem[] = [
   { path: "/attachments", label: "Attachments", icon: AttachmentsIcon },
   { path: "/book-reviews", label: "Book Reviews", icon: BookReviewsIcon },
   { path: "/finance-overview", label: "Finance Overview", icon: FinanceIcon },
-  { path: "/learning", label: "Learning", icon: LearningIcon },
+  { path: "/learning", label: "Brain Training", icon: BrainIcon },
 ];

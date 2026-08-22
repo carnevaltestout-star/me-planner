@@ -136,6 +136,17 @@ export function LearningIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function BrainIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <path d="M9.3 4.8a2.4 2.4 0 0 0-2.4 2.4v.3a2.6 2.6 0 0 0-1.7 2.4c0 .5.15 1 .4 1.4a2.6 2.6 0 0 0 0 4.4c-.25.4-.4.9-.4 1.4a2.6 2.6 0 0 0 2.6 2.6h.1a2.4 2.4 0 0 0 2.4 1.9" />
+      <path d="M14.7 4.8a2.4 2.4 0 0 1 2.4 2.4v.3a2.6 2.6 0 0 1 1.7 2.4c0 .5-.15 1-.4 1.4a2.6 2.6 0 0 1 0 4.4c.25.4.4.9.4 1.4a2.6 2.6 0 0 1-2.6 2.6h-.1a2.4 2.4 0 0 1-2.4 1.9" />
+      <path d="M9.3 4.8v14.2M14.7 4.8v14.2" />
+      <path d="M6.9 9.9c.9.6 2.1.6 3 0M6.9 14.3c.9.6 2.1.6 3 0M14.1 9.9c.9.6 2.1.6 3 0M14.1 14.3c.9.6 2.1.6 3 0" />
+    </svg>
+  );
+}
+
 export function SettingsIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...baseProps(props)}>

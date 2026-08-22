@@ -17,7 +17,7 @@ const BITMAPS: Record<string, Bitmap> = {
   bookReviews: ["11111110", "10000010", "10111010", "10111010", "10111010", "10000010", "10000010", "11111110"],
   statistics: ["00000001", "00000011", "00000110", "00011100", "00110000", "01100000", "11000000", "10000000"],
   finance: ["00111100", "01111110", "11100111", "11000011", "11000011", "11100111", "01111110", "00111100"],
-  learning: ["00111100", "01111110", "11111111", "11111111", "01111110", "00111100", "00011000", "00011000"],
+  brainTraining: ["00111100", "01111110", "11111111", "11101111", "11101111", "11111111", "01111110", "00111100"],
 };
 
 function icon(key: keyof typeof BITMAPS): IconComponent {
@@ -38,5 +38,5 @@ export const RETRO_NAV_ICONS: Record<string, IconComponent> = {
   "/book-reviews": icon("bookReviews"),
   "/statistics": icon("statistics"),
   "/finance-overview": icon("finance"),
-  "/learning": icon("learning"),
+  "/learning": icon("brainTraining"),
 };
