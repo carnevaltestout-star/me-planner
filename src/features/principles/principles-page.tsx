@@ -8,12 +8,11 @@ import { PRINCIPLE_TYPES, type PrincipleType } from "@/lib/journal/journal-types
 import { loadPrinciples, savePrinciples } from "@/lib/principles/principle-storage";
 import { createPrinciple, type Principle } from "@/lib/principles/principle-types";
 import { loadRoutineIconSettings, saveRoutineIconSettings } from "@/lib/principles/routine-icon-storage";
-import { loadRoutines, saveRoutines } from "@/lib/principles/routine-storage";
-import type { RoutineIconPalette, RoutineIconShape, RoutineKey } from "@/lib/principles/routine-types";
+import type { RoutineIconPalette, RoutineIconShape } from "@/lib/principles/routine-types";
 import { matchesDateQuery } from "@/lib/search/date-search";
 import { loadEnergyNotes, saveEnergyNotes } from "@/lib/trackers/energy-note-storage";
 import { PaletteIcon, PrincipleBunnyIcon } from "./principle-icons";
-import RoutineCard from "./routine-card";
+import RoutinesPanel from "./routines-panel";
 import RoutineIconPickerDialog from "./routine-icon-picker-dialog";
 import PrincipleCard from "./principle-card";
 import AddPrincipleDialog from "./add-principle-dialog";
@@ -95,7 +94,6 @@ export default function PrinciplesPage() {
   const theme = useTheme();
   const showBunny = theme.retro || theme.kawaii;
 
-  const [routines, setRoutines] = useState(() => loadRoutines());
   const [iconSettings, setIconSettings] = useState(() => loadRoutineIconSettings());
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [principles, setPrinciples] = useState(() => loadPrinciples());
@@ -107,23 +105,6 @@ export default function PrinciplesPage() {
   // this is bumped afterward to force allPrinciples to recompute and pick
   // the change up.
   const [derivedRefresh, setDerivedRefresh] = useState(0);
-
-  function persistRoutines(next: typeof routines) {
-    setRoutines(next);
-    saveRoutines(next);
-  }
-
-  function addRoutineItem(key: RoutineKey, text: string) {
-    persistRoutines({ ...routines, [key]: [...routines[key], text] });
-  }
-
-  function removeRoutineItem(key: RoutineKey, index: number) {
-    persistRoutines({ ...routines, [key]: routines[key].filter((_, i) => i !== index) });
-  }
-
-  function editRoutineItem(key: RoutineKey, index: number, text: string) {
-    persistRoutines({ ...routines, [key]: routines[key].map((item, i) => (i === index ? text : item)) });
-  }
 
   function changeIconShape(shape: RoutineIconShape) {
     const next = { ...iconSettings, shape };
@@ -261,30 +242,7 @@ export default function PrinciplesPage() {
           <h1 className="m-0 text-base font-semibold text-ink">Routines</h1>
           {showBunny && <PrincipleBunnyIcon className="h-5 w-5 text-accent" />}
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:gap-3">
-          <RoutineCard
-            emoji="☀️"
-            title="Morning Routine"
-            placeholder="Add to your morning…"
-            items={routines.morning}
-            iconShape={iconSettings.shape}
-            iconPalette={iconSettings.palette}
-            onAdd={(text) => addRoutineItem("morning", text)}
-            onRemove={(i) => removeRoutineItem("morning", i)}
-            onEdit={(i, text) => editRoutineItem("morning", i, text)}
-          />
-          <RoutineCard
-            emoji="🌙"
-            title="Evening Routine"
-            placeholder="Add to your evening…"
-            items={routines.evening}
-            iconShape={iconSettings.shape}
-            iconPalette={iconSettings.palette}
-            onAdd={(text) => addRoutineItem("evening", text)}
-            onRemove={(i) => removeRoutineItem("evening", i)}
-            onEdit={(i, text) => editRoutineItem("evening", i, text)}
-          />
-        </div>
+        <RoutinesPanel iconSettings={iconSettings} />
       </div>
 
       <div className="flex flex-col gap-3">

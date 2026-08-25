@@ -8,10 +8,17 @@ import {
   startOfWeek,
 } from "@/lib/planner/planner-dates";
 import { DEFAULT_TINT_PERCENT, PRIORITY_TINT_PERCENT, type PlannerEvent, type PlannerView } from "@/lib/planner/planner-types";
+import { TrashIcon } from "@/features/goals/goal-todo-icons";
+import { PRESET_DRAG_TYPE } from "./preset-bar";
 
 const HOUR_HEIGHT = 56;
-const DEFAULT_SCROLL_HOUR = 7;
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
+// Exported so PlannerPage's own page-level drop zone can recognize "an
+// event block was dropped somewhere that isn't a valid hour cell" (i.e.
+// dragged out of the calendar entirely) and delete it, instead of only
+// this file's own hour-cell drop targets understanding the payload.
+export const EVENT_DRAG_TYPE = "application/x-me-planner-event-id";
+export const EVENT_OCCURRENCE_DRAG_TYPE = "application/x-me-planner-event-occurrence-date";
 const MIN_DAY_COL_PX = 90;
 // Narrower time-label column on mobile so more of the day columns are
 // visible before horizontal scroll kicks in — matches the app's md: 768px
@@ -36,11 +43,16 @@ interface PlannerGridProps {
   events: PlannerEvent[];
   onCellClick: (dateKey: string, hour: number) => void;
   onBlockClick: (event: PlannerEvent, occurrenceDate: string) => void;
+  onPresetDrop?: (presetId: string, dateKey: string, hour: number) => void;
+  onEventDrop?: (eventId: string, occurrenceDate: string, newDateKey: string, hour: number) => void;
+  onDeleteRequest?: (event: PlannerEvent, occurrenceDate: string) => void;
 }
 
-export default function PlannerGrid({ view, anchor, events, onCellClick, onBlockClick }: PlannerGridProps) {
+export default function PlannerGrid({ view, anchor, events, onCellClick, onBlockClick, onPresetDrop, onEventDrop, onDeleteRequest }: PlannerGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const hScrollRef = useRef<HTMLDivElement>(null);
+  const [dragOverCell, setDragOverCell] = useState<{ key: string; hour: number } | null>(null);
+  const [draggingEventId, setDraggingEventId] = useState<string | null>(null);
   const today = new Date();
 
   const [labelColPx, setLabelColPx] = useState(() =>
@@ -66,8 +78,15 @@ export default function PlannerGrid({ view, anchor, events, onCellClick, onBlock
           });
         })();
 
+  // Centers the current time in the visible scroll area (instead of
+  // pinning a fixed hour to the top) — same "where am I right now" framing
+  // the now-line further down already gives the today column.
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = DEFAULT_SCROLL_HOUR * HOUR_HEIGHT;
+    if (!scrollRef.current) return;
+    const el = scrollRef.current;
+    const nowOffset = (today.getHours() + today.getMinutes() / 60) * HOUR_HEIGHT;
+    el.scrollTop = Math.max(0, nowOffset - el.clientHeight / 2);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view]);
 
   useEffect(() => {
@@ -145,8 +164,44 @@ export default function PlannerGrid({ view, anchor, events, onCellClick, onBlock
                         key={h}
                         className={`h-14 cursor-pointer border-b border-border hover:bg-[color-mix(in_srgb,var(--color-accent)_6%,transparent)] ${
                           h % 3 === 0 ? "border-b-[color-mix(in_srgb,var(--color-border)_60%,var(--color-ink)_40%)]" : ""
-                        }`}
+                        } ${dragOverCell?.key === key && dragOverCell.hour === h ? "bg-[color-mix(in_srgb,var(--color-accent)_16%,transparent)]" : ""}`}
                         onClick={(e) => onCellClick(key, snapToHalfHour(h, e.nativeEvent.offsetY))}
+                        onDragOver={(e) => {
+                          if (!onPresetDrop && !onEventDrop) return;
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = e.dataTransfer.types.includes(EVENT_DRAG_TYPE) ? "move" : "copy";
+                          const hour = snapToHalfHour(h, e.nativeEvent.offsetY);
+                          if (dragOverCell?.key !== key || dragOverCell.hour !== hour) setDragOverCell({ key, hour });
+                        }}
+                        onDragLeave={(e) => {
+                          const related = e.relatedTarget as Node | null;
+                          if (related && e.currentTarget.contains(related)) return;
+                          setDragOverCell((c) => (c?.key === key && c.hour === h ? null : c));
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          // Stopped so a drop a valid hour cell already
+                          // handled doesn't also bubble up to PlannerPage's
+                          // own page-level "dropped outside the grid ->
+                          // delete" catch-all.
+                          e.stopPropagation();
+                          setDragOverCell(null);
+                          const hour = snapToHalfHour(h, e.nativeEvent.offsetY);
+                          const eventId = e.dataTransfer.getData(EVENT_DRAG_TYPE);
+                          if (eventId && onEventDrop) {
+                            // A successful drop usually moves the block to a
+                            // different day-column's own .map() output — a
+                            // genuinely new DOM node, not the same one
+                            // reordered — so the original (now-detached)
+                            // node's native "dragend" never fires and can't
+                            // be relied on to clear this itself.
+                            setDraggingEventId(null);
+                            onEventDrop(eventId, e.dataTransfer.getData(EVENT_OCCURRENCE_DRAG_TYPE), key, hour);
+                            return;
+                          }
+                          const presetId = e.dataTransfer.getData(PRESET_DRAG_TYPE);
+                          if (presetId && onPresetDrop) onPresetDrop(presetId, key, hour);
+                        }}
                       />
                     ))}
                     {dayEvents.map((ev) => {
@@ -165,13 +220,24 @@ export default function PlannerGrid({ view, anchor, events, onCellClick, onBlock
                       return (
                         <div
                           key={ev.id}
+                          draggable={Boolean(onEventDrop)}
+                          onDragStart={(e) => {
+                            if (!onEventDrop) return;
+                            e.dataTransfer.setData(EVENT_DRAG_TYPE, ev.id);
+                            e.dataTransfer.setData(EVENT_OCCURRENCE_DRAG_TYPE, key);
+                            e.dataTransfer.effectAllowed = "move";
+                            setDraggingEventId(ev.id);
+                          }}
+                          onDragEnd={() => setDraggingEventId(null)}
                           onClick={(e) => {
                             e.stopPropagation();
                             onBlockClick(ev, key);
                           }}
                           title={overlapping ? ev.title : undefined}
-                          className={`isolate absolute flex cursor-pointer flex-col justify-start rounded-theme-sm pb-0 pl-[0.4rem] pr-[0.4rem] pt-[0.12rem] text-[0.7rem] text-ink ${
-                            overlapping ? "z-[1] overflow-hidden" : "z-[2] overflow-visible"
+                          className={`group isolate absolute flex flex-col justify-start rounded-theme-sm pb-0 pl-[0.4rem] pr-[0.4rem] pt-[0.12rem] text-[0.7rem] text-ink transition-opacity ${
+                            onEventDrop ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
+                          } ${overlapping ? "z-[1] overflow-hidden" : "z-[2] overflow-visible"} ${
+                            draggingEventId === ev.id ? "opacity-30" : ""
                           }`}
                           style={{
                             top: ev.start * HOUR_HEIGHT,
@@ -182,6 +248,19 @@ export default function PlannerGrid({ view, anchor, events, onCellClick, onBlock
                             borderLeft: `3px solid ${color}`,
                           }}
                         >
+                          {onDeleteRequest && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteRequest(ev, key);
+                              }}
+                              aria-label={`Delete ${ev.title || "event"}`}
+                              className="absolute -right-1.5 -top-1.5 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-surface text-ink-muted opacity-0 shadow-theme hover:text-[#c22a4d] group-hover:opacity-100"
+                            >
+                              <TrashIcon className="h-3 w-3" />
+                            </button>
+                          )}
                           <span
                             className={`min-w-0 font-semibold leading-[1.15] ${overlapping ? "truncate" : "text-black"}`}
                           >

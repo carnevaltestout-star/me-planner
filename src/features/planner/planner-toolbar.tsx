@@ -8,11 +8,11 @@ interface PlannerToolbarProps {
   onViewChange: (view: PlannerView) => void;
   anchor: Date;
   rangeLabel: string;
-  onPrev: () => void;
-  onNext: () => void;
   onToday: () => void;
   onJumpToDate: (date: Date) => void;
   onNewEvent: () => void;
+  routinesOpen: boolean;
+  onToggleRoutines: () => void;
 }
 
 export default function PlannerToolbar({
@@ -20,11 +20,11 @@ export default function PlannerToolbar({
   onViewChange,
   anchor,
   rangeLabel,
-  onPrev,
-  onNext,
   onToday,
   onJumpToDate,
   onNewEvent,
+  routinesOpen,
+  onToggleRoutines,
 }: PlannerToolbarProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [yearViewOpen, setYearViewOpen] = useState(false);
@@ -42,6 +42,13 @@ export default function PlannerToolbar({
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 md:gap-3">
       <div className="flex flex-wrap items-center gap-1.5 md:gap-2.5">
+        <button
+          type="button"
+          onClick={onNewEvent}
+          className="rounded-theme border border-accent bg-accent px-2.5 py-1 text-xs font-semibold text-accent-contrast hover:brightness-105 md:px-3.5 md:py-1.5 md:text-sm"
+        >
+          + New event
+        </button>
         <button
           type="button"
           onClick={onToday}
@@ -67,24 +74,6 @@ export default function PlannerToolbar({
             onClose={() => setYearViewOpen(false)}
           />
         )}
-        <div className="inline-flex overflow-hidden rounded-full border border-border">
-          <button
-            type="button"
-            aria-label="Previous"
-            onClick={onPrev}
-            className="flex h-[24px] w-[24px] items-center justify-center border-r border-border bg-surface text-ink hover:bg-surface-alt md:h-[30px] md:w-[30px]"
-          >
-            ‹
-          </button>
-          <button
-            type="button"
-            aria-label="Next"
-            onClick={onNext}
-            className="flex h-[24px] w-[24px] items-center justify-center bg-surface text-ink hover:bg-surface-alt md:h-[30px] md:w-[30px]"
-          >
-            ›
-          </button>
-        </div>
         {/* Redundant on mobile — the grid's own day headers already show the
             exact dates, and Month/Year already opens the year view to jump
             around. Kept on desktop where there's room for it. */}
@@ -106,15 +95,18 @@ export default function PlannerToolbar({
             />
           )}
         </div>
-      </div>
-      <div className="flex items-center gap-1.5 md:gap-2.5">
         <button
           type="button"
-          onClick={onNewEvent}
-          className="rounded-theme border border-accent bg-accent px-2.5 py-1 text-xs font-semibold text-accent-contrast hover:brightness-105 md:px-3.5 md:py-1.5 md:text-sm"
+          onClick={onToggleRoutines}
+          aria-pressed={routinesOpen}
+          className={`rounded-full border px-2.5 py-1 text-xs hover:bg-surface-alt md:px-3.5 md:py-1.5 md:text-sm ${
+            routinesOpen ? "border-accent bg-accent-soft font-semibold text-accent" : "border-border bg-surface text-ink"
+          }`}
         >
-          + New event
+          Display routines
         </button>
+      </div>
+      <div className="flex items-center gap-1.5 md:gap-2.5">
         <div className="inline-flex overflow-hidden rounded-full border border-border">
           <button
             type="button"

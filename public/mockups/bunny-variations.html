@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Bunny mascot — new characters, idle behavior &amp; night accessory</title>
+<style>
+  :root {
+    --bg: #fbf8f6; --surface: #ffffff; --border: #e4d9e3; --text: #362e38; --text-muted: #7a7480; --accent: #8b6ba8; --accent-soft: #efe7f4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    padding: 2rem 1.5rem 4rem;
+  }
+  h1 { font-size: 1.15rem; margin: 0 0 0.3rem; }
+  h2 { font-size: 0.85rem; margin: 0 0 0.75rem; color: #6b5a68; text-transform: uppercase; letter-spacing: 0.03em; }
+  p.sub { font-size: 0.85rem; color: var(--text-muted); margin: 0 0 1.5rem; max-width: 680px; line-height: 1.55; }
+  section { max-width: 980px; margin: 0 0 2.5rem; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem 1.4rem;
+  }
+
+  /* ---- swatch picker ---- */
+  .age-row { margin-bottom: 1.4rem; }
+  .age-label { font-size: 0.78rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; }
+  .swatches { display: grid; grid-template-columns: repeat(10, 1fr); gap: 0.5rem; }
+  .swatch {
+    border: 2px solid var(--border); border-radius: 10px; background: var(--surface); padding: 0.5rem 0.3rem 0.4rem;
+    display: flex; flex-direction: column; align-items: center; gap: 0.3rem; cursor: pointer;
+  }
+  .swatch svg { width: 40px; height: 57px; image-rendering: pixelated; }
+  .swatch .num { font-size: 0.6rem; font-weight: 700; color: var(--text-muted); }
+  .swatch[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+  .swatch[aria-pressed="true"] .num { color: var(--accent); }
+
+  /* ---- main stage ---- */
+  .stage-wrap { display: flex; flex-wrap: wrap; gap: 2rem; align-items: flex-start; }
+  .stage {
+    width: 220px; height: 300px; flex-shrink: 0; border-radius: 12px; background: linear-gradient(180deg, #fdf6ff 0%, #fff 60%);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;
+  }
+  .stage svg { width: 140px; height: 201px; image-rendering: pixelated; overflow: visible; }
+  .stage-caption {
+    position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 0.68rem; font-weight: 700;
+    color: var(--accent); text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .controls { flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: 1rem; }
+  .status-line { font-size: 0.85rem; }
+  .status-line b { color: var(--accent); }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  button.action {
+    border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600;
+    border-radius: 999px; padding: 0.4rem 0.9rem; font-size: 0.8rem; cursor: pointer;
+  }
+  button.action:hover { background: var(--accent); color: #fff; }
+  label.hat-toggle { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+  .summary { font-size: 0.82rem; color: var(--text-muted); }
+  .summary b { color: var(--text); }
+
+  /* ---- SVG rig transform origins ---- */
+  .bunny .g-ear-left, .bunny .g-ear-right, .bunny .g-whisker-left, .bunny .g-whisker-right, .bunny .g-head, .bunny .g-rig, .bunny .nose {
+    transform-box: fill-box;
+  }
+  .bunny .g-ear-left { transform-origin: 100% 100%; }
+  .bunny .g-ear-right { transform-origin: 0% 100%; }
+  .bunny .g-whisker-left { transform-origin: 100% 50%; }
+  .bunny .g-whisker-right { transform-origin: 0% 50%; }
+  .bunny .g-head { transform-origin: 50% 100%; }
+  .bunny .g-rig { transform-origin: 50% 65%; }
+  /* Opacity-based (not display:none) so the idle blink below can animate
+     eyes-open/eyes-closed independently of the sleep state machine, which
+     also toggles the same two groups but only ever while NOT idle-blinking
+     (the two are mutually exclusive via the JS state machine). */
+  .bunny .eyes-open { opacity: 1; }
+  .bunny .eyes-closed { opacity: 0; }
+  .bunny .mouth-open, .bunny .g-hat { display: none; }
+  .bunny.asleep .eyes-open { opacity: 0; }
+  .bunny.asleep .eyes-closed { opacity: 1; }
+  .bunny.asleep .smile { opacity: 0; }
+  .bunny.night-hat .g-hat { display: inline; }
+  .bunny.night-ears .g-ear-left { transform: rotate(-72deg); transition: transform 0.5s ease; }
+  .bunny.night-ears .g-ear-right { transform: rotate(72deg); transition: transform 0.5s ease; }
+
+  @keyframes bunny-idle-bob { 0%, 100% { transform: translateY(0) scale(1, 1); } 50% { transform: translateY(-1px) scale(1.01, 0.99); } }
+  .bunny.anim-idle .g-rig { animation: bunny-idle-bob 1.8s ease-in-out infinite; }
+
+  /* A slow periodic blink (mostly-open, snap shut for a couple of frames,
+     snap back) — the one detail that reads as "alive" more than anything
+     else in kawaii character animation. steps(1) so it snaps instead of
+     fading, like a real eyelid. */
+  @keyframes bunny-blink-open { 0%, 94%, 100% { opacity: 1; } 96%, 98% { opacity: 0; } }
+  @keyframes bunny-blink-shut { 0%, 94%, 100% { opacity: 0; } 96%, 98% { opacity: 1; } }
+  .bunny.anim-idle .eyes-open { animation: bunny-blink-open 4.5s steps(1) infinite; }
+  .bunny.anim-idle .eyes-closed { animation: bunny-blink-shut 4.5s steps(1) infinite; }
+
+  @keyframes bunny-yawn { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-12deg) scale(1.03); } }
+  @keyframes bunny-yawn-mouth { 0%, 15%, 100% { opacity: 0; } 40%, 80% { opacity: 1; } }
+  .bunny.anim-yawn .g-head { animation: bunny-yawn 1.3s ease-in-out 1; }
+  .bunny.anim-yawn .mouth-open { display: inline; animation: bunny-yawn-mouth 1.3s ease-in-out 1; }
+  .bunny.anim-yawn .smile { opacity: 0; }
+
+  @keyframes bunny-sniff-l { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(24deg); } 75% { transform: rotate(-16deg); } }
+  @keyframes bunny-sniff-r { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-24deg); } 75% { transform: rotate(16deg); } }
+  @keyframes bunny-sniff-nose { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-0.4px); } }
+  .bunny.anim-sniff .g-whisker-left { animation: bunny-sniff-l 0.5s ease-in-out 3; }
+  .bunny.anim-sniff .g-whisker-right { animation: bunny-sniff-r 0.5s ease-in-out 3; }
+  .bunny.anim-sniff .nose { transform-box: fill-box; animation: bunny-sniff-nose 0.25s ease-in-out 6; }
+
+  /* Squash-and-stretch on landing, not just a straight bounce — the extra
+     half-beat of "squish" is most of what makes a hop read as cute instead
+     of mechanical. */
+  @keyframes bunny-hop {
+    0%, 100% { transform: translateY(0) scale(1, 1); }
+    30% { transform: translateY(-10px) scale(0.94, 1.08); }
+    55% { transform: translateY(-10px) scale(1.04, 0.96); }
+    80% { transform: translateY(0) scale(1.06, 0.9); }
+    92% { transform: translateY(0) scale(0.98, 1.03); }
+  }
+  .bunny.anim-hop .g-rig { animation: bunny-hop 0.75s ease-out 1; }
+
+  @keyframes bunny-roll { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(0.92); } 100% { transform: rotate(360deg) scale(1); } }
+  .bunny.anim-roll .g-rig { animation: bunny-roll 0.9s ease-in-out 1; }
+
+  @keyframes bunny-groom { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(50deg); } }
+  @keyframes bunny-groom-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(0.5px); } }
+  .bunny.anim-groom .g-ear-left { animation: bunny-groom 0.85s ease-in-out 3; }
+  .bunny.anim-groom .g-head { animation: bunny-groom-bob 0.85s ease-in-out 3; }
+</style>
+</head>
+<body>
+
+<h1>Bunny mascot — new characters, idle behavior &amp; night accessory</h1>
+<p class="sub">
+  Everything below is a static picker, not wired into the real app yet — pick an age + color combo, try the
+  animations, then tell me which one(s) to use for real. "Antennae" below are drawn as small whiskers near the nose
+  (the sniff animation twitches them) — say so if you actually meant literal insect-style antennae instead.
+</p>
+
+<section class="card">
+  <h2>1 · Pick a bunny (10 color variations × Baby / Adult)</h2>
+  <div class="age-row">
+    <div class="age-label">Baby Bunny</div>
+    <div class="swatches" id="babySwatches"></div>
+  </div>
+  <div class="age-row" style="margin-bottom:0;">
+    <div class="age-label">Adult Bunny</div>
+    <div class="swatches" id="adultSwatches"></div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>2 · Live preview — idle behavior, animations &amp; night hat</h2>
+  <div class="stage-wrap">
+    <div class="stage">
+      <svg id="mainSvg" class="bunny anim-idle" viewBox="0 0 16 23"></svg>
+      <span class="stage-caption" id="stageCaption">Awake</span>
+    </div>
+    <div class="controls">
+      <div class="status-line">
+        Idle timer: <b id="idleSeconds">0</b>s (any click/key/move resets it) —
+        grooms itself at <b>15s</b> idle, falls asleep at <b>60s</b> idle.
+      </div>
+      <div class="btn-row">
+        <button class="action" id="btnGroom" type="button">Groom now</button>
+        <button class="action" id="btnSleep" type="button">Sleep now</button>
+        <button class="action" id="btnWake" type="button">Wake up</button>
+      </div>
+      <div class="btn-row">
+        <button class="action" data-anim="yawn" type="button">Yawn</button>
+        <button class="action" data-anim="sniff" type="button">Sniff (whiskers)</button>
+        <button class="action" data-anim="hop" type="button">Hop</button>
+        <button class="action" data-anim="roll" type="button">Roll</button>
+        <button class="action" id="btnEarsNight" type="button" aria-pressed="false">Ears up (night pose)</button>
+      </div>
+      <label class="hat-toggle">
+        <input type="checkbox" id="nightHatToggle" />
+        Sleeping hat — worn automatically 6 PM–4 AM (checkbox previews it any time)
+      </label>
+      <p class="summary" id="summary"></p>
+    </div>
+  </div>
+</section>
+
+<script>
+  const WIDTH = 16, ROWS = 23;
+
+  function rowRange(width, start, end) {
+    return Array.from({ length: width }, (_, i) => (i >= start && i <= end ? "1" : "0")).join("");
+  }
+  // ranges: array of [start,end] (or null), one entry per row starting at startRow
+  function partAt(startRow, ranges, width = WIDTH, totalRows = ROWS) {
+    const byRow = Array(totalRows).fill(null);
+    ranges.forEach((r, i) => { if (startRow + i < totalRows) byRow[startRow + i] = r; });
+    return byRow.map((r) => rowRange(width, r ? r[0] : -1, r ? r[1] : -1));
+  }
+  function dots(points, width = WIDTH, totalRows = ROWS) {
+    const rows = Array.from({ length: totalRows }, () => Array(width).fill("0"));
+    points.forEach(([r, c]) => { if (r >= 0 && r < totalRows && c >= 0 && c < width) rows[r][c] = "1"; });
+    return rows.map((r) => r.join(""));
+  }
+  function highlightOf(grid) {
+    const h = grid.length, cut = Math.floor(WIDTH / 2) - 1;
+    return grid.map((row, y) => (y <= Math.floor(h / 2) - 1 ? [...row].map((c, x) => (c === "1" && x <= cut ? "1" : "0")).join("") : "0".repeat(WIDTH)));
+  }
+  function shadowOf(grid) {
+    const h = grid.length, cut = Math.ceil(WIDTH / 2);
+    return grid.map((row, y) => (y >= Math.ceil(h / 2) ? [...row].map((c, x) => (c === "1" && x >= cut ? "1" : "0")).join("") : "0".repeat(WIDTH)));
+  }
+  function rectsFor(grid, color) {
+    let out = "";
+    grid.forEach((row, y) => { [...row].forEach((c, x) => { if (c === "1") out += `<rect x="${x}" y="${y}" width="1" height="1" fill="${color}"/>`; }); });
+    return out;
+  }
+  function shadedRects(grid, color) {
+    return rectsFor(shadowOf(grid), `color-mix(in srgb, ${color} 78%, black)`) +
+      rectsFor(grid, color) +
+      rectsFor(highlightOf(grid), `color-mix(in srgb, ${color} 70%, white)`);
+  }
+
+  // ---------- Part definitions ----------
+  // Longer ears (extra rows, tip pinned at row 0 since the canvas can't go
+  // any higher) and a smaller head+body than the previous pass — long ears
+  // on a petite body reads as more "bunny" than a big round head did.
+  const ADULT = {
+    head: partAt(4, [[6,9],[5,10],[4,11],[4,11],[4,11],[4,11],[5,10],[6,9]]),
+    earL: partAt(0, [[5,5],[4,6],[4,6],[4,6],[4,6],[4,6],[4,6]]),
+    earR: partAt(0, [[10,10],[9,11],[9,11],[9,11],[9,11],[9,11],[9,11]]),
+    earLInner: partAt(1, [[5,5],[5,5],[5,5],[5,5],[5,5]]),
+    earRInner: partAt(1, [[10,10],[10,10],[10,10],[10,10],[10,10]]),
+    body: partAt(12, [[6,9],[5,10],[4,11],[5,10],[6,9]]),
+    belly: partAt(13, [[6,9],[6,9]]),
+    footL: partAt(17, [[5,7]]),
+    footR: partAt(17, [[9,11]]),
+    eyeOpenL: partAt(7, [[5,6],[5,6]]),
+    eyeOpenR: partAt(7, [[9,10],[9,10]]),
+    eyeSparkleL: dots([[7,5]]),
+    eyeSparkleR: dots([[7,9]]),
+    eyeClosedL: partAt(8, [[5,6]]),
+    eyeClosedR: partAt(8, [[9,10]]),
+    blushL: partAt(9, [[4,5]]),
+    blushR: partAt(9, [[10,11]]),
+    nose: dots([[9,7],[9,8]]),
+    smile: dots([[10,6],[11,7],[11,8],[10,9]]),
+    mouth: partAt(9, [[7,8],[7,8],[7,8]]),
+    whiskerL: dots([[9,1],[9,2]]),
+    whiskerR: dots([[9,13],[9,14]]),
+    hat: partAt(0, [[7,8],[8,10],[9,12],[11,14],[12,14],[13,14]]),
+    hatPompom: dots([[6,14],[6,15]]),
+  };
+
+  const BABY = {
+    head: partAt(7, [[6,9],[5,10],[4,11],[4,11],[4,11],[4,11],[5,10],[6,9]]),
+    earL: partAt(2, [[6,6],[6,7],[5,7],[5,7],[5,7],[5,7]]),
+    earR: partAt(2, [[9,9],[8,9],[8,10],[8,10],[8,10],[8,10]]),
+    earLInner: partAt(3, [[6,6],[6,6],[6,6],[6,6]]),
+    earRInner: partAt(3, [[9,9],[9,9],[9,9],[9,9]]),
+    body: partAt(15, [[6,9],[5,10],[5,10],[6,9]]),
+    belly: partAt(16, [[6,9],[6,9]]),
+    footL: partAt(19, [[5,7]]),
+    footR: partAt(19, [[8,10]]),
+    eyeOpenL: partAt(10, [[5,6],[5,6]]),
+    eyeOpenR: partAt(10, [[9,10],[9,10]]),
+    eyeSparkleL: dots([[10,5]]),
+    eyeSparkleR: dots([[10,9]]),
+    eyeClosedL: partAt(11, [[5,6]]),
+    eyeClosedR: partAt(11, [[9,10]]),
+    blushL: partAt(12, [[4,5]]),
+    blushR: partAt(12, [[10,11]]),
+    nose: dots([[12,7],[12,8]]),
+    smile: dots([[13,6],[14,7],[14,8],[13,9]]),
+    mouth: partAt(12, [[7,8],[7,8],[7,8]]),
+    whiskerL: dots([[12,1],[12,2]]),
+    whiskerR: dots([[12,13],[12,14]]),
+    hat: partAt(2, [[7,8],[8,10],[9,12],[11,14],[12,14],[13,14]]),
+    hatPompom: dots([[8,14],[8,15]]),
+  };
+
+  // ---------- Palettes — tied to the app's existing accent color family so
+  // whichever one gets picked can map straight onto an existing theme
+  // accent, plus two extra fun ones to round out 10. ----------
+  const PALETTES = [
+    { name: "Classic Cream", fur: "#f7f0e6", inner: "#f5c3d3", eye: "#3a2e35", nose: "#e0798f", hat: "#8b6ba8" },
+    { name: "Lavender",      fur: "#e6def2", inner: "#c9a8de", eye: "#3a2e4a", nose: "#7d54ad", hat: "#7d54ad" },
+    { name: "Rose",          fur: "#f6dbe2", inner: "#eda9bb", eye: "#4a2530", nose: "#c94f6b", hat: "#c94f6b" },
+    { name: "Amber",         fur: "#f5e6c8", inner: "#eec98a", eye: "#4a3418", nose: "#c98a2a", hat: "#c98a2a" },
+    { name: "Sage",          fur: "#e2ecdd", inner: "#b6d6a8", eye: "#2c3a24", nose: "#4f8a45", hat: "#4f8a45" },
+    { name: "Teal",          fur: "#dcefee", inner: "#9ed6d3", eye: "#1e3a39", nose: "#2f8686", hat: "#2f8686" },
+    { name: "Sky",           fur: "#dcebf5", inner: "#a7cfe8", eye: "#1f3a4a", nose: "#3d7ba3", hat: "#3d7ba3" },
+    { name: "Plum",          fur: "#ecdff0", inner: "#cf9fdb", eye: "#3a2540", nose: "#8a3f94", hat: "#8a3f94" },
+    { name: "Slate",         fur: "#e6e7e9", inner: "#b9bec5", eye: "#2b2f34", nose: "#5c6470", hat: "#5c6470" },
+    { name: "Charcoal",      fur: "#3a3640", inner: "#5c5566", eye: "#f2eef7", nose: "#d9a8c2", hat: "#1f1c24" },
+  ];
+
+  function renderBunny(parts, pal) {
+    const bodyLayer = shadedRects(parts.body, pal.fur);
+    const bellyLayer = rectsFor(parts.belly, `color-mix(in srgb, ${pal.fur} 60%, white)`);
+    const feetLayer = rectsFor(parts.footL, pal.fur) + rectsFor(parts.footR, pal.fur);
+    const headLayer = shadedRects(parts.head, pal.fur);
+    // Sparkle is a lighter pixel punched into the corner of each eye, drawn
+    // after (on top of) the dark eye fill — the single biggest "kawaii"
+    // signal per the reference research (big shiny eyes with a highlight).
+    const eyesOpen =
+      rectsFor(parts.eyeOpenL, pal.eye) + rectsFor(parts.eyeOpenR, pal.eye) +
+      rectsFor(parts.eyeSparkleL, "#ffffff") + rectsFor(parts.eyeSparkleR, "#ffffff");
+    const eyesClosed = rectsFor(parts.eyeClosedL, pal.eye) + rectsFor(parts.eyeClosedR, pal.eye);
+    const blush = rectsFor(parts.blushL, `color-mix(in srgb, ${pal.nose} 55%, transparent)`) +
+      rectsFor(parts.blushR, `color-mix(in srgb, ${pal.nose} 55%, transparent)`);
+    const nose = rectsFor(parts.nose, pal.nose);
+    const smile = rectsFor(parts.smile, `color-mix(in srgb, ${pal.eye} 65%, transparent)`);
+    const mouth = rectsFor(parts.mouth, `color-mix(in srgb, ${pal.eye} 70%, transparent)`);
+    const earL = rectsFor(parts.earL, pal.fur) + rectsFor(parts.earLInner, pal.inner);
+    const earR = rectsFor(parts.earR, pal.fur) + rectsFor(parts.earRInner, pal.inner);
+    const whiskerL = rectsFor(parts.whiskerL, pal.eye);
+    const whiskerR = rectsFor(parts.whiskerR, pal.eye);
+    const hat = rectsFor(parts.hat, pal.hat) + rectsFor(parts.hatPompom, `color-mix(in srgb, ${pal.hat} 40%, white)`);
+
+    return `
+      <g class="g-rig">
+        <g class="g-body">${bodyLayer}${bellyLayer}${feetLayer}</g>
+        <g class="g-head">
+          ${headLayer}
+          <g class="g-ear-left">${earL}</g>
+          <g class="g-ear-right">${earR}</g>
+          <g class="g-whisker-left">${whiskerL}</g>
+          <g class="g-whisker-right">${whiskerR}</g>
+          <g class="eyes-open">${eyesOpen}</g>
+          <g class="eyes-closed">${eyesClosed}</g>
+          ${blush}
+          <g class="nose">${nose}</g>
+          <g class="smile">${smile}</g>
+          <g class="mouth-open">${mouth}</g>
+          <g class="g-hat">${hat}</g>
+        </g>
+      </g>`;
+  }
+
+  function swatchSvg(parts, pal) {
+    return `<svg viewBox="0 0 16 23" class="bunny">${renderBunny(parts, pal)}</svg>`;
+  }
+
+  // ---------- Wire up the pickers ----------
+  let selected = { age: "adult", paletteIndex: 0 };
+
+  function buildSwatches(containerId, age, parts) {
+    const el = document.getElementById(containerId);
+    PALETTES.forEach((pal, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "swatch";
+      btn.setAttribute("aria-pressed", age === selected.age && i === selected.paletteIndex ? "true" : "false");
+      btn.innerHTML = swatchSvg(parts, pal) + `<span class="num">${i + 1}</span>`;
+      btn.addEventListener("click", () => {
+        selected = { age, paletteIndex: i };
+        refreshSelection();
+      });
+      el.appendChild(btn);
+    });
+  }
+  buildSwatches("babySwatches", "baby", BABY);
+  buildSwatches("adultSwatches", "adult", ADULT);
+
+  function refreshSelection() {
+    document.querySelectorAll(".swatch").forEach((btn) => btn.setAttribute("aria-pressed", "false"));
+    const containerId = selected.age === "baby" ? "babySwatches" : "adultSwatches";
+    document.getElementById(containerId).children[selected.paletteIndex].setAttribute("aria-pressed", "true");
+
+    const parts = selected.age === "baby" ? BABY : ADULT;
+    const pal = PALETTES[selected.paletteIndex];
+    mainSvg.innerHTML = renderBunny(parts, pal);
+    mainSvg.classList.toggle("night-ears", document.getElementById("btnEarsNight").getAttribute("aria-pressed") === "true");
+    mainSvg.classList.toggle("night-hat", document.getElementById("nightHatToggle").checked);
+    updateSummary();
+  }
+
+  function updateSummary() {
+    const pal = PALETTES[selected.paletteIndex];
+    const ageLabel = selected.age === "baby" ? "Baby" : "Adult";
+    const hat = document.getElementById("nightHatToggle").checked ? "on" : "off";
+    document.getElementById("summary").innerHTML =
+      `Your pick: <b>${ageLabel}</b> · <b>${pal.name}</b> (#${selected.paletteIndex + 1}) · Night hat: <b>${hat}</b>`;
+  }
+
+  // ---------- Main stage ----------
+  const mainSvg = document.getElementById("mainSvg");
+  const stageCaption = document.getElementById("stageCaption");
+
+  document.querySelectorAll("[data-anim]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const anim = btn.dataset.anim;
+      mainSvg.classList.remove("anim-idle");
+      mainSvg.classList.add(`anim-${anim}`);
+      const durations = { yawn: 1300, sniff: 1500, hop: 700, roll: 900 };
+      window.setTimeout(() => {
+        mainSvg.classList.remove(`anim-${anim}`);
+        if (!mainSvg.classList.contains("asleep")) mainSvg.classList.add("anim-idle");
+      }, durations[anim] || 1000);
+    });
+  });
+
+  document.getElementById("btnEarsNight").addEventListener("click", (e) => {
+    const nowOn = e.currentTarget.getAttribute("aria-pressed") !== "true";
+    e.currentTarget.setAttribute("aria-pressed", String(nowOn));
+    mainSvg.classList.toggle("night-ears", nowOn);
+  });
+
+  document.getElementById("nightHatToggle").addEventListener("change", (e) => {
+    mainSvg.classList.toggle("night-hat", e.target.checked);
+    updateSummary();
+  });
+
+  // Auto-check the night hat if it's actually night (6 PM – 4 AM) right now.
+  const hourNow = new Date().getHours();
+  if (hourNow >= 18 || hourNow < 4) {
+    document.getElementById("nightHatToggle").checked = true;
+    mainSvg.classList.add("night-hat");
+  }
+
+  // ---------- Idle timer: groom at 15s, sleep at 60s ----------
+  const GROOM_MS = 15000, SLEEP_MS = 60000;
+  let lastActivity = Date.now();
+  let idleState = "awake";
+
+  function goAwake() {
+    idleState = "awake";
+    mainSvg.classList.remove("asleep", "anim-groom");
+    mainSvg.classList.add("anim-idle");
+    stageCaption.textContent = "Awake";
+  }
+  function goGroom() {
+    idleState = "grooming";
+    mainSvg.classList.remove("anim-idle", "asleep");
+    mainSvg.classList.add("anim-groom");
+    stageCaption.textContent = "Grooming (idle 15s+)";
+  }
+  function goSleep() {
+    idleState = "asleep";
+    mainSvg.classList.remove("anim-idle", "anim-groom");
+    mainSvg.classList.add("asleep");
+    stageCaption.textContent = "Asleep (idle 60s+)";
+  }
+
+  function resetIdle() {
+    lastActivity = Date.now();
+    if (idleState !== "awake") goAwake();
+  }
+  ["click", "keydown", "mousemove", "touchstart"].forEach((evt) => document.addEventListener(evt, resetIdle));
+
+  window.setInterval(() => {
+    const idleMs = Date.now() - lastActivity;
+    document.getElementById("idleSeconds").textContent = Math.floor(idleMs / 1000);
+    if (idleMs >= SLEEP_MS && idleState !== "asleep") goSleep();
+    else if (idleMs >= GROOM_MS && idleMs < SLEEP_MS && idleState === "awake") goGroom();
+  }, 400);
+
+  // stopPropagation here — otherwise this same click bubbles up to the
+  // document-wide resetIdle listener above and immediately wakes the bunny
+  // back up, undoing the button's whole point.
+  document.getElementById("btnGroom").addEventListener("click", (e) => { e.stopPropagation(); lastActivity = Date.now() - GROOM_MS - 500; goGroom(); });
+  document.getElementById("btnSleep").addEventListener("click", (e) => { e.stopPropagation(); lastActivity = Date.now() - SLEEP_MS - 500; goSleep(); });
+  document.getElementById("btnWake").addEventListener("click", () => { resetIdle(); });
+
+  refreshSelection();
+</script>
+</body>
+</html>

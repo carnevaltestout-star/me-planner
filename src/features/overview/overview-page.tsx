@@ -13,6 +13,7 @@ import JournalPreviewCard from "./journal-preview-card";
 import TrackersPreviewCard from "./trackers-preview-card";
 import StatisticsPreviewCard from "./statistics-preview-card";
 import BookReviewsPreviewCard from "./book-reviews-preview-card";
+import BrainTrainingPreviewCard from "./brain-training-preview-card";
 import { OVERVIEW_CARD_HEIGHT_CLASS, type OverviewPreviewCardProps } from "./overview-preview-card-props";
 
 const OVERVIEW_ORDER_KEY = "me-planner:overview-card-order";
@@ -26,6 +27,7 @@ const PREVIEW_CARDS: Partial<Record<string, (props: OverviewPreviewCardProps) =>
   "/trackers": TrackersPreviewCard,
   "/statistics": StatisticsPreviewCard,
   "/book-reviews": BookReviewsPreviewCard,
+  "/learning": BrainTrainingPreviewCard,
 };
 
 export default function OverviewPage() {

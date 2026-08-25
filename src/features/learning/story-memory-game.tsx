@@ -61,6 +61,12 @@ export default function StoryMemoryGame({ level, onLevelChange, onRoundComplete,
     }, 1000);
   }
 
+  function skipDistraction() {
+    window.clearInterval(intervalRef.current);
+    setSecondsLeft(0);
+    setPhase("quiz");
+  }
+
   function handleAnswer(choice: string) {
     if (pickedChoice) return;
     setPickedChoice(choice);
@@ -146,6 +152,13 @@ export default function StoryMemoryGame({ level, onLevelChange, onRoundComplete,
             {secondsLeft}s
           </div>
           <p className="m-0 max-w-xs text-center text-sm text-ink-muted">Hold on — this short pause keeps you from just rehearsing the story word for word.</p>
+          <button
+            type="button"
+            onClick={skipDistraction}
+            className="rounded-theme-sm border border-border px-3 py-1.5 text-xs font-semibold text-ink-muted hover:bg-surface-alt hover:text-ink"
+          >
+            Start now
+          </button>
         </div>
       )}
 

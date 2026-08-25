@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { fromTimeInput, toTimeInput } from "@/lib/planner/planner-dates";
 import {
   DEFAULT_TINT_PERCENT,
   EVENT_COLORS,
@@ -43,17 +44,6 @@ interface EventModalProps {
   onClose: () => void;
 }
 
-function toTimeInput(h: number): string {
-  const hour = Math.floor(h);
-  const min = Math.round((h - hour) * 60);
-  return `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
-}
-
-function fromTimeInput(v: string): number {
-  const [h, m] = v.split(":").map(Number);
-  return h + m / 60;
-}
-
 export default function EventModal({ mode, initial, onSave, onDelete, onClose }: EventModalProps) {
   const [title, setTitle] = useState(initial.title);
   const [notes, setNotes] = useState(initial.notes);
@@ -70,6 +60,21 @@ export default function EventModal({ mode, initial, onSave, onDelete, onClose }:
     month: "long",
     day: "numeric",
   });
+
+  // Moving start past (or onto) the current end would otherwise just sit
+  // there until Save surfaces "End has to be after start." — pulling end
+  // along with start as soon as it happens is more useful than making the
+  // person notice and fix it themselves. Bumped to start+15min (the time
+  // input's own step) rather than set exactly equal to start, since an
+  // equal start/end is a zero-length event that would immediately re-fail
+  // that same validation on save.
+  function handleStartChange(value: string) {
+    setStart(value);
+    const startHour = fromTimeInput(value);
+    // Capped at 23:45 (not 24:00) since that's the latest value the <input
+    // type="time"> picker itself can actually display.
+    if (startHour >= fromTimeInput(end)) setEnd(toTimeInput(Math.min(23.75, startHour + 0.25)));
+  }
 
   function handleSave() {
     const trimmedTitle = title.trim();
@@ -152,7 +157,7 @@ export default function EventModal({ mode, initial, onSave, onDelete, onClose }:
                   type="time"
                   step={900}
                   value={start}
-                  onChange={(e) => setStart(e.target.value)}
+                  onChange={(e) => handleStartChange(e.target.value)}
                   className="rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-[0.88rem] text-ink focus:outline focus:outline-2 focus:outline-accent"
                 />
               </label>

@@ -4,6 +4,19 @@ export function dateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+// Shared by EventModal and the event-preset editor — both edit a decimal
+// hour (e.g. 13.5) through a plain <input type="time">.
+export function toTimeInput(h: number): string {
+  const hour = Math.floor(h);
+  const min = Math.round((h - hour) * 60);
+  return `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+}
+
+export function fromTimeInput(v: string): number {
+  const [h, m] = v.split(":").map(Number);
+  return h + m / 60;
+}
+
 export function startOfWeek(d: Date): Date {
   const date = new Date(d);
   const day = (date.getDay() + 6) % 7; // Monday = 0

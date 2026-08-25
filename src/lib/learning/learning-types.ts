@@ -11,12 +11,13 @@ export interface GameProgress {
   level: number;
   attempts: number;
   correct: number;
+  lastPlayedAt: string; // ISO timestamp, "" if never played
 }
 
 export type LearningProgress = Record<GameId, GameProgress>;
 
 export function emptyProgress(level = 1): GameProgress {
-  return { level, attempts: 0, correct: 0 };
+  return { level, attempts: 0, correct: 0, lastPlayedAt: "" };
 }
 
 export function defaultProgress(): LearningProgress {

@@ -212,12 +212,12 @@ export function generateStory(level: number): GeneratedStory {
   return { text: sentences.join(" "), facts };
 }
 
-// 3-4 questions get asked regardless of level — a random sample of the
-// (much larger, at high levels) fact pool, so which facts actually get
-// quizzed is unpredictable and the whole story has to be read carefully.
+// Every embedded fact gets quizzed — the question count scales with level
+// exactly like factCountForLevel does (3 at level 1, +2 per level after),
+// since it's quizzing the whole pool rather than a sample of it. Only the
+// order is randomized.
 export function pickQuizFacts(facts: RecallFact[]): RecallFact[] {
-  const count = facts.length >= 4 ? randomInt(3, 4) : Math.min(3, facts.length);
-  return sampleN(facts, count);
+  return shuffle(facts);
 }
 
 // Custom uploads have no structured token data to draw facts from, so this

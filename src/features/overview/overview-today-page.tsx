@@ -5,6 +5,7 @@ import OverviewTodoList from "./overview-todo-list";
 import OverviewHabitList from "./overview-habit-list";
 import OverviewCalendarList from "./overview-calendar-list";
 import OverviewJournalPreview from "./overview-journal-preview";
+import OverviewBrainTrainingList from "./overview-brain-training-list";
 
 // The app's default landing tab — a compact, mobile-first daily agenda: a
 // 7-day strip to pick which day to look at, then expandable sections for
@@ -29,6 +30,7 @@ export default function OverviewTodayPage() {
         <OverviewHabitList selectedDateKey={selectedDateKey} />
         <OverviewCalendarList selectedDateKey={selectedDateKey} />
         <OverviewJournalPreview selectedDateKey={selectedDateKey} />
+        <OverviewBrainTrainingList />
       </div>
     </div>
   );

@@ -19,7 +19,7 @@ export default function GameHeader({ title, level, onLevelChange, onExit, extra 
       <button
         type="button"
         onClick={onExit}
-        aria-label="Back to Brain Training"
+        aria-label="Back to Brain & Training"
         className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-border bg-surface text-ink hover:bg-surface-alt"
       >
         ←

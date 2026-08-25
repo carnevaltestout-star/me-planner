@@ -19,6 +19,7 @@ function normalizeProgress(raw: unknown): LearningProgress {
         level: Number.isFinite(p.level) ? Math.max(1, Math.round(p.level as number)) : 1,
         attempts: Number.isFinite(p.attempts) ? Math.max(0, Math.round(p.attempts as number)) : 0,
         correct: Number.isFinite(p.correct) ? Math.max(0, Math.round(p.correct as number)) : 0,
+        lastPlayedAt: typeof p.lastPlayedAt === "string" ? p.lastPlayedAt : "",
       };
     }
   }
@@ -66,14 +67,21 @@ export function withLevel(state: LearningState, gameId: GameId, level: number): 
 }
 
 // Adds to the running totals rather than replacing them — attempts/correct
-// are a lifetime tally, not a per-session snapshot.
+// are a lifetime tally, not a per-session snapshot. Called once per played
+// round/session for every game, so it's also the right place to stamp
+// "last trained."
 export function withRecordedAttempts(state: LearningState, gameId: GameId, attempts: number, correct: number): LearningState {
   const current = state.progress[gameId];
   return {
     ...state,
     progress: {
       ...state.progress,
-      [gameId]: { ...current, attempts: current.attempts + attempts, correct: current.correct + correct },
+      [gameId]: {
+        ...current,
+        attempts: current.attempts + attempts,
+        correct: current.correct + correct,
+        lastPlayedAt: new Date().toISOString(),
+      },
     },
   };
 }

@@ -150,6 +150,16 @@ export function BrainIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+export function ProjectsIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <path d="M8.5 6.2V5a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v1.2" />
+      <rect x="3.5" y="6.2" width="17" height="13.3" rx="2" />
+      <path d="M3.5 11.5h5.2v1.8h6.6v-1.8h5.2" />
+    </svg>
+  );
+}
+
 export function SettingsIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...baseProps(props)}>

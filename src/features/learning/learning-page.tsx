@@ -1,28 +1,32 @@
-import { useEffect, useState, type ComponentType, type SVGProps } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { loadLearningState, saveLearningState, withLevel, withRecordedAttempts, type LearningState } from "@/lib/learning/learning-storage";
-import { accuracyPercent, type GameId } from "@/lib/learning/learning-types";
+import { accuracyPercent, GAME_IDS, type GameId } from "@/lib/learning/learning-types";
 import LevelPicker from "./level-picker";
-import { NBackIcon, ReverseRecallIcon, SequenceMemoryIcon, SpatialMemoryIcon, StoryMemoryIcon } from "./learning-icons";
+import { GAME_META } from "./game-meta";
 import SequenceMemoryGame from "./sequence-memory-game";
 import ReverseRecallGame from "./reverse-recall-game";
 import StoryMemoryGame from "./story-memory-game";
 import SpatialMemoryGame from "./spatial-memory-game";
 import NBackGame from "./n-back-game";
 
-interface GameMeta {
-  id: GameId;
-  title: string;
-  description: string;
-  icon: ComponentType<SVGProps<SVGSVGElement>>;
+function isGameId(value: string | null): value is GameId {
+  return GAME_IDS.includes(value as GameId);
 }
 
-const GAMES: GameMeta[] = [
-  { id: "sequence-memory", title: "Sequence Memory", description: "Watch the sequence, then tap it back in order.", icon: SequenceMemoryIcon },
-  { id: "reverse-recall", title: "Reverse Recall", description: "Memorize the list, then rebuild it reversed or sorted.", icon: ReverseRecallIcon },
-  { id: "story-memory", title: "Story Memory", description: "Read a short story, wait it out, then answer questions.", icon: StoryMemoryIcon },
-  { id: "spatial-memory", title: "Spatial Memory", description: "Remember which cells lit up all at once.", icon: SpatialMemoryIcon },
-  { id: "n-back", title: "N-Back", description: "Tap when the current letter matches N steps back.", icon: NBackIcon },
-];
+function isSameDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+function formatLastPlayed(iso: string): string {
+  if (!iso) return "Never";
+  const played = new Date(iso);
+  const now = new Date();
+  if (isSameDay(played, now)) return "Today";
+  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  if (isSameDay(played, yesterday)) return "Yesterday";
+  return played.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
 
 // Every game lives inside this one tab as a local-state "detail view" (same
 // pattern as e.g. Goals/To-Dos' Done list) rather than its own route — the
@@ -31,7 +35,22 @@ const GAMES: GameMeta[] = [
 // game entry point."
 export default function LearningPage() {
   const [state, setState] = useState<LearningState>(() => loadLearningState());
-  const [activeGame, setActiveGame] = useState<GameId | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  // Lets another tab (Dashboard's preview card, Overview's daily-agenda
+  // section) link straight into a specific game via /learning?game=<id>
+  // instead of always landing on the picker list.
+  const [activeGame, setActiveGame] = useState<GameId | null>(() => {
+    const requested = searchParams.get("game");
+    return isGameId(requested) ? requested : null;
+  });
+
+  function exitGame() {
+    setActiveGame(null);
+    if (searchParams.has("game")) {
+      searchParams.delete("game");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }
 
   // Persisted as a side effect of state changing, not inline with each
   // update — a win fires onRoundComplete *and* onLevelChange back to back
@@ -64,7 +83,7 @@ export default function LearningPage() {
       level,
       onLevelChange: (l: number) => setLevel(activeGame, l),
       onRoundComplete: ({ attempts, correct }: { attempts: number; correct: number }) => recordAttempts(activeGame, attempts, correct),
-      onExit: () => setActiveGame(null),
+      onExit: exitGame,
     };
     switch (activeGame) {
       case "sequence-memory":
@@ -82,11 +101,11 @@ export default function LearningPage() {
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-3 md:p-5">
-      <h1 className="m-0 text-base font-semibold text-ink">Brain Training</h1>
+      <h1 className="m-0 text-base font-semibold text-ink">Brain &amp; Training</h1>
       <p className="m-0 -mt-2 text-sm text-ink-muted">Five quick cognitive training games. Pick a level, then play.</p>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {GAMES.map((g) => {
+        {GAME_META.map((g) => {
           const progress = state.progress[g.id];
           const Icon = g.icon;
           return (
@@ -102,7 +121,10 @@ export default function LearningPage() {
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <LevelPicker level={progress.level} onChange={(l) => setLevel(g.id, l)} />
+                <div className="flex flex-wrap items-center gap-2">
+                  <LevelPicker level={progress.level} onChange={(l) => setLevel(g.id, l)} />
+                  <span className="text-[0.68rem] text-ink-muted">Last trained: {formatLastPlayed(progress.lastPlayedAt)}</span>
+                </div>
                 <span className="text-[0.68rem] text-ink-muted">
                   {progress.attempts} attempts · {accuracyPercent(progress)}% accuracy
                 </span>

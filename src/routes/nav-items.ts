@@ -10,6 +10,7 @@ import {
   OverviewIcon,
   PlannerIcon,
   PrinciplesIcon,
+  ProjectsIcon,
   StatisticsIcon,
   TrackersIcon,
   VocabularyIcon,
@@ -42,5 +43,6 @@ export const navItems: NavItem[] = [
   { path: "/attachments", label: "Attachments", icon: AttachmentsIcon },
   { path: "/book-reviews", label: "Book Reviews", icon: BookReviewsIcon },
   { path: "/finance-overview", label: "Finance Overview", icon: FinanceIcon },
-  { path: "/learning", label: "Brain Training", icon: BrainIcon },
+  { path: "/learning", label: "Brain & Training", icon: BrainIcon },
+  { path: "/projects", label: "Projects", icon: ProjectsIcon },
 ];
