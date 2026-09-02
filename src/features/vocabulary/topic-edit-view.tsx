@@ -76,6 +76,40 @@ export default function TopicEditView({
   onUpdateTopicAttachments,
 }: TopicEditViewProps) {
   const topicFileInputRef = useRef<HTMLInputElement>(null);
+  // Lifted up from WordRow (was a small per-row "Saved" label, easy to miss
+  // since it appeared wherever you happened to be editing) — one shared
+  // indicator in the top bar instead, so it's in the same spot every time
+  // and visible regardless of which row you just edited.
+  const [justSaved, setJustSaved] = useState(false);
+  const savedTimeoutRef = useRef<number>();
+  function pulseSaved() {
+    window.clearTimeout(savedTimeoutRef.current);
+    setJustSaved(true);
+    savedTimeoutRef.current = window.setTimeout(() => setJustSaved(false), 1600);
+  }
+
+  // Highlights whichever word row was just added (see handleAddWord in
+  // vocabulary-page.tsx) until the user actually interacts with it — on
+  // mobile especially, a freshly-added blank row looked identical to every
+  // other row, so it wasn't obvious where the new word/meaning should go.
+  // Term and Meaning clear independently (touching one leaves the other
+  // highlighted) rather than one highlight covering both fields at once.
+  const prevWordCountRef = useRef(topic.words.length);
+  const [newWordFields, setNewWordFields] = useState<{ id: string; term: boolean; meaning: boolean } | null>(null);
+  useEffect(() => {
+    if (topic.words.length > prevWordCountRef.current) {
+      const last = topic.words[topic.words.length - 1];
+      setNewWordFields({ id: last.id, term: true, meaning: true });
+    }
+    prevWordCountRef.current = topic.words.length;
+  }, [topic.words]);
+
+  function clearNewField(wordId: string, field: "term" | "meaning") {
+    setNewWordFields((current) => {
+      if (!current || current.id !== wordId) return current;
+      return { ...current, [field]: false };
+    });
+  }
 
   async function handleTopicFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
     // .files is a live FileList tied to the input — capture it as a plain
@@ -113,6 +147,17 @@ export default function TopicEditView({
           }}
           className="min-w-[120px] flex-1 border-b-[1.5px] border-transparent bg-transparent p-1 text-lg font-bold text-ink focus:border-accent focus:outline-none"
         />
+        {/* Same "Saved" chip styling as SettingsPanel's — always mounted,
+            opacity-toggled rather than conditionally rendered, so it never
+            shifts this row's layout when it appears/disappears. */}
+        <span
+          aria-live="polite"
+          className={`flex-shrink-0 rounded-theme-sm bg-accent-soft px-2 py-1 text-xs font-semibold text-accent transition-opacity ${
+            justSaved ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          Saved
+        </span>
         <span aria-hidden="true" className="h-6 w-px flex-shrink-0" style={{ background: "var(--color-surface-alt)" }} />
         <div className="flex flex-shrink-0 items-center gap-1.5">
           <span className="text-xs font-semibold text-ink-muted">Learning methods</span>
@@ -176,7 +221,7 @@ export default function TopicEditView({
       )}
 
       <div className="overflow-hidden rounded-theme border border-border bg-surface">
-        <div className="grid grid-cols-[1fr_1.6fr_34px] border-b border-border bg-surface-alt text-[0.68rem] font-bold uppercase tracking-wide text-ink-muted">
+        <div className="hidden border-b border-border bg-surface-alt text-[0.68rem] font-bold uppercase tracking-wide text-ink-muted sm:grid sm:grid-cols-[1fr_1.6fr_34px]">
           <div className="px-2.5 py-2">Word / Term</div>
           <div className="px-2.5 py-2">Meaning</div>
           <div />
@@ -189,6 +234,11 @@ export default function TopicEditView({
             onUpdateLinks={onUpdateWordLinks}
             onUpdateAttachments={onUpdateWordAttachments}
             onDelete={() => onDeleteWord(w.id)}
+            onSaved={pulseSaved}
+            isTermNew={newWordFields?.id === w.id && newWordFields.term}
+            isMeaningNew={newWordFields?.id === w.id && newWordFields.meaning}
+            onTermInteract={() => clearNewField(w.id, "term")}
+            onMeaningInteract={() => clearNewField(w.id, "meaning")}
           />
         ))}
         <div className="p-2.5">
@@ -228,12 +278,31 @@ function WordRow({
   onUpdateLinks,
   onUpdateAttachments,
   onDelete,
+  onSaved,
+  isTermNew,
+  isMeaningNew,
+  onTermInteract,
+  onMeaningInteract,
 }: {
   word: VocabWord;
   onUpdate: (wordId: string, term: string, meaning: string) => void;
   onUpdateLinks: (wordId: string, links: VocabLink[]) => void;
   onUpdateAttachments: (wordId: string, attachments: VocabAttachment[]) => void;
   onDelete: () => void;
+  // Term/meaning commit silently on blur with no other feedback that
+  // anything happened — pulses the shared "Saved" chip in TopicEditView's
+  // header (same convention as Journal/Settings autosave) instead of each
+  // row showing its own, so it's always in the same spot.
+  onSaved: () => void;
+  // True for whichever field (Term, Meaning, or both) still needs a first
+  // look on a just-added row — each clears independently the moment its
+  // own field is focused, so highlighting one doesn't dim the other before
+  // the user has actually seen it. Especially useful on a narrow mobile
+  // screen where a blank new row otherwise looks identical to every other.
+  isTermNew: boolean;
+  isMeaningNew: boolean;
+  onTermInteract: () => void;
+  onMeaningInteract: () => void;
 }) {
   const [term, setTerm] = useState(word.term);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
@@ -241,17 +310,6 @@ function WordRow({
   const fontLevelRef = useRef(DEFAULT_FONT_LEVEL);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const didInitMeaningRef = useRef(false);
-  // Term/meaning commit silently on blur with no other feedback that
-  // anything happened — same "Saved" pulse convention as the Journal's
-  // autosave, so leaving a field doesn't look like a no-op.
-  const [justSaved, setJustSaved] = useState(false);
-  const savedTimeoutRef = useRef<number>();
-
-  function pulseSaved() {
-    window.clearTimeout(savedTimeoutRef.current);
-    setJustSaved(true);
-    savedTimeoutRef.current = window.setTimeout(() => setJustSaved(false), 1600);
-  }
 
   // Seeds the contentEditable's DOM content once — after that it's
   // uncontrolled (same reasoning as any contentEditable in React: re-setting
@@ -271,12 +329,12 @@ function WordRow({
 
   function commitTerm() {
     onUpdate(word.id, term.trim() || word.term, currentMeaningHtml());
-    pulseSaved();
+    onSaved();
   }
 
   function commitMeaning() {
     onUpdate(word.id, term.trim() || word.term, currentMeaningHtml());
-    pulseSaved();
+    onSaved();
   }
 
   // mousedown+preventDefault keeps focus (and the current text selection)
@@ -304,25 +362,27 @@ function WordRow({
   }
 
   return (
-    <div className="relative grid grid-cols-[1fr_1.6fr_34px] border-b border-border last:border-b-0">
-      <span
-        aria-live="polite"
-        className={`pointer-events-none absolute right-1.5 top-1 z-10 text-[0.62rem] font-medium text-ink-muted transition-opacity duration-300 ${
-          justSaved ? "opacity-100" : "opacity-0"
+    <div className="relative grid grid-cols-1 border-b border-border last:border-b-0 sm:grid-cols-[1fr_1.6fr_34px]">
+      <div
+        className={`flex items-stretch border-l-0 border-border transition-colors ${
+          isTermNew ? "bg-accent-soft ring-2 ring-inset ring-accent" : ""
         }`}
       >
-        Saved
-      </span>
-      <div className="flex items-stretch border-l-0 border-border">
         <input
           type="text"
           value={term}
           onChange={(e) => setTerm(e.target.value)}
+          onFocus={onTermInteract}
           onBlur={commitTerm}
+          placeholder="Word / Term"
           className="w-full min-w-0 border-none bg-transparent p-2.5 text-sm text-ink focus:bg-canvas focus:outline-none"
         />
       </div>
-      <div className="vocab-col-divider flex flex-col gap-1.5 border-l border-border p-2.5">
+      <div
+        className={`vocab-col-divider flex flex-col gap-1.5 border-t border-border p-2.5 transition-colors sm:border-l sm:border-t-0 ${
+          isMeaningNew ? "bg-accent-soft ring-2 ring-inset ring-accent" : ""
+        }`}
+      >
         <div className="flex flex-wrap items-center gap-1">
           <span className="text-[0.62rem] text-ink-muted">Highlight:</span>
           {HIGHLIGHT_COLORS.map((c) => (
@@ -383,6 +443,7 @@ function WordRow({
           ref={meaningRef}
           contentEditable
           suppressContentEditableWarning
+          onFocus={onMeaningInteract}
           onBlur={commitMeaning}
           onInput={(e) => autosizeMeaningField(e.currentTarget)}
           className="min-h-[3em] w-full rounded-theme-sm border-none bg-transparent p-0.5 text-sm leading-relaxed text-ink focus:rounded-theme-sm focus:bg-canvas focus:outline-none"
@@ -465,9 +526,10 @@ function WordRow({
         type="button"
         onClick={onDelete}
         aria-label={`Delete ${word.term || "word"}`}
-        className="vocab-col-divider flex items-center justify-center border-l border-border text-ink-muted hover:bg-surface-alt hover:text-[#c22a4d]"
+        className="vocab-col-divider flex items-center justify-center gap-1.5 border-t border-border py-2 text-ink-muted hover:bg-surface-alt hover:text-[#c22a4d] sm:border-l sm:border-t-0 sm:py-0"
       >
-        ✕
+        <span className="text-sm sm:hidden">Remove word</span>
+        <span aria-hidden="true">✕</span>
       </button>
       {linkDialogOpen && (
         <AddLinkDialog

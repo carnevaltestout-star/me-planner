@@ -7,7 +7,7 @@ interface LevelPickerProps {
 
 // Same round "‹ value ›" stepper convention used by Goals/To-Dos' period
 // nav — every level picker across all 5 games looks and behaves the same.
-export default function LevelPicker({ level, min = 1, max = 20, onChange }: LevelPickerProps) {
+export default function LevelPicker({ level, min = 1, max = 30, onChange }: LevelPickerProps) {
   return (
     <div className="inline-flex flex-shrink-0 items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
       <button

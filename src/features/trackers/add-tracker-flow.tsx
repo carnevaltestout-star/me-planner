@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 import { dateKey } from "@/lib/trackers/tracker-dates";
 import { TRACKER_COLORS, TRACKER_ICON_KEYS, type Tracker, type TrackerIconKey } from "@/lib/trackers/tracker-types";
 import TrackerIcon from "./tracker-icon";
@@ -20,6 +21,7 @@ const QUICK_PRESETS: { label: string; icon: TrackerIconKey; color: string }[] = 
 ];
 
 export default function AddTrackerFlow({ onClose, onCreate, periodAlreadyAdded }: AddTrackerFlowProps) {
+  const bottomReserve = useMobileBottomReserve();
   const [step, setStep] = useState<Step>("presets");
 
   if (step === "period") {
@@ -43,7 +45,8 @@ export default function AddTrackerFlow({ onClose, onCreate, periodAlreadyAdded }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -113,6 +116,7 @@ interface CustomTrackerFormProps {
 }
 
 function CustomTrackerForm({ onClose, onBack, onCreate }: CustomTrackerFormProps) {
+  const bottomReserve = useMobileBottomReserve();
   const [name, setName] = useState("");
   const [icon, setIcon] = useState<TrackerIconKey>(TRACKER_ICON_KEYS[0]);
   const [color, setColor] = useState(TRACKER_COLORS[0]);
@@ -137,7 +141,8 @@ function CustomTrackerForm({ onClose, onBack, onCreate }: CustomTrackerFormProps
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

@@ -1,4 +1,4 @@
-import { DEFAULT_GIMMICKS, DEFAULT_PALETTES, DEFAULT_THEME, type ThemeSettings } from "./theme-types";
+import { DEFAULT_ENABLED_TABS, DEFAULT_GIMMICKS, DEFAULT_PALETTES, DEFAULT_THEME, type ThemeSettings } from "./theme-types";
 
 // Shared with public/mockups/theme-system.html's Save button — same key, same
 // shape. Same-origin localStorage means saving there applies here too, live
@@ -15,6 +15,7 @@ export function loadTheme(): ThemeSettings {
       mode: parsed.mode ?? DEFAULT_THEME.mode,
       retro: Boolean(parsed.retro),
       kawaii: Boolean(parsed.kawaii),
+      tryout: Boolean(parsed.tryout),
       palettes: {
         light: { ...DEFAULT_PALETTES.light, ...parsedPalettes.light },
         dark: { ...DEFAULT_PALETTES.dark, ...parsedPalettes.dark },
@@ -23,6 +24,7 @@ export function loadTheme(): ThemeSettings {
       },
       iconPack: parsed.iconPack ?? DEFAULT_THEME.iconPack,
       gimmicks: { ...DEFAULT_GIMMICKS, ...parsed.gimmicks },
+      enabledTabs: { ...DEFAULT_ENABLED_TABS, ...parsed.enabledTabs },
     };
   } catch {
     return DEFAULT_THEME;

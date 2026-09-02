@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { sampleN } from "@/lib/learning/rng";
 import GameHeader from "./game-header";
 
@@ -14,10 +14,20 @@ type Phase = "idle" | "showing" | "input" | "reveal";
 // Grid grows every few levels, positions-to-remember every level — kept
 // comfortably below the grid's total cell count so the puzzle stays
 // solvable-by-eye rather than needing to fill almost the whole board.
+// Levels 1-10 top out at 6x6 (4x4 for 1-3, 5x5 for 4-7, 6x6 for 8-10); past
+// that the grid itself keeps growing — 7x7 for 11-17, 8x8 for 18-23, 9x9 for
+// 24-27, 10x10 for 28-30 — rather than just packing more lit cells into a
+// fixed-size board, since a denser subset of a small board starts to feel
+// like "most of the grid is lit" instead of a genuine spatial-span task.
+// Levels 1-20 are unchanged from before this 21-30 tier was added.
 function gridSizeForLevel(level: number): number {
   if (level <= 3) return 4;
   if (level <= 7) return 5;
-  return 6;
+  if (level <= 10) return 6;
+  if (level <= 17) return 7;
+  if (level <= 23) return 8;
+  if (level <= 27) return 9;
+  return 10;
 }
 function positionCountForLevel(level: number): number {
   const size = gridSizeForLevel(level);
@@ -33,8 +43,12 @@ export default function SpatialMemoryGame({ level, onLevelChange, onRoundComplet
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [message, setMessage] = useState<string | null>(null);
   const [won, setWon] = useState(false);
+  const revealTimeoutRef = useRef<number>();
+
+  useEffect(() => () => window.clearTimeout(revealTimeoutRef.current), []);
 
   function startRound() {
+    window.clearTimeout(revealTimeoutRef.current);
     const size = gridSizeForLevel(level);
     setGridSize(size);
     const positions = sampleN(
@@ -45,7 +59,14 @@ export default function SpatialMemoryGame({ level, onLevelChange, onRoundComplet
     setSelected(new Set());
     setMessage(null);
     setPhase("showing");
-    window.setTimeout(() => setPhase("input"), SHOW_MS);
+    revealTimeoutRef.current = window.setTimeout(() => setPhase("input"), SHOW_MS);
+  }
+
+  // Aborts the round in progress and immediately deals a fresh one at the
+  // same level — pending reveal timer cleared, no onRoundComplete call, so
+  // it never touches accuracy stats or the level. Not a "loss", just a redo.
+  function restartRound() {
+    startRound();
   }
 
   function toggleCell(index: number) {
@@ -66,7 +87,7 @@ export default function SpatialMemoryGame({ level, onLevelChange, onRoundComplet
     if (isCorrect) onLevelChange(level + 1);
     setMessage(isCorrect ? "Correct! Level up." : `Not quite — ${target.size} cells were lit.`);
     setPhase("reveal");
-    window.setTimeout(() => setPhase("idle"), 1400);
+    revealTimeoutRef.current = window.setTimeout(() => setPhase("idle"), 1400);
   }
 
   function cellClass(index: number): string {
@@ -84,7 +105,13 @@ export default function SpatialMemoryGame({ level, onLevelChange, onRoundComplet
 
   return (
     <div className="flex h-full flex-col gap-5 overflow-y-auto p-3 md:p-5">
-      <GameHeader title="Spatial Memory" level={level} onLevelChange={onLevelChange} onExit={onExit} />
+      <GameHeader
+        title="Spatial Memory"
+        level={level}
+        onLevelChange={onLevelChange}
+        onExit={onExit}
+        onRestart={phase === "showing" || phase === "input" ? restartRound : undefined}
+      />
 
       <div className="flex flex-col items-center gap-2">
         {message && <p className={`m-0 text-center text-sm ${won ? "text-accent" : "text-ink-muted"}`}>{message}</p>}
@@ -97,8 +124,11 @@ export default function SpatialMemoryGame({ level, onLevelChange, onRoundComplet
       </div>
 
       <div
-        className="mx-auto grid w-full max-w-[340px] gap-2"
-        style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
+        className="mx-auto grid w-full gap-2"
+        // max-width scales with grid size so cells at 7x7/8x8 (levels 11-20)
+        // don't shrink more than necessary on wide screens; on narrow
+        // screens `w-full` still wins and the grid just fits the viewport.
+        style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`, maxWidth: `${Math.max(340, gridSize * 48)}px` }}
       >
         {Array.from({ length: gridSize * gridSize }, (_, i) => (
           <button

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 
 interface NewFolderDialogProps {
   onSave: (name: string) => void;
@@ -6,6 +7,7 @@ interface NewFolderDialogProps {
 }
 
 export default function NewFolderDialog({ onSave, onClose }: NewFolderDialogProps) {
+  const bottomReserve = useMobileBottomReserve();
   const [name, setName] = useState("");
   const [error, setError] = useState("");
 
@@ -19,7 +21,11 @@ export default function NewFolderDialog({ onSave, onClose }: NewFolderDialogProp
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div role="dialog" aria-modal="true" className="flex w-full max-w-[320px] flex-col gap-3.5 rounded-theme border border-border bg-surface p-[1.1rem] shadow-theme">
         <h2 className="m-0 text-base text-ink">New folder</h2>
         <div className="flex flex-col gap-1">

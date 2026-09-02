@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { sampleN, shuffle } from "@/lib/learning/rng";
+import { sampleN, sampleWithRepeats, shuffle } from "@/lib/learning/rng";
 import { CONSONANT_LETTERS, DIGITS, MEMORY_PICTURES, MEMORY_WORDS } from "@/lib/learning/word-lists";
 import GameHeader from "./game-header";
 import SegmentedToggle from "./segmented-toggle";
@@ -16,20 +16,53 @@ type Variant = "reverse" | "sort";
 type Phase = "idle" | "showing" | "answer";
 
 interface RecallItem {
+  // Unique per on-screen occurrence this round (see buildRoundItems) — used
+  // for React keys and for removing exactly the chip that was tapped.
   id: string;
+  // Canonical identity of the underlying digit/letter/word/picture, shared
+  // by every occurrence of the same value in a round. Answer-matching checks
+  // THIS, not `id`, so once a round has repeats (see buildRoundItems) two
+  // on-screen chips showing the same value are correctly interchangeable —
+  // the player can tap either "5" when the target calls for "5" next.
+  valueId: string;
   display: string;
   sortKey: string;
 }
 
 function poolFor(mode: Mode): RecallItem[] {
-  if (mode === "number") return DIGITS.map((d) => ({ id: `n-${d}`, display: d, sortKey: d }));
-  if (mode === "letter") return CONSONANT_LETTERS.map((l) => ({ id: `l-${l}`, display: l, sortKey: l }));
-  if (mode === "word") return MEMORY_WORDS.map((w) => ({ id: `w-${w}`, display: w, sortKey: w }));
-  return MEMORY_PICTURES.map((p, i) => ({ id: `p-${i}`, display: p, sortKey: MEMORY_WORDS[i] }));
+  if (mode === "number") return DIGITS.map((d) => ({ id: `n-${d}`, valueId: `n-${d}`, display: d, sortKey: d }));
+  if (mode === "letter") return CONSONANT_LETTERS.map((l) => ({ id: `l-${l}`, valueId: `l-${l}`, display: l, sortKey: l }));
+  if (mode === "word") return MEMORY_WORDS.map((w) => ({ id: `w-${w}`, valueId: `w-${w}`, display: w, sortKey: w }));
+  return MEMORY_PICTURES.map((p, i) => ({ id: `p-${i}`, valueId: `p-${i}`, display: p, sortKey: MEMORY_WORDS[i] }));
+}
+
+// Builds this round's item sequence. `length` is allowed to exceed the
+// mode's pool size — digits (10 values) and, even after growing to all 21
+// real consonants, letters near level 20 are finite alphabets that eventually
+// run out of unique symbols. Rather than plateau forever at "the pool's
+// size" once that happens (numbers capped at level 8, letters at level 13
+// before CONSONANT_LETTERS was widened), we top up past the pool size by
+// SAMPLING WITH REPLACEMENT — the standard way memory-span tasks add
+// difficulty once they exhaust their alphabet: the player can no longer
+// assume every value appears once and has to track which occurrence of a
+// repeated value belongs where. Word/picture pools (36 items) don't need
+// this until level 34+, past this game's level cap of 30, but the same
+// function is used for every mode for consistency and future headroom.
+function buildRoundItems(mode: Mode, length: number): RecallItem[] {
+  const pool = poolFor(mode);
+  const unique = sampleN(pool, Math.min(length, pool.length));
+  const overflow = length > pool.length ? sampleWithRepeats(pool, length - pool.length) : [];
+  // Instance ids are assigned after shuffling everything together so repeats
+  // land at random positions in the sequence rather than clumped at the end.
+  return shuffle([...unique, ...overflow]).map((item, i) => ({ ...item, id: `${item.id}#${i}` }));
 }
 
 function targetOrder(items: RecallItem[], variant: Variant): RecallItem[] {
   if (variant === "reverse") return [...items].reverse();
+  // Array.prototype.sort is stable (guaranteed since ES2019), so when a
+  // round has repeats and two items share a sortKey, they keep their
+  // original relative order here instead of landing in an arbitrary spot —
+  // otherwise "sort A-Z" would have no well-defined answer for ties.
   return [...items].sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 }
 
@@ -61,8 +94,8 @@ export default function ReverseRecallGame({ level, onLevelChange, onRoundComplet
     setMessage(null);
     setFlashId(null);
     setAnswer([]);
-    const length = Math.min(level + 2, poolFor(mode).length);
-    const picked = sampleN(poolFor(mode), length);
+    const length = level + 2;
+    const picked = buildRoundItems(mode, length);
     setItems(picked);
     setTarget(targetOrder(picked, variant));
     setChoices(shuffle(picked));
@@ -82,7 +115,7 @@ export default function ReverseRecallGame({ level, onLevelChange, onRoundComplet
   function handleChipClick(item: RecallItem) {
     if (phase !== "answer") return;
     const expected = target[answer.length];
-    if (item.id === expected.id) {
+    if (item.valueId === expected.valueId) {
       setFlashId({ id: item.id, kind: "success" });
       window.setTimeout(() => setFlashId(null), 300);
       const nextAnswer = [...answer, item];
@@ -107,9 +140,18 @@ export default function ReverseRecallGame({ level, onLevelChange, onRoundComplet
 
   const variantLabel = variant === "reverse" ? "reverse order" : "alphabetical order";
 
+  // Aborts the round in progress and immediately deals a fresh one at the
+  // same level/mode/variant — startRound() already does exactly that (clears
+  // pending reveal timeouts first, then re-rolls via buildRoundItems). It
+  // never touches onRoundComplete, so bailing out mid-round doesn't count as
+  // a completed attempt or affect accuracy stats.
+  function handleRestart() {
+    startRound();
+  }
+
   return (
     <div className="flex h-full flex-col gap-5 overflow-y-auto p-3 md:p-5">
-      <GameHeader title="Reverse Recall" level={level} onLevelChange={onLevelChange} onExit={onExit} />
+      <GameHeader title="Reverse Recall" level={level} onLevelChange={onLevelChange} onExit={onExit} onRestart={handleRestart} />
 
       <div className="flex flex-col items-center gap-2.5">
         <div className="flex flex-wrap items-center justify-center gap-2">

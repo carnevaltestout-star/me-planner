@@ -8,6 +8,7 @@ interface SequenceMemoryGameProps {
   level: number;
   onLevelChange: (level: number) => void;
   onRoundComplete: (result: { attempts: number; correct: number }) => void;
+  onSessionStart: () => void;
   onExit: () => void;
 }
 
@@ -18,13 +19,15 @@ const GRID_SIZE = 9; // 3x3 — see spec's "3x3 or 4x4" allowance
 const CELL_INDEXES = Array.from({ length: GRID_SIZE }, (_, i) => i);
 const FLASH_MS = 550;
 const GAP_MS = 250;
+const PRESS_MS = 200; // how long a user-tapped tile stays lit — see handleCellClick
 
-export default function SequenceMemoryGame({ level, onLevelChange, onRoundComplete, onExit }: SequenceMemoryGameProps) {
+export default function SequenceMemoryGame({ level, onLevelChange, onRoundComplete, onSessionStart, onExit }: SequenceMemoryGameProps) {
   const [mode, setMode] = useState<Mode>("visual");
   const [phase, setPhase] = useState<Phase>("idle");
   const [sequence, setSequence] = useState<number[]>([]);
   const [words, setWords] = useState<string[]>([]);
   const [activeCell, setActiveCell] = useState<number | null>(null);
+  const [pressedCell, setPressedCell] = useState<number | null>(null);
   const [userIndex, setUserIndex] = useState(0);
   const [flash, setFlash] = useState<{ index: number; kind: "success" | "error" } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -39,8 +42,10 @@ export default function SequenceMemoryGame({ level, onLevelChange, onRoundComple
 
   function startRound() {
     clearTimeouts();
+    onSessionStart();
     setMessage(null);
     setFlash(null);
+    setPressedCell(null);
     const length = level + 2;
     const seq = sampleWithRepeats(CELL_INDEXES, length);
     setSequence(seq);
@@ -59,8 +64,23 @@ export default function SequenceMemoryGame({ level, onLevelChange, onRoundComple
     timeoutsRef.current.push(window.setTimeout(() => setPhase("input"), seq.length * (FLASH_MS + GAP_MS)));
   }
 
+  // Aborts the round in progress and immediately starts a fresh one at the
+  // same level — reuses startRound() as-is (same content-generation logic,
+  // same timeout-clearing) so this can never diverge from a normal round
+  // start. Crucially it never touches onRoundComplete, so bailing out
+  // mid-sequence doesn't count as a failed attempt.
+  function handleRestart() {
+    startRound();
+  }
+
   function handleCellClick(index: number) {
     if (phase !== "input") return;
+    // Light the tapped tile the same way playback highlights it, so the
+    // user gets immediate, unambiguous confirmation of which tile
+    // registered — independent of (and a beat before) the success/error
+    // flash below, which only shows once correctness is known.
+    setPressedCell(index);
+    timeoutsRef.current.push(window.setTimeout(() => setPressedCell(null), PRESS_MS));
     const expected = sequence[userIndex];
     if (index === expected) {
       setFlash({ index, kind: "success" });
@@ -87,7 +107,13 @@ export default function SequenceMemoryGame({ level, onLevelChange, onRoundComple
 
   return (
     <div className="flex h-full flex-col gap-5 overflow-y-auto p-3 md:p-5">
-      <GameHeader title="Sequence Memory" level={level} onLevelChange={onLevelChange} onExit={onExit} />
+      <GameHeader
+        title="Sequence Memory"
+        level={level}
+        onLevelChange={onLevelChange}
+        onExit={onExit}
+        onRestart={phase !== "idle" ? handleRestart : undefined}
+      />
 
       <div className="flex flex-col items-center gap-3">
         <SegmentedToggle
@@ -111,7 +137,7 @@ export default function SequenceMemoryGame({ level, onLevelChange, onRoundComple
 
       <div className="mx-auto grid w-full max-w-[300px] grid-cols-3 gap-2.5">
         {CELL_INDEXES.map((i) => {
-          const isActive = activeCell === i;
+          const isActive = activeCell === i || pressedCell === i;
           const cellFlash = flash?.index === i ? flash.kind : null;
           return (
             <button

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 import { isFuture, isSameDay, monthGridDays } from "@/lib/journal/journal-dates";
 
 interface JournalYearViewProps {
@@ -60,13 +61,15 @@ function MonthCard({
 // and disabled — journal entries for days that haven't happened yet aren't
 // editable, so there's nothing to jump to there.
 export default function JournalYearView({ anchor, onSelect, onClose }: JournalYearViewProps) {
+  const bottomReserve = useMobileBottomReserve();
   const [year, setYear] = useState(anchor.getFullYear());
   const today = new Date();
   const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1));
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { DndContext, MouseSensor, TouchSensor, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SearchIcon } from "@/features/goals/goal-todo-icons";
 import {
   ATTACHMENT_ACCEPT,
@@ -10,10 +11,24 @@ import {
 import { loadAttachments, saveAttachments } from "@/lib/attachments/attachment-storage";
 import type { AttachmentFile, AttachmentFolder, AttachmentsData } from "@/lib/attachments/attachment-types";
 import AttachmentDeleteConfirm from "./attachment-delete-confirm";
-import AttachmentFileCard, { FILE_DRAG_TYPE } from "./attachment-file-card";
+import AttachmentFileCard from "./attachment-file-card";
 import AttachmentFoldersRow from "./attachment-folders-row";
 import { BackArrowIcon, FileIcon, FolderIcon, MoveUpIcon } from "./attachment-icons";
 import NewFolderDialog from "./new-folder-dialog";
+
+// Drag payloads carried on each dnd-kit draggable/droppable's `data` — see
+// AttachmentFileCard / AttachmentFoldersRow for the drag sources and the
+// EXIT_ZONE_ID droppable below for the "move up a level" target. Using
+// dnd-kit (pointer events under the hood, with a MouseSensor + TouchSensor)
+// instead of native HTML5 drag-and-drop is what makes this work on
+// touchscreens — HTML5's draggable/dragstart/dragover/drop never fires
+// from a touch gesture on mobile browsers/WebViews.
+type DragData =
+  | { type: "file"; fileId: string }
+  | { type: "folder"; folderId: string }
+  | { type: "exit" };
+
+const EXIT_ZONE_ID = "attachments-exit-zone";
 
 // All ids from a folder down through every level of its subfolders —
 // deleting a folder takes its whole subtree with it.
@@ -42,8 +57,23 @@ export default function AttachmentsPage() {
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [pendingDeleteFile, setPendingDeleteFile] = useState<AttachmentFile | null>(null);
   const [pendingDeleteFolder, setPendingDeleteFolder] = useState<AttachmentFolder | null>(null);
-  const [dragOverExit, setDragOverExit] = useState(false);
+  const [osFilesOver, setOsFilesOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Mouse needs a small movement threshold so a plain click still registers
+  // as a click; touch needs a short hold (plus its own tolerance) so a
+  // scroll gesture on the page isn't mistaken for a drag — same
+  // activation-constraint pattern already used for dnd-kit elsewhere in
+  // this app (see book-reviews-page.tsx).
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+  );
+
+  const { setNodeRef: setExitZoneRef, isOver: dragOverExit } = useDroppable({
+    id: EXIT_ZONE_ID,
+    data: { type: "exit" } satisfies DragData,
+  });
 
   function persist(next: AttachmentsData) {
     setData(next);
@@ -125,9 +155,43 @@ export default function AttachmentsPage() {
     persist({ ...data, files: data.files.map((f) => (f.id === fileId ? { ...f, folderId } : f)) });
   }
 
+  // One shared drag-end handler for every draggable/droppable pair on this
+  // page (file cards, folder cards, and the "move up a level" exit zone) —
+  // each side's `data` (see DragData above) says what it is, so this just
+  // matches active-type/over-type combinations to the right action instead
+  // of each component wiring its own onDrop the way the old native-HTML5
+  // version did.
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over) return;
+    const activeData = active.data.current as DragData | undefined;
+    const overData = over.data.current as DragData | undefined;
+    if (!activeData || !overData) return;
+
+    if (activeData.type === "folder" && overData.type === "folder") {
+      reorderFolders(activeData.folderId, overData.folderId);
+      return;
+    }
+    if (activeData.type === "file" && overData.type === "folder") {
+      moveFileToFolder(activeData.fileId, overData.folderId);
+      return;
+    }
+    if (activeData.type === "file" && overData.type === "file") {
+      reorderFiles(activeData.fileId, overData.fileId);
+      return;
+    }
+    if (activeData.type === "file" && overData.type === "exit" && activeFolder) {
+      moveFileToFolder(activeData.fileId, activeFolder.parentId);
+    }
+  }
+
   function handleDeleteFile(file: AttachmentFile) {
     persist({ ...data, files: data.files.filter((f) => f.id !== file.id) });
     setPendingDeleteFile(null);
+  }
+
+  function renameFile(fileId: string, newName: string) {
+    persist({ ...data, files: data.files.map((f) => (f.id === fileId ? { ...f, name: newName } : f)) });
   }
 
   function handleDeleteFolder(folder: AttachmentFolder) {
@@ -158,138 +222,153 @@ export default function AttachmentsPage() {
         type="button"
         onClick={() => fileInputRef.current?.click()}
         title="Upload files"
-        className="flex h-9 flex-shrink-0 scale-100 items-center gap-1.5 rounded-theme border-2 border-accent-contrast/40 bg-accent px-3 text-xs font-bold uppercase tracking-wide text-accent-contrast transition hover:scale-[1.03] hover:brightness-105 active:scale-100 active:brightness-95 sm:h-11 sm:px-4 sm:text-sm"
-        style={{ boxShadow: "var(--shadow-theme), 0 5px 0 rgba(0,0,0,0.55), 0 8px 14px rgba(0,0,0,0.35)" }}
+        className="flex h-8 flex-shrink-0 scale-100 items-center gap-1.5 rounded-full border-2 border-accent-contrast/40 bg-accent px-3 text-xs font-bold uppercase tracking-wide text-accent-contrast transition hover:scale-[1.03] hover:brightness-105 active:scale-100 active:brightness-95 sm:h-9 sm:px-3.5 sm:text-sm"
+        style={{ boxShadow: "var(--shadow-theme), 0 4px 0 rgba(0,0,0,0.55), 0 6px 12px rgba(0,0,0,0.35)" }}
       >
         <span className="text-sm leading-none sm:text-base">+</span>
-        <FileIcon className="h-3 w-3 flex-shrink-0 sm:h-3.5 sm:w-3.5" />
+        <FileIcon className="h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6" />
         Upload files
       </button>
     </>
   );
 
   return (
-    <div className="attachments-page-bg flex h-full flex-col gap-3 overflow-y-auto p-2 md:gap-4 md:p-4">
-      <div className="relative flex-shrink-0">
-        <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search files…"
-          className="w-full rounded-theme border border-border bg-surface py-2 pl-8 pr-2.5 text-sm text-ink shadow-theme focus:outline focus:outline-2 focus:outline-accent"
-        />
-      </div>
-
-      <div className="flex flex-shrink-0 items-center overflow-x-auto pb-1">{uploadButton}</div>
-
-      {activeFolder && (
-        <div className="flex flex-shrink-0 items-center gap-3 overflow-x-auto pb-1">
-          <div
-            onDragOver={(e) => {
-              if (!e.dataTransfer.types.includes(FILE_DRAG_TYPE)) return;
-              e.preventDefault();
-              e.dataTransfer.dropEffect = "move";
-              setDragOverExit(true);
-            }}
-            onDragLeave={(e) => {
-              const related = e.relatedTarget as Node | null;
-              if (related && e.currentTarget.contains(related)) return;
-              setDragOverExit(false);
-            }}
-            onDrop={(e) => {
-              const fileId = e.dataTransfer.getData(FILE_DRAG_TYPE);
-              if (!fileId) return;
-              e.preventDefault();
-              e.stopPropagation();
-              setDragOverExit(false);
-              moveFileToFolder(fileId, activeFolder.parentId);
-            }}
-            title="Drag a file here to move it up one level"
-            className={`flex min-w-0 items-center gap-2 rounded-theme px-2 py-1 transition-colors ${
-              dragOverExit ? "bg-accent-soft ring-2 ring-accent" : ""
-            }`}
-          >
-            <button
-              type="button"
-              onClick={handleBack}
-              aria-label="Back"
-              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-border bg-surface text-ink hover:bg-surface-alt"
-            >
-              {dragOverExit ? <MoveUpIcon className="h-4 w-4 text-accent" /> : <BackArrowIcon className="h-4 w-4" />}
-            </button>
-            <FolderIcon className="h-5 w-5 flex-shrink-0 text-accent" />
-            <h2 className="m-0 truncate text-base font-semibold text-ink">{activeFolder.name}</h2>
-            {dragOverExit && <span className="whitespace-nowrap text-xs font-semibold text-accent">Drop to move up a level</span>}
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <div
+        className="attachments-page-bg relative flex h-full flex-col gap-3 overflow-y-auto p-2 md:gap-4 md:p-4"
+        // A real OS file drag (dragged in from Finder/Explorer, or a browser
+        // "open files" picker used as a drag source) carries a native "Files"
+        // type, delivered through the browser's own native HTML5 drag-and-
+        // drop events — a completely separate mechanism from the app-internal
+        // drags above (those go through dnd-kit / pointer events so they also
+        // work on touch), so this never fires for those and doesn't need to
+        // fight their own stopPropagation() calls.
+        onDragOver={(e) => {
+          if (!e.dataTransfer.types.includes("Files")) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "copy";
+          if (!osFilesOver) setOsFilesOver(true);
+        }}
+        onDragLeave={(e) => {
+          const related = e.relatedTarget as Node | null;
+          if (related && e.currentTarget.contains(related)) return;
+          setOsFilesOver(false);
+        }}
+        onDrop={(e) => {
+          if (e.dataTransfer.files.length === 0) return;
+          e.preventDefault();
+          setOsFilesOver(false);
+          handleFilesSelected(e.dataTransfer.files);
+        }}
+      >
+        {osFilesOver && (
+          <div className="pointer-events-none absolute inset-2 z-20 flex items-center justify-center rounded-theme border-2 border-dashed border-accent bg-accent-soft/90 md:inset-4">
+            <p className="m-0 text-sm font-semibold text-accent">Drop to upload</p>
           </div>
+        )}
+        <div className="relative flex-shrink-0">
+          <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search files…"
+            className="w-full rounded-theme border border-border bg-surface py-2 pl-8 pr-2.5 text-sm text-ink shadow-theme focus:outline focus:outline-2 focus:outline-accent"
+          />
         </div>
-      )}
 
-      <AttachmentFoldersRow
-        folders={childFolders}
-        fileCounts={fileCounts}
-        onOpenFolder={handleOpenFolder}
-        onAddFolder={() => setCreatingFolder(true)}
-        onDeleteFolder={setPendingDeleteFolder}
-        onReorder={reorderFolders}
-        onFileDropped={moveFileToFolder}
-      />
+        {activeFolder && (
+          <div className="flex flex-shrink-0 items-center gap-3 overflow-x-auto pb-1">
+            <div
+              ref={setExitZoneRef}
+              title="Drag a file here to move it up one level"
+              className={`flex min-w-0 items-center gap-2 rounded-theme px-2 py-1 transition-colors ${
+                dragOverExit ? "bg-accent-soft ring-2 ring-accent" : ""
+              }`}
+            >
+              <button
+                type="button"
+                onClick={handleBack}
+                aria-label="Back"
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-border bg-surface text-ink hover:bg-surface-alt"
+              >
+                {dragOverExit ? <MoveUpIcon className="h-4 w-4 text-accent" /> : <BackArrowIcon className="h-4 w-4" />}
+              </button>
+              <FolderIcon className="h-5 w-5 flex-shrink-0 text-accent" />
+              <h2 className="m-0 truncate text-base font-semibold text-ink">{activeFolder.name}</h2>
+              {dragOverExit && <span className="whitespace-nowrap text-xs font-semibold text-accent">Drop to move up a level</span>}
+            </div>
+          </div>
+        )}
 
-      {queryTrimmed ? (
-        <>
-          <p className="flex-shrink-0 text-xs text-ink-muted">
-            {searchResults.length === 0
-              ? "No files match your search."
-              : `${searchResults.length} file${searchResults.length === 1 ? "" : "s"} found`}
-          </p>
+        <AttachmentFoldersRow
+          folders={childFolders}
+          fileCounts={fileCounts}
+          onOpenFolder={handleOpenFolder}
+          onAddFolder={() => setCreatingFolder(true)}
+          onDeleteFolder={setPendingDeleteFolder}
+        />
+
+        <div className="flex flex-shrink-0 items-center overflow-x-auto pb-1">{uploadButton}</div>
+
+        {queryTrimmed ? (
+          <>
+            <p className="flex-shrink-0 text-xs text-ink-muted">
+              {searchResults.length === 0
+                ? "No files match your search."
+                : `${searchResults.length} file${searchResults.length === 1 ? "" : "s"} found`}
+            </p>
+            <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
+              {searchResults.map((file) => (
+                <AttachmentFileCard
+                  key={file.id}
+                  file={file}
+                  onOpen={() => openOrDownloadAttachment(file)}
+                  onDownload={() => downloadAttachment(file)}
+                  onDeleteRequest={() => setPendingDeleteFile(file)}
+                  onRename={(newName) => renameFile(file.id, newName)}
+                />
+              ))}
+            </div>
+          </>
+        ) : visibleFiles.length === 0 ? (
+          <p className="pt-4 text-center text-sm text-ink-muted">No files here yet — tap Upload files to add some.</p>
+        ) : (
           <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-            {searchResults.map((file) => (
+            {visibleFiles.map((file) => (
               <AttachmentFileCard
                 key={file.id}
                 file={file}
                 onOpen={() => openOrDownloadAttachment(file)}
                 onDownload={() => downloadAttachment(file)}
                 onDeleteRequest={() => setPendingDeleteFile(file)}
+                reorderable
+                onRename={(newName) => renameFile(file.id, newName)}
               />
             ))}
           </div>
-        </>
-      ) : visibleFiles.length === 0 ? (
-        <p className="pt-4 text-center text-sm text-ink-muted">No files here yet — tap Upload files to add some.</p>
-      ) : (
-        <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-          {visibleFiles.map((file) => (
-            <AttachmentFileCard
-              key={file.id}
-              file={file}
-              onOpen={() => openOrDownloadAttachment(file)}
-              onDownload={() => downloadAttachment(file)}
-              onDeleteRequest={() => setPendingDeleteFile(file)}
-              onReorder={(draggedId) => reorderFiles(draggedId, file.id)}
-            />
-          ))}
-        </div>
-      )}
+        )}
 
-      {creatingFolder && <NewFolderDialog onSave={handleAddFolder} onClose={() => setCreatingFolder(false)} />}
+        {creatingFolder && <NewFolderDialog onSave={handleAddFolder} onClose={() => setCreatingFolder(false)} />}
 
-      {pendingDeleteFile && (
-        <AttachmentDeleteConfirm
-          title={pendingDeleteFile.name}
-          kind="file"
-          onCancel={() => setPendingDeleteFile(null)}
-          onConfirm={() => handleDeleteFile(pendingDeleteFile)}
-        />
-      )}
+        {pendingDeleteFile && (
+          <AttachmentDeleteConfirm
+            title={pendingDeleteFile.name}
+            kind="file"
+            onCancel={() => setPendingDeleteFile(null)}
+            onConfirm={() => handleDeleteFile(pendingDeleteFile)}
+          />
+        )}
 
-      {pendingDeleteFolder && (
-        <AttachmentDeleteConfirm
-          title={pendingDeleteFolder.name}
-          kind="folder"
-          onCancel={() => setPendingDeleteFolder(null)}
-          onConfirm={() => handleDeleteFolder(pendingDeleteFolder)}
-        />
-      )}
-    </div>
+        {pendingDeleteFolder && (
+          <AttachmentDeleteConfirm
+            title={pendingDeleteFolder.name}
+            kind="folder"
+            onCancel={() => setPendingDeleteFolder(null)}
+            onConfirm={() => handleDeleteFolder(pendingDeleteFolder)}
+          />
+        )}
+      </div>
+    </DndContext>
   );
 }

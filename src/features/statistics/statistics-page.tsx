@@ -1,10 +1,7 @@
 import { useMemo, useState } from "react";
-import { DndContext, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
-import { SortableContext, arrayMove, rectSortingStrategy } from "@dnd-kit/sortable";
 import { CHART_TYPES, TIME_RANGES, type ChartType, type TimeRange } from "@/lib/statistics/stat-types";
 import { PrinciplesIcon, VocabularyIcon } from "@/components/tab-icons/tab-icons";
-import { loadCardOrder, saveCardOrder } from "@/lib/card-order/card-order-storage";
-import SortableCard from "@/components/sortable-cards/sortable-card";
+import { loadCardOrder } from "@/lib/card-order/card-order-storage";
 import { BarChartTypeIcon, HistogramTypeIcon, LineChartTypeIcon, PieChartTypeIcon } from "./chart-type-icons";
 import ActivityOverviewCard from "./activity-overview-card";
 import JournalStatsCard from "./journal-stats-card";
@@ -65,24 +62,19 @@ export default function StatisticsPage() {
     },
   ];
 
-  const [order, setOrder] = useState<string[]>(() => loadCardOrder(STATS_ORDER_KEY, statCards.map((c) => c.id)));
+  // Cards used to be drag-to-reorder (dnd-kit's SortableCard, same as the
+  // Overview page). On a touchscreen, that made the whole card a drag
+  // surface competing with an ordinary vertical swipe/scroll through this
+  // fairly long, dense card list — the touch sensor's delay/tolerance
+  // window could get triggered mid-scroll and the card under the finger
+  // would visibly shift and settle back ("wiggle") before the gesture
+  // resolved to a scroll. Reordering here is a nice-to-have, not something
+  // the tab depends on, so drag is dropped entirely rather than just
+  // tuned — still reads any order a user previously set (back when
+  // dragging was possible) so nobody's layout resets, it just can't be
+  // changed by dragging anymore.
+  const [order] = useState<string[]>(() => loadCardOrder(STATS_ORDER_KEY, statCards.map((c) => c.id)));
   const orderedCards = order.map((id) => statCards.find((c) => c.id === id)).filter((c): c is (typeof statCards)[number] => Boolean(c));
-
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
-  );
-
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const oldIndex = order.indexOf(String(active.id));
-    const newIndex = order.indexOf(String(over.id));
-    if (oldIndex === -1 || newIndex === -1) return;
-    const next = arrayMove(order, oldIndex, newIndex);
-    setOrder(next);
-    saveCardOrder(STATS_ORDER_KEY, next);
-  }
 
   return (
     <div className="flex h-full flex-col gap-3 overflow-y-auto p-2 md:gap-4 md:p-4">
@@ -128,17 +120,11 @@ export default function StatisticsPage() {
         </div>
       </div>
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={order} strategy={rectSortingStrategy}>
-          <div className="statistics-cards-grid grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {orderedCards.map((card) => (
-              <SortableCard key={card.id} id={card.id}>
-                {card.node}
-              </SortableCard>
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+      <div className="statistics-cards-grid grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {orderedCards.map((card) => (
+          <div key={card.id}>{card.node}</div>
+        ))}
+      </div>
     </div>
   );
 }

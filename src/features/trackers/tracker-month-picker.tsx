@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 import { isSameDay, monthGridDays } from "@/lib/trackers/tracker-dates";
 
 interface TrackerMonthPickerProps {
@@ -66,13 +67,15 @@ function MonthCard({
 // Trackers only navigates by whole month, so clicking anywhere on a card
 // (not a specific day) selects that month.
 export default function TrackerMonthPicker({ anchor, onSelect, onClose }: TrackerMonthPickerProps) {
+  const bottomReserve = useMobileBottomReserve();
   const [year, setYear] = useState(anchor.getFullYear());
   const today = new Date();
   const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1));
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

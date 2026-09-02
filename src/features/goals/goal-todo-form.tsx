@@ -1,4 +1,5 @@
 import { useState, type KeyboardEvent } from "react";
+import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 import { ITEM_COLORS, PRIORITY_TINT_PERCENT, type ChecklistStep, type GoalPriority, type GoalTodoItem } from "@/lib/goals/goal-todo-types";
 
 interface GoalTodoFormProps {
@@ -19,6 +20,7 @@ const PRIORITIES: { value: GoalPriority; label: string }[] = [
 ];
 
 export default function GoalTodoForm({ item, onClose, onSave }: GoalTodoFormProps) {
+  const bottomReserve = useMobileBottomReserve();
   const [title, setTitle] = useState(item.title);
   const [category, setCategory] = useState(item.category);
   const [color, setColor] = useState(item.color);
@@ -77,7 +79,8 @@ export default function GoalTodoForm({ item, onClose, onSave }: GoalTodoFormProp
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

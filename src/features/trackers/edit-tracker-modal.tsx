@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 import { dateKey } from "@/lib/trackers/tracker-dates";
 import { TRACKER_COLORS, TRACKER_ICON_KEYS, type Tracker, type TrackerIconKey } from "@/lib/trackers/tracker-types";
 import TrackerIcon from "./tracker-icon";
@@ -24,6 +25,7 @@ function toDateInput(d: Date): string {
 }
 
 export default function EditTrackerModal({ tracker, onClose, onSave, onDelete }: EditTrackerModalProps) {
+  const bottomReserve = useMobileBottomReserve();
   const [name, setName] = useState(tracker.name);
   const [icon, setIcon] = useState<TrackerIconKey>(tracker.icon);
   const [color, setColor] = useState(tracker.color);
@@ -69,7 +71,8 @@ export default function EditTrackerModal({ tracker, onClose, onSave, onDelete }:
   if (confirmDelete) {
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+        className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+        style={{ bottom: bottomReserve }}
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
         }}
@@ -104,7 +107,8 @@ export default function EditTrackerModal({ tracker, onClose, onSave, onDelete }:
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

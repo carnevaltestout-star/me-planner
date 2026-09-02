@@ -1,3 +1,5 @@
+import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+
 interface BookReviewDeleteConfirmProps {
   title: string;
   onCancel: () => void;
@@ -5,9 +7,11 @@ interface BookReviewDeleteConfirmProps {
 }
 
 export default function BookReviewDeleteConfirm({ title, onCancel, onConfirm }: BookReviewDeleteConfirmProps) {
+  const bottomReserve = useMobileBottomReserve();
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onCancel();
       }}

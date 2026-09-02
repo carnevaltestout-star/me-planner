@@ -82,8 +82,14 @@ export default function VocabularyPage() {
   }
 
   function handleAddTopic(name: string) {
-    persist({ ...state, topics: [...state.topics, { id: crypto.randomUUID(), name, words: [], lastResult: null, attachments: [] }] });
+    const id = crypto.randomUUID();
+    persist({ ...state, topics: [...state.topics, { id, name, words: [], lastResult: null, attachments: [] }] });
     setAddTopicOpen(false);
+    // Jump straight into editing the new topic instead of leaving it to add
+    // words as a second, separate step.
+    setEditingTopicId(id);
+    setView("edit");
+    saveVocabUiState({ editingTopicId: id });
   }
 
   function handleRenameTopic(name: string) {

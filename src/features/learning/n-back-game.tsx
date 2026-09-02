@@ -14,10 +14,20 @@ type Phase = "idle" | "running" | "result";
 
 const STREAM_LENGTH_BASE = 16;
 const MATCH_PROBABILITY = 0.35;
-// Speeds up slightly at higher levels, floored so it never becomes
-// unreadable.
+// Speeds up every level, floored so it never becomes unreadable. Note the
+// n-back distance itself already equals `level` (see buildStream/finishTrial
+// below) — level 1 is a 1-back, level 10 a 10-back, level 30 a 30-back, and
+// so on — which is the standard, dominant way real n-back tasks scale
+// difficulty, so a speed floor alone doesn't stall overall progression.
+// Speed itself steps down in three tiers so it never goes flat for 10
+// levels straight: 2200→1200ms across 1-10, 1200→700ms (half the earlier
+// rate, already fast) across 11-20, then 700→400ms (an even smaller step,
+// since 700ms is already a quick glance) across 21-30. Levels 1-20 are
+// unchanged from before this third tier was added.
 function intervalMsForLevel(level: number): number {
-  return Math.max(1200, 2200 - level * 100);
+  if (level <= 10) return 2200 - level * 100;
+  if (level <= 20) return Math.max(700, 1200 - (level - 10) * 50);
+  return Math.max(400, 700 - (level - 20) * 30);
 }
 
 function buildStream(n: number, length: number): string[] {
@@ -90,6 +100,18 @@ export default function NBackGame({ level, onLevelChange, onRoundComplete, onExi
     }, intervalMsForLevel(level));
   }
 
+  // Aborts the in-progress round and immediately starts a fresh one at the
+  // same level — regenerates the stream and resets index/phase back to the
+  // start. Clears the running interval first so the old round's ticks can't
+  // fire into the new one, then just re-runs startRound() (which resets all
+  // the scoring refs and state itself). Deliberately does NOT call
+  // onRoundComplete — the player is bailing out of a round, not finishing
+  // or failing one, so it must not count toward attempts/accuracy stats.
+  function handleRestart() {
+    window.clearInterval(intervalRef.current);
+    startRound();
+  }
+
   function handleMatchTap() {
     if (phase !== "running" || currentIndex < level || respondedRef.current[currentIndex]) return;
     respondedRef.current[currentIndex] = true;
@@ -112,7 +134,13 @@ export default function NBackGame({ level, onLevelChange, onRoundComplete, onExi
 
   return (
     <div className="flex h-full flex-col gap-5 overflow-y-auto p-3 md:p-5">
-      <GameHeader title="N-Back" level={level} onLevelChange={onLevelChange} onExit={onExit} />
+      <GameHeader
+        title="N-Back"
+        level={level}
+        onLevelChange={onLevelChange}
+        onExit={onExit}
+        onRestart={phase === "running" ? handleRestart : undefined}
+      />
 
       <div className="flex flex-col items-center gap-2">
         <label className="flex items-center gap-1.5 text-xs text-ink-muted">

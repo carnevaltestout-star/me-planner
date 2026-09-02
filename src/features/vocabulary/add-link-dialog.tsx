@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 import type { VocabLink } from "@/lib/vocabulary/vocab-types";
 
 interface AddLinkDialogProps {
@@ -11,6 +12,7 @@ interface AddLinkDialogProps {
 // (never just the bare existing list) — ready to type or paste into
 // immediately without an extra click on "+" first.
 export default function AddLinkDialog({ links, onClose, onSave }: AddLinkDialogProps) {
+  const bottomReserve = useMobileBottomReserve();
   const [rows, setRows] = useState<VocabLink[]>([...links, { id: crypto.randomUUID(), url: "" }]);
 
   function updateRow(id: string, url: string) {
@@ -52,7 +54,8 @@ export default function AddLinkDialog({ links, onClose, onSave }: AddLinkDialogP
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

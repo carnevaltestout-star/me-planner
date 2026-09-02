@@ -1,3 +1,5 @@
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 import { useTheme } from "@/components/theme-provider/theme-context";
 import { isOverdue } from "@/lib/goals/goal-todo-dates";
 import { progressPercent, type ChecklistStep, type GoalTodoItem } from "@/lib/goals/goal-todo-types";
@@ -12,18 +14,46 @@ interface GoalTodoCardProps {
   onDeleteRequest: () => void;
 }
 
+// dnd-kit id for this card as a drag source — prefixed so it can never
+// collide with a horizon-tab droppable id (see goals-page.tsx's
+// HorizonTab), which share the same DndContext id namespace.
+export function goalTodoDragId(itemId: string): string {
+  return `item:${itemId}`;
+}
+
 export default function GoalTodoCard({ item, today, onToggleDone, onToggleStep, onEdit, onDeleteRequest }: GoalTodoCardProps) {
   const theme = useTheme();
   const pixelated = theme.retro || theme.kawaii;
   const percent = progressPercent(item);
   const overdue = isOverdue(item.deadline, today);
 
+  // Whole-card dnd-kit drag source (see goals-page.tsx for the shared
+  // DndContext/sensors) so it can be long-pressed and dropped onto one of
+  // the Day/Week/Month/Quarter/Year horizon tabs to reassign this item's
+  // horizon — same pointer-based approach as the Attachments file cards,
+  // since native HTML5 drag-and-drop never fires from a touchscreen. The
+  // sensors' activation constraints (200ms hold + 8px tolerance for touch,
+  // 8px distance for mouse) mean a plain tap without real movement never
+  // starts a drag, so the nested toggle/edit/delete buttons below still
+  // fire their own clicks untouched.
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: goalTodoDragId(item.id),
+    data: { type: "item", itemId: item.id },
+  });
+
   return (
     <div
-      className={`relative flex flex-col gap-2.5 rounded-theme bg-surface p-3 shadow-theme ${
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      style={{
+        ...(item.priority !== undefined ? { border: `2px solid ${item.color}` } : undefined),
+        transform: CSS.Translate.toString(transform),
+        touchAction: "none",
+      }}
+      className={`relative flex cursor-grab flex-col gap-2.5 rounded-theme bg-surface p-3 shadow-theme active:cursor-grabbing ${
         item.priority === undefined ? "border border-border" : ""
-      } ${item.done ? "opacity-60" : ""}`}
-      style={item.priority !== undefined ? { border: `2px solid ${item.color}` } : undefined}
+      } ${item.done ? "opacity-60" : ""} ${isDragging ? "z-10 opacity-40" : ""}`}
     >
       {item.priority !== undefined && (
         <span

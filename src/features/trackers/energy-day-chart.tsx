@@ -16,12 +16,13 @@ interface EnergyDayChartProps {
   locked?: boolean;
 }
 
-// Taller on mobile — an actual coordinate-space change (not just a CSS
-// stretch) so dots stay perfectly round and there's real vertical
-// resolution for touch placement, since this chart is the thing you're
-// meant to interact with on a phone, not just look at.
+// Still taller than desktop on mobile — an actual coordinate-space change
+// (not just a CSS stretch) so dots stay perfectly round and there's real
+// vertical resolution for touch placement — but halved from its original
+// 440 per explicit request, trading some of that touch precision for a
+// chart that takes up less of the screen.
 const HEIGHT_DESKTOP = 150;
-const HEIGHT_MOBILE = 440;
+const HEIGHT_MOBILE = 220;
 const PAD_X = 10;
 const PAD_Y = 10;
 const Y_GUTTER = 16; // width reserved for the H/M/L column
@@ -71,6 +72,14 @@ interface DragState {
   moved: boolean;
 }
 
+// Matches the DRAG_THRESHOLD tap-vs-drag distinction used for existing dots
+// (see DragState above) — a background press that hasn't moved past this by
+// pointerup counts as "tap to add", not an accidental drag/scroll attempt.
+interface BackgroundPress {
+  x: number;
+  y: number;
+}
+
 // Hand-rolled SVG rather than recharts — placing/editing a point at an
 // arbitrary click position needs direct pixel-to-value math that recharts'
 // data-driven API doesn't offer cleanly. The viewBox width is measured from
@@ -82,6 +91,10 @@ interface DragState {
 export default function EnergyDayChart({ points, onChange, locked }: EnergyDayChartProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const chartAreaRef = useRef<HTMLDivElement>(null);
+  // Background press tracking doesn't need to trigger a re-render (nothing
+  // visible follows the pointer for an empty-space press the way a dragged
+  // dot does), so this is a ref rather than state.
+  const bgPressRef = useRef<BackgroundPress | null>(null);
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
@@ -116,10 +129,27 @@ export default function EnergyDayChart({ points, onChange, locked }: EnergyDayCh
     return { x: clientX - rect.left, y: clientY - rect.top };
   }
 
-  // Empty-space click — always adds. Clicks that land on an existing dot
-  // never reach here: the dot's own onClick stops propagation first.
-  function handleChartClick(e: React.MouseEvent<SVGSVGElement>) {
+  // Empty-space press — pointerdown/pointerup (not onClick) so a real
+  // fingertip tap is recognized exactly like a mouse click. A synthesized
+  // "click" event lags behind touch by design and can be swallowed entirely
+  // if the browser decides mid-gesture that the finger is panning instead
+  // (see the svg's touchAction below) — pointer events don't have that
+  // ambiguity. Presses that land on an existing dot never reach here: the
+  // dot's own onPointerDown stops propagation first.
+  function handleBackgroundPointerDown(e: React.PointerEvent<SVGSVGElement>) {
     if (locked) return;
+    bgPressRef.current = { x: e.clientX, y: e.clientY };
+  }
+
+  // Same tap-vs-drag distinction as a dot's own pointerup (DRAG_THRESHOLD) —
+  // only a press that didn't really move counts as "tap to add"; a bigger
+  // move is more likely an intended scroll/pan that started on the chart.
+  function handleBackgroundPointerUp(e: React.PointerEvent<SVGSVGElement>) {
+    const press = bgPressRef.current;
+    bgPressRef.current = null;
+    if (!press || locked) return;
+    const dist = Math.hypot(e.clientX - press.x, e.clientY - press.y);
+    if (dist > DRAG_THRESHOLD) return;
     const { x, y } = clientToSvg(e.clientX, e.clientY);
     const next = [...sorted, { time: xToTime(x, width), value: yToValue(y, height) }].sort((a, b) => a.time - b.time);
     onChange(next);
@@ -156,10 +186,22 @@ export default function EnergyDayChart({ points, onChange, locked }: EnergyDayCh
     }
   }
 
-  function handlePointerUp() {
-    // Only reached if the pointer never touched a dot (see handleDotPointerUp)
-    // — e.g. pointer capture was on a dot but released elsewhere is still
-    // routed there, so this is just a safety-net reset.
+  // Handles pointerup for the svg itself — reached whenever the press
+  // didn't land on a dot (see handleDotPointerUp, which stops propagation
+  // before this fires): resolves a background "tap to add" per
+  // handleBackgroundPointerUp above, and also acts as a safety-net reset for
+  // `drag` in case pointer capture was on a dot but got released oddly.
+  function handlePointerUp(e: React.PointerEvent<SVGSVGElement>) {
+    handleBackgroundPointerUp(e);
+    setDrag(null);
+  }
+
+  // A gesture the browser decides to cancel mid-flight (most commonly it
+  // reinterpreting a touch as its own scroll/pan, despite touchAction below)
+  // must still clear pending state — otherwise a stale drag/press can make
+  // a later, unrelated tap misbehave.
+  function handlePointerCancel() {
+    bgPressRef.current = null;
     setDrag(null);
   }
 
@@ -197,10 +239,19 @@ export default function EnergyDayChart({ points, onChange, locked }: EnergyDayCh
             ref={svgRef}
             viewBox={`0 0 ${width} ${height}`}
             className={locked ? "" : "cursor-crosshair"}
-            style={{ width: "100%", height }}
-            onClick={handleChartClick}
+            // touchAction: "none" hands the whole gesture to us instead of
+            // the browser — without it, a finger press-and-drag here (to
+            // adjust a dot's value, which needs vertical movement) can get
+            // reinterpreted mid-gesture as the page's own vertical scroll,
+            // which is what made touch input feel unreliable ("hardly
+            // recognized") compared to a mouse. Every other drag surface in
+            // this app (sortable cards, attachment drag handles) already
+            // sets this; this chart was the one place it was missing.
+            style={{ width: "100%", height, touchAction: "none" }}
+            onPointerDown={handleBackgroundPointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
             onPointerLeave={() => setHoverTime(null)}
           >
             <defs>
@@ -269,16 +320,20 @@ export default function EnergyDayChart({ points, onChange, locked }: EnergyDayCh
                 <g key={p.time}>
                   {/* Larger invisible hit target — the visible dot stays
                       small, but tapping/dragging it shouldn't need
-                      pixel-perfect precision. */}
+                      pixel-perfect precision. r=24 gives a 48px-diameter hit
+                      area, matching the Android minimum touch-target
+                      guideline (48dp) rather than the ~28px this used to be,
+                      which a real fingertip can miss outright. */}
                   <circle
                     cx={timeToX(p.time, width)}
                     cy={valueToY(p.value, height)}
-                    r={14}
+                    r={24}
                     fill="transparent"
                     onPointerDown={(e) => handleDotPointerDown(p.time, e)}
                     onPointerUp={handleDotPointerUp}
+                    onPointerCancel={() => setDrag(null)}
                     onClick={(e) => e.stopPropagation()}
-                    style={{ cursor: locked ? "default" : "grab" }}
+                    style={{ cursor: locked ? "default" : "grab", touchAction: "none" }}
                   />
                   <circle
                     cx={timeToX(p.time, width)}

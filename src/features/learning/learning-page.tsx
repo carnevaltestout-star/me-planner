@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { loadLearningState, saveLearningState, withLevel, withRecordedAttempts, type LearningState } from "@/lib/learning/learning-storage";
+import { loadLearningState, saveLearningState, withLevel, withRecordedAttempts, withSessionStarted, type LearningState } from "@/lib/learning/learning-storage";
 import { accuracyPercent, GAME_IDS, type GameId } from "@/lib/learning/learning-types";
 import LevelPicker from "./level-picker";
 import { GAME_META } from "./game-meta";
@@ -70,11 +70,18 @@ export default function LearningPage() {
     setState((prev) => withRecordedAttempts(prev, id, attempts, correct));
   }
 
-  function addCustomStory(level: number, text: string) {
-    setState((prev) => ({
-      ...prev,
-      customStories: [...prev.customStories, { id: crypto.randomUUID(), level, text, createdAt: new Date().toISOString() }],
-    }));
+  function recordSessionStart(id: GameId) {
+    setState((prev) => withSessionStarted(prev, id));
+  }
+
+  // Returns the new story's id so the caller (StoryMemoryGame) can select it
+  // immediately — otherwise the picker is left on "Built-in story" after an
+  // upload, and pressing Start plays an unrelated generated story instead of
+  // the one just uploaded, which reads as "my story's details got changed".
+  function addCustomStory(level: number, name: string, text: string): string {
+    const story = { id: crypto.randomUUID(), level, name, text, createdAt: new Date().toISOString() };
+    setState((prev) => ({ ...prev, customStories: [...prev.customStories, story] }));
+    return story.id;
   }
 
   if (activeGame) {
@@ -87,7 +94,7 @@ export default function LearningPage() {
     };
     switch (activeGame) {
       case "sequence-memory":
-        return <SequenceMemoryGame {...shared} />;
+        return <SequenceMemoryGame {...shared} onSessionStart={() => recordSessionStart(activeGame)} />;
       case "reverse-recall":
         return <ReverseRecallGame {...shared} />;
       case "story-memory":

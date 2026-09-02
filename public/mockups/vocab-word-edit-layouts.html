@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Vocabulary word/meaning edit — 4 layout alternatives</title>
+<style>
+  :root {
+    --bg: #fbf8f6; --surface: #ffffff; --surface-alt: #f3eef2; --border: #e4d9e3;
+    --ink: #362e38; --ink-muted: #837a86; --accent: #8b6ba8; --accent-soft: #efe7f3; --accent-contrast: #ffffff;
+    --danger: #c22a4d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #211d24; --surface: #2b2630; --surface-alt: #342e3a; --border: #453c4c;
+      --ink: #efe9f0; --ink-muted: #a89aad; --accent: #b79fd1; --accent-soft: #3a3242; --accent-contrast: #211d24;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.4;
+  }
+  header {
+    position: sticky; top: 0; z-index: 20; background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0.9rem 1.2rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1rem;
+  }
+  header h1 { margin: 0; font-size: 1rem; }
+  header p { margin: 0; font-size: 0.78rem; color: var(--ink-muted); flex-basis: 100%; }
+  nav { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  nav a {
+    border: 1px solid var(--border); background: var(--surface-alt); color: var(--ink);
+    border-radius: 999px; padding: 0.3rem 0.8rem; font-size: 0.78rem; text-decoration: none; font-weight: 600;
+  }
+  nav a:hover { border-color: var(--accent); color: var(--accent); }
+
+  main { max-width: 1180px; margin: 0 auto; padding: 1.5rem 1.2rem 4rem; display: flex; flex-direction: column; gap: 3.2rem; }
+
+  section.layout { scroll-margin-top: 5.5rem; }
+  section.layout .head { margin-bottom: 1rem; }
+  section.layout h2 { margin: 0 0 0.3rem; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem; }
+  section.layout .badge {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 0.15rem 0.55rem;
+  }
+  section.layout .rationale { margin: 0; font-size: 0.85rem; color: var(--ink-muted); max-width: 68ch; }
+  section.layout .fixes { margin: 0.5rem 0 0; padding-left: 1.1rem; font-size: 0.8rem; color: var(--ink-muted); }
+  section.layout .fixes li { margin: 0.15rem 0; }
+
+  .previews { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
+  .preview-col { display: flex; flex-direction: column; gap: 0.5rem; }
+  .preview-col .label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); }
+
+  .desktop-frame {
+    width: 660px; max-width: 100%; border: 1px solid var(--border); border-radius: 12px; background: var(--surface);
+    padding: 1rem; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .phone-frame {
+    width: 300px; border: 8px solid #2a2630; border-radius: 28px; background: var(--surface);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15); overflow: hidden;
+  }
+  .phone-frame .notch { height: 18px; background: #2a2630; border-radius: 0 0 12px 12px; width: 90px; margin: 0 auto; }
+  .phone-screen { padding: 0.85rem; min-height: 380px; }
+
+  /* ---- shared word-edit primitives ---- */
+  .word-term-input {
+    width: 100%; border: none; background: transparent; font-size: 0.95rem; color: var(--ink);
+    padding: 0.35rem 0; border-bottom: 1.5px solid transparent; font-weight: 600;
+  }
+  .word-term-input:focus { outline: none; border-color: var(--accent); }
+  .word-meaning {
+    width: 100%; min-height: 2.6em; border: none; background: transparent; font-size: 0.86rem;
+    color: var(--ink); line-height: 1.5; padding: 0.2rem 0;
+  }
+  .word-meaning:focus { outline: none; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 0.3rem; border: 1px solid var(--border); background: var(--surface-alt);
+    color: var(--ink); border-radius: 999px; padding: 0.15rem 0.55rem; font-size: 0.68rem;
+  }
+  .ghost-btn {
+    border: 1px dashed var(--accent); background: transparent; color: var(--accent); border-radius: 8px;
+    padding: 0.25rem 0.6rem; font-size: 0.7rem; font-weight: 600; cursor: pointer;
+  }
+  .ghost-btn:hover { background: var(--accent-soft); }
+  .icon-btn {
+    border: none; background: transparent; color: var(--ink-muted); cursor: pointer; border-radius: 6px;
+    width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.85rem;
+  }
+  .icon-btn:hover { background: var(--surface-alt); color: var(--accent); }
+  .icon-btn.danger:hover { color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, transparent); }
+  .swatch { width: 13px; height: 13px; border-radius: 999px; border: 1px solid rgba(0,0,0,0.15); cursor: pointer; }
+
+  /* ===================== LAYOUT 1 — FLASHCARD ===================== */
+  .l1-card {
+    border: 1px solid var(--border); border-radius: 10px; background: var(--surface); margin-bottom: 0.7rem; overflow: hidden;
+  }
+  .l1-card .front { padding: 0.7rem 0.9rem 0.4rem; position: relative; }
+  .l1-card .eyebrow { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); }
+  .l1-card .term { font-size: 1.05rem; font-weight: 700; margin-top: 0.1rem; }
+  .l1-card .divider { height: 1px; background: var(--border); margin: 0 0.9rem; }
+  .l1-card .back { padding: 0.5rem 0.9rem 0.8rem; background: var(--surface-alt); }
+  .l1-card .back .eyebrow { color: var(--ink-muted); }
+  .l1-card .toolbar-toggle {
+    display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.68rem; font-weight: 700; color: var(--ink-muted);
+    border: 1px solid var(--border); border-radius: 6px; padding: 0.1rem 0.4rem; cursor: pointer; background: var(--surface);
+    margin-top: 0.35rem;
+  }
+  .l1-card .mini-toolbar {
+    display: none; align-items: center; gap: 0.3rem; margin: 0.4rem 0; padding: 0.3rem; border: 1px solid var(--border);
+    border-radius: 8px; background: var(--surface);
+  }
+  .l1-card details[open] .mini-toolbar { display: flex; }
+  .l1-card .close-x { position: absolute; top: 0.5rem; right: 0.6rem; }
+  .l1-card .chips-row { display: flex; gap: 0.35rem; flex-wrap: wrap; margin-top: 0.5rem; }
+
+  /* ===================== LAYOUT 2 — LABELED FORM GRID ===================== */
+  .l2-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+  .l2-field {
+    border: 1px solid var(--border); border-radius: 10px; background: var(--surface); padding: 0.7rem 0.8rem; position: relative;
+  }
+  .l2-field .field-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-muted); display: block; margin-bottom: 0.3rem; }
+  .l2-field .meaning-label { margin-top: 0.6rem; }
+  .l2-field .toolbar-row { display: flex; align-items: center; gap: 0.3rem; margin: 0.35rem 0 0.15rem; flex-wrap: wrap; }
+  .l2-field .toolbar-row .sep { width: 1px; height: 12px; background: var(--border); margin: 0 0.15rem; }
+  .l2-field .del-corner { position: absolute; top: 0.5rem; right: 0.5rem; }
+  .l2-field .bottom-row { display: flex; gap: 0.4rem; margin-top: 0.5rem; }
+
+  /* ===================== LAYOUT 3 — ACCORDION ===================== */
+  .l3-list { border: 1px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; }
+  .l3-row { border-bottom: 1px solid var(--border); }
+  .l3-row:last-child { border-bottom: none; }
+  .l3-row summary {
+    list-style: none; display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.8rem; cursor: pointer;
+  }
+  .l3-row summary::-webkit-details-marker { display: none; }
+  .l3-row .handle { color: var(--ink-muted); font-size: 0.75rem; flex-shrink: 0; }
+  .l3-row .row-term { font-weight: 700; font-size: 0.85rem; flex-shrink: 0; min-width: 90px; }
+  .l3-row .row-preview { color: var(--ink-muted); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .l3-row .chevron { color: var(--ink-muted); font-size: 0.7rem; transition: transform 0.15s; flex-shrink: 0; }
+  .l3-row[open] .chevron { transform: rotate(90deg); }
+  .l3-row .expand-body { padding: 0 0.8rem 0.8rem 2.35rem; }
+  .l3-row .expand-body .toolbar-row { display: flex; align-items: center; gap: 0.3rem; margin-bottom: 0.4rem; flex-wrap: wrap; }
+  .l3-row .expand-body .sep { width: 1px; height: 12px; background: var(--border); margin: 0 0.15rem; }
+  .l3-row summary:hover { background: var(--surface-alt); }
+
+  /* ===================== LAYOUT 4 — MINIMAL / FLOATING TOOLBAR ===================== */
+  .l4-entry { padding: 0.9rem 0; border-bottom: 1px dashed var(--border); position: relative; }
+  .l4-entry:last-child { border-bottom: none; }
+  .l4-entry .term4 {
+    font-size: 1.15rem; font-weight: 700; border: none; background: transparent; width: 100%; padding: 0.1rem 0;
+    border-bottom: 1.5px solid transparent;
+  }
+  .l4-entry .term4:focus { outline: none; border-color: var(--accent); }
+  .l4-entry .meaning4 {
+    font-size: 0.88rem; color: var(--ink-muted); border: none; background: transparent; width: 100%; margin-top: 0.25rem; padding: 0;
+  }
+  .l4-entry .meaning4:focus { outline: none; color: var(--ink); }
+  .l4-entry .row-actions {
+    position: absolute; top: 0.8rem; right: 0; display: flex; gap: 0.3rem; opacity: 0; transition: opacity 0.12s;
+  }
+  .l4-entry:hover .row-actions { opacity: 1; }
+  .floating-toolbar {
+    position: absolute; display: none; align-items: center; gap: 0.3rem; background: var(--ink); color: white;
+    padding: 0.3rem 0.4rem; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,0.25); z-index: 30; transform: translate(-50%, -120%);
+  }
+  .floating-toolbar.show { display: flex; }
+  .floating-toolbar button { background: transparent; border: none; color: white; cursor: pointer; font-size: 0.75rem; padding: 0.15rem 0.3rem; border-radius: 5px; }
+  .floating-toolbar button:hover { background: rgba(255,255,255,0.15); }
+  .floating-toolbar .swatch { border-color: rgba(255,255,255,0.4); }
+  .l4-hint { font-size: 0.68rem; color: var(--ink-muted); margin: 0.4rem 0 0; font-style: italic; }
+  .l4-mobile-toolbar {
+    display: flex; gap: 0.35rem; margin-top: 0.4rem; padding-top: 0.4rem; border-top: 1px solid var(--border); flex-wrap: wrap;
+  }
+
+  .add-row-btn {
+    width: 100%; border: 1px dashed var(--accent); background: transparent; color: var(--accent); border-radius: 8px;
+    padding: 0.5rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; margin-top: 0.6rem;
+  }
+  .add-row-btn:hover { background: var(--accent-soft); }
+
+  footer { text-align: center; padding: 2rem 1rem; font-size: 0.75rem; color: var(--ink-muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🗂️ Vocabulary word/meaning editor — 4 layout alternatives</h1>
+  <p>Static design mockup, not wired to the real app. Each layout shows a Desktop preview and a Mobile preview side by side.</p>
+  <nav>
+    <a href="#layout-1">1 · Flashcard</a>
+    <a href="#layout-2">2 · Labeled form grid</a>
+    <a href="#layout-3">3 · Accordion list</a>
+    <a href="#layout-4">4 · Minimal / floating toolbar</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ============================================================ -->
+  <!-- LAYOUT 1: FLASHCARD -->
+  <!-- ============================================================ -->
+  <section class="layout" id="layout-1">
+    <div class="head">
+      <h2>1 · Flashcard <span class="badge">front / back split</span></h2>
+      <p class="rationale">Each word is its own card with a visible "front" (the term) and a shaded "back" (the meaning) — like an actual flashcard, which is literally what these are being trained as. The formatting toolbar is hidden behind a small "Aa" toggle instead of always sitting on screen.</p>
+      <ul class="fixes">
+        <li>Term vs. meaning is obvious at a glance (two visually distinct zones, not two grid columns of equal weight).</li>
+        <li>The always-visible highlight/color/size toolbar — the main clutter in the current design — is now opt-in.</li>
+        <li>Delete moves to a quiet corner "×" instead of its own dedicated 34px column.</li>
+      </ul>
+    </div>
+    <div class="previews">
+      <div class="preview-col">
+        <span class="label">Desktop</span>
+        <div class="desktop-frame">
+          <div class="l1-card">
+            <div class="front">
+              <button class="icon-btn danger close-x" title="Delete word">✕</button>
+              <span class="eyebrow">Term</span>
+              <div class="term" contenteditable spellcheck="false">hola</div>
+            </div>
+            <div class="divider"></div>
+            <div class="back">
+              <span class="eyebrow">Meaning</span>
+              <div class="word-meaning" contenteditable spellcheck="false">hello — casual greeting</div>
+              <details>
+                <summary class="toolbar-toggle">Aa Formatting ▾</summary>
+                <div class="mini-toolbar">
+                  <span class="swatch" style="background:#fff3a0"></span>
+                  <span class="swatch" style="background:#ffd6e0"></span>
+                  <span class="swatch" style="background:#d7f5d0"></span>
+                  <span style="width:1px;height:12px;background:var(--border)"></span>
+                  <button class="icon-btn">A−</button>
+                  <button class="icon-btn">A+</button>
+                </div>
+              </details>
+              <div class="chips-row">
+                <span class="chip">🔗 Add link</span>
+                <span class="chip">📎 Attach file</span>
+              </div>
+            </div>
+          </div>
+          <div class="l1-card">
+            <div class="front">
+              <button class="icon-btn danger close-x" title="Delete word">✕</button>
+              <span class="eyebrow">Term</span>
+              <div class="term" contenteditable spellcheck="false">gracias</div>
+            </div>
+            <div class="divider"></div>
+            <div class="back">
+              <span class="eyebrow">Meaning</span>
+              <div class="word-meaning" contenteditable spellcheck="false">thank you</div>
+              <details>
+                <summary class="toolbar-toggle">Aa Formatting ▾</summary>
+                <div class="mini-toolbar">
+                  <span class="swatch" style="background:#fff3a0"></span>
+                  <span class="swatch" style="background:#ffd6e0"></span>
+                  <span class="swatch" style="background:#d7f5d0"></span>
+                </div>
+              </details>
+              <div class="chips-row">
+                <span class="chip">🔗 Add link</span>
+                <span class="chip">📎 Attach file</span>
+              </div>
+            </div>
+          </div>
+          <button class="add-row-btn">+ Add word</button>
+        </div>
+      </div>
+      <div class="preview-col">
+        <span class="label">Mobile</span>
+        <div class="phone-frame">
+          <div class="notch"></div>
+          <div class="phone-screen">
+            <div class="l1-card">
+              <div class="front">
+                <button class="icon-btn danger close-x" title="Delete word">✕</button>
+                <span class="eyebrow">Term</span>
+                <div class="term" contenteditable spellcheck="false">hola</div>
+              </div>
+              <div class="divider"></div>
+              <div class="back">
+                <span class="eyebrow">Meaning</span>
+                <div class="word-meaning" contenteditable spellcheck="false">hello — casual greeting</div>
+                <details>
+                  <summary class="toolbar-toggle">Aa ▾</summary>
+                  <div class="mini-toolbar">
+                    <span class="swatch" style="background:#fff3a0"></span>
+                    <span class="swatch" style="background:#ffd6e0"></span>
+                    <span class="swatch" style="background:#d7f5d0"></span>
+                    <button class="icon-btn">A+</button>
+                  </div>
+                </details>
+                <div class="chips-row">
+                  <span class="chip">🔗 Link</span>
+                  <span class="chip">📎 File</span>
+                </div>
+              </div>
+            </div>
+            <div class="l1-card">
+              <div class="front">
+                <button class="icon-btn danger close-x" title="Delete word">✕</button>
+                <span class="eyebrow">Term</span>
+                <div class="term" contenteditable spellcheck="false">gracias</div>
+              </div>
+              <div class="divider"></div>
+              <div class="back">
+                <span class="eyebrow">Meaning</span>
+                <div class="word-meaning" contenteditable spellcheck="false">thank you</div>
+              </div>
+            </div>
+            <button class="add-row-btn">+ Add word</button>
+          </div>
+        </div>
+        <p class="l4-hint" style="max-width:300px">No structural change needed on mobile — cards already stack full-width; only padding/font-size trims slightly.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- LAYOUT 2: LABELED FORM GRID -->
+  <!-- ============================================================ -->
+  <section class="layout" id="layout-2">
+    <div class="head">
+      <h2>2 · Labeled form grid <span class="badge">explicit field labels</span></h2>
+      <p class="rationale">The current table has column headers only once, at the very top — scroll past a few rows and it's unclear which side is which. This puts a small "WORD / TERM" / "MEANING" label directly on every single field, always in view, and arranges word-pairs two-per-row on desktop for density.</p>
+      <ul class="fixes">
+        <li>Every field is self-labeled — no need to scroll back up to remember which column is which.</li>
+        <li>Toolbar becomes one compact icon row directly under the label, not a second sub-grid.</li>
+        <li>Delete sits as a quiet icon in the card's corner rather than a full grid column.</li>
+      </ul>
+    </div>
+    <div class="previews">
+      <div class="preview-col">
+        <span class="label">Desktop (2-up)</span>
+        <div class="desktop-frame">
+          <div class="l2-grid">
+            <div class="l2-field">
+              <button class="icon-btn danger del-corner" title="Delete word">✕</button>
+              <label class="field-label">Word / Term</label>
+              <input class="word-term-input" value="hola" />
+              <label class="field-label meaning-label">Meaning</label>
+              <div class="toolbar-row">
+                <span class="swatch" style="background:#fff3a0"></span>
+                <span class="swatch" style="background:#ffd6e0"></span>
+                <span class="swatch" style="background:#d7f5d0"></span>
+                <span class="sep"></span>
+                <button class="icon-btn">A−</button>
+                <button class="icon-btn">A+</button>
+              </div>
+              <div class="word-meaning" contenteditable spellcheck="false">hello — casual greeting</div>
+              <div class="bottom-row">
+                <span class="ghost-btn">🔗 Add link</span>
+                <span class="ghost-btn">📎 Attach</span>
+              </div>
+            </div>
+            <div class="l2-field">
+              <button class="icon-btn danger del-corner" title="Delete word">✕</button>
+              <label class="field-label">Word / Term</label>
+              <input class="word-term-input" value="gracias" />
+              <label class="field-label meaning-label">Meaning</label>
+              <div class="toolbar-row">
+                <span class="swatch" style="background:#fff3a0"></span>
+                <span class="swatch" style="background:#ffd6e0"></span>
+                <span class="swatch" style="background:#d7f5d0"></span>
+                <span class="sep"></span>
+                <button class="icon-btn">A−</button>
+                <button class="icon-btn">A+</button>
+              </div>
+              <div class="word-meaning" contenteditable spellcheck="false">thank you</div>
+              <div class="bottom-row">
+                <span class="ghost-btn">🔗 Add link</span>
+                <span class="ghost-btn">📎 Attach</span>
+              </div>
+            </div>
+          </div>
+          <button class="add-row-btn">+ Add word</button>
+        </div>
+      </div>
+      <div class="preview-col">
+        <span class="label">Mobile (1-up)</span>
+        <div class="phone-frame">
+          <div class="notch"></div>
+          <div class="phone-screen">
+            <div class="l2-grid" style="grid-template-columns: 1fr;">
+              <div class="l2-field">
+                <button class="icon-btn danger del-corner" title="Delete word">✕</button>
+                <label class="field-label">Word / Term</label>
+                <input class="word-term-input" value="hola" />
+                <label class="field-label meaning-label">Meaning</label>
+                <div class="toolbar-row">
+                  <span class="swatch" style="background:#fff3a0"></span>
+                  <span class="swatch" style="background:#ffd6e0"></span>
+                  <span class="swatch" style="background:#d7f5d0"></span>
+                </div>
+                <div class="word-meaning" contenteditable spellcheck="false">hello — casual greeting</div>
+                <div class="bottom-row">
+                  <span class="ghost-btn">🔗 Link</span>
+                  <span class="ghost-btn">📎 File</span>
+                </div>
+              </div>
+              <div class="l2-field">
+                <button class="icon-btn danger del-corner" title="Delete word">✕</button>
+                <label class="field-label">Word / Term</label>
+                <input class="word-term-input" value="gracias" />
+                <label class="field-label meaning-label">Meaning</label>
+                <div class="word-meaning" contenteditable spellcheck="false">thank you</div>
+              </div>
+            </div>
+            <button class="add-row-btn">+ Add word</button>
+          </div>
+        </div>
+        <p class="l4-hint" style="max-width:300px">The 2-up grid just collapses to <code>grid-template-columns: 1fr</code> below the sm breakpoint — same field markup either way.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- LAYOUT 3: ACCORDION -->
+  <!-- ============================================================ -->
+  <section class="layout" id="layout-3">
+    <div class="head">
+      <h2>3 · Accordion list <span class="badge">scan first, edit on demand</span></h2>
+      <p class="rationale">For a topic with a lot of words, the current design shows every field, toolbar, and link-chip for every word all at once — a wall of controls. This collapses each word to one scannable line (term + a preview of the meaning) and only expands the full editor for the row you're actually working on.</p>
+      <ul class="fixes">
+        <li>Scanning 20 words is just 20 short lines, not 20 stacked toolbars.</li>
+        <li>Editing controls only exist on screen for the one row you opened — nothing to parse elsewhere.</li>
+        <li>Naturally mobile-friendly already, since a collapsed row is just text on one line.</li>
+      </ul>
+    </div>
+    <div class="previews">
+      <div class="preview-col">
+        <span class="label">Desktop</span>
+        <div class="desktop-frame">
+          <div class="l3-list">
+            <details class="l3-row" open>
+              <summary>
+                <span class="handle">⠿</span>
+                <span class="row-term">hola</span>
+                <span class="row-preview">hello — casual greeting</span>
+                <span class="chevron">▶</span>
+              </summary>
+              <div class="expand-body">
+                <input class="word-term-input" value="hola" />
+                <div class="toolbar-row">
+                  <span class="swatch" style="background:#fff3a0"></span>
+                  <span class="swatch" style="background:#ffd6e0"></span>
+                  <span class="swatch" style="background:#d7f5d0"></span>
+                  <span class="sep"></span>
+                  <button class="icon-btn">A−</button>
+                  <button class="icon-btn">A+</button>
+                  <span class="sep"></span>
+                  <button class="icon-btn danger" title="Delete word">🗑</button>
+                </div>
+                <div class="word-meaning" contenteditable spellcheck="false">hello — casual greeting</div>
+                <div class="bottom-row" style="margin-top:0.4rem">
+                  <span class="ghost-btn">🔗 Add link</span>
+                  <span class="ghost-btn">📎 Attach file</span>
+                </div>
+              </div>
+            </details>
+            <details class="l3-row">
+              <summary>
+                <span class="handle">⠿</span>
+                <span class="row-term">gracias</span>
+                <span class="row-preview">thank you</span>
+                <span class="chevron">▶</span>
+              </summary>
+              <div class="expand-body"></div>
+            </details>
+            <details class="l3-row">
+              <summary>
+                <span class="handle">⠿</span>
+                <span class="row-term">adiós</span>
+                <span class="row-preview">goodbye</span>
+                <span class="chevron">▶</span>
+              </summary>
+              <div class="expand-body"></div>
+            </details>
+          </div>
+          <button class="add-row-btn">+ Add word</button>
+        </div>
+      </div>
+      <div class="preview-col">
+        <span class="label">Mobile</span>
+        <div class="phone-frame">
+          <div class="notch"></div>
+          <div class="phone-screen" style="padding:0.6rem">
+            <div class="l3-list">
+              <details class="l3-row" open>
+                <summary>
+                  <span class="row-term" style="min-width:60px">hola</span>
+                  <span class="row-preview">hello — casual…</span>
+                  <span class="chevron">▶</span>
+                </summary>
+                <div class="expand-body" style="padding-left:0.8rem">
+                  <input class="word-term-input" value="hola" />
+                  <div class="toolbar-row">
+                    <span class="swatch" style="background:#fff3a0"></span>
+                    <span class="swatch" style="background:#ffd6e0"></span>
+                    <span class="swatch" style="background:#d7f5d0"></span>
+                  </div>
+                  <div class="word-meaning" contenteditable spellcheck="false">hello — casual greeting</div>
+                  <div class="bottom-row" style="margin-top:0.4rem">
+                    <span class="ghost-btn">🔗 Link</span>
+                    <span class="ghost-btn">📎 File</span>
+                    <button class="icon-btn danger" title="Delete" style="margin-left:auto">🗑</button>
+                  </div>
+                </div>
+              </details>
+              <details class="l3-row">
+                <summary>
+                  <span class="row-term" style="min-width:60px">gracias</span>
+                  <span class="row-preview">thank you</span>
+                  <span class="chevron">▶</span>
+                </summary>
+                <div class="expand-body"></div>
+              </details>
+              <details class="l3-row">
+                <summary>
+                  <span class="row-term" style="min-width:60px">adiós</span>
+                  <span class="row-preview">goodbye</span>
+                  <span class="chevron">▶</span>
+                </summary>
+                <div class="expand-body"></div>
+              </details>
+            </div>
+            <button class="add-row-btn">+ Add word</button>
+          </div>
+        </div>
+        <p class="l4-hint" style="max-width:300px">Drag handle "⠿" drops out on mobile (no drag-to-reorder on touch) — delete moves inside the expanded body instead of its own column.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- LAYOUT 4: MINIMAL / FLOATING TOOLBAR -->
+  <!-- ============================================================ -->
+  <section class="layout" id="layout-4">
+    <div class="head">
+      <h2>4 · Minimal, floating toolbar <span class="badge">Notion/Medium-style</span></h2>
+      <p class="rationale">No permanent buttons at all in the common case. Term reads like a document heading, meaning reads like plain body text underneath it — formatting only ever appears when you actually select text, right next to your selection. Try selecting some meaning text below on desktop.</p>
+      <ul class="fixes">
+        <li>Zero toolbar clutter until you're actually formatting something.</li>
+        <li>Reads like plain text you're annotating, not a spreadsheet you're filling in.</li>
+        <li>Row actions (delete/link/attach) fade in on hover instead of permanently occupying space.</li>
+      </ul>
+    </div>
+    <div class="previews">
+      <div class="preview-col">
+        <span class="label">Desktop — select meaning text to see the toolbar</span>
+        <div class="desktop-frame" style="position:relative">
+          <div class="floating-toolbar" id="floatToolbar">
+            <span class="swatch" style="background:#fff3a0"></span>
+            <span class="swatch" style="background:#ffd6e0"></span>
+            <span class="swatch" style="background:#d7f5d0"></span>
+            <span style="width:1px;height:14px;background:rgba(255,255,255,0.25)"></span>
+            <button>A−</button>
+            <button>A+</button>
+          </div>
+          <div class="l4-entry">
+            <div class="row-actions">
+              <button class="icon-btn" title="Add link">🔗</button>
+              <button class="icon-btn" title="Attach file">📎</button>
+              <button class="icon-btn danger" title="Delete word">✕</button>
+            </div>
+            <div class="term4" contenteditable spellcheck="false">hola</div>
+            <div class="meaning4 selectable-demo" contenteditable spellcheck="false">hello — a casual greeting, used any time of day</div>
+          </div>
+          <div class="l4-entry">
+            <div class="row-actions">
+              <button class="icon-btn" title="Add link">🔗</button>
+              <button class="icon-btn" title="Attach file">📎</button>
+              <button class="icon-btn danger" title="Delete word">✕</button>
+            </div>
+            <div class="term4" contenteditable spellcheck="false">gracias</div>
+            <div class="meaning4 selectable-demo" contenteditable spellcheck="false">thank you</div>
+          </div>
+          <button class="add-row-btn">+ Add word</button>
+        </div>
+      </div>
+      <div class="preview-col">
+        <span class="label">Mobile — persistent slim toolbar instead</span>
+        <div class="phone-frame">
+          <div class="notch"></div>
+          <div class="phone-screen">
+            <div class="l4-entry">
+              <div class="term4" contenteditable spellcheck="false">hola</div>
+              <div class="meaning4" contenteditable spellcheck="false">hello — a casual greeting</div>
+              <div class="l4-mobile-toolbar">
+                <span class="swatch" style="background:#fff3a0"></span>
+                <span class="swatch" style="background:#ffd6e0"></span>
+                <span class="swatch" style="background:#d7f5d0"></span>
+                <button class="icon-btn">A+</button>
+                <span style="flex:1"></span>
+                <button class="icon-btn" title="Add link">🔗</button>
+                <button class="icon-btn" title="Attach">📎</button>
+                <button class="icon-btn danger" title="Delete">✕</button>
+              </div>
+            </div>
+            <div class="l4-entry">
+              <div class="term4" contenteditable spellcheck="false">gracias</div>
+              <div class="meaning4" contenteditable spellcheck="false">thank you</div>
+            </div>
+            <button class="add-row-btn">+ Add word</button>
+          </div>
+        </div>
+        <p class="l4-hint" style="max-width:300px">Floating-on-selection doesn't work well with touch text-selection handles, so mobile gets a always-visible slim icon row per word instead — still far lighter than the current desktop toolbar.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>Mockup only — pick a direction and it gets built into the real Vocabulary tab.</footer>
+
+<script>
+  // Layout 4 desktop: show a floating toolbar near the current text selection,
+  // only inside the ".selectable-demo" meaning fields.
+  const floatToolbar = document.getElementById("floatToolbar");
+  const frame = floatToolbar ? floatToolbar.closest(".desktop-frame") : null;
+  document.addEventListener("mouseup", () => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !frame) {
+      if (floatToolbar) floatToolbar.classList.remove("show");
+      return;
+    }
+    const anchorNode = sel.anchorNode;
+    const el = anchorNode && (anchorNode.nodeType === 3 ? anchorNode.parentElement : anchorNode);
+    if (!el || !el.closest(".selectable-demo")) {
+      floatToolbar.classList.remove("show");
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    const frameRect = frame.getBoundingClientRect();
+    floatToolbar.style.left = (rect.left + rect.width / 2 - frameRect.left) + "px";
+    floatToolbar.style.top = (rect.top - frameRect.top) + "px";
+    floatToolbar.classList.add("show");
+  });
+</script>
+
+</body>
+</html>

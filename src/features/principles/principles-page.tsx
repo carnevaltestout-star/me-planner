@@ -7,13 +7,9 @@ import { loadEntries } from "@/lib/journal/journal-storage";
 import { PRINCIPLE_TYPES, type PrincipleType } from "@/lib/journal/journal-types";
 import { loadPrinciples, savePrinciples } from "@/lib/principles/principle-storage";
 import { createPrinciple, type Principle } from "@/lib/principles/principle-types";
-import { loadRoutineIconSettings, saveRoutineIconSettings } from "@/lib/principles/routine-icon-storage";
-import type { RoutineIconPalette, RoutineIconShape } from "@/lib/principles/routine-types";
 import { matchesDateQuery } from "@/lib/search/date-search";
 import { loadEnergyNotes, saveEnergyNotes } from "@/lib/trackers/energy-note-storage";
-import { PaletteIcon, PrincipleBunnyIcon } from "./principle-icons";
-import RoutinesPanel from "./routines-panel";
-import RoutineIconPickerDialog from "./routine-icon-picker-dialog";
+import { PrincipleBunnyIcon } from "./principle-icons";
 import PrincipleCard from "./principle-card";
 import AddPrincipleDialog from "./add-principle-dialog";
 
@@ -94,8 +90,6 @@ export default function PrinciplesPage() {
   const theme = useTheme();
   const showBunny = theme.retro || theme.kawaii;
 
-  const [iconSettings, setIconSettings] = useState(() => loadRoutineIconSettings());
-  const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [principles, setPrinciples] = useState(() => loadPrinciples());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<PrincipleType>("All");
@@ -105,18 +99,6 @@ export default function PrinciplesPage() {
   // this is bumped afterward to force allPrinciples to recompute and pick
   // the change up.
   const [derivedRefresh, setDerivedRefresh] = useState(0);
-
-  function changeIconShape(shape: RoutineIconShape) {
-    const next = { ...iconSettings, shape };
-    setIconSettings(next);
-    saveRoutineIconSettings(next);
-  }
-
-  function changeIconPalette(palette: RoutineIconPalette) {
-    const next = { ...iconSettings, palette };
-    setIconSettings(next);
-    saveRoutineIconSettings(next);
-  }
 
   function handleAddPrinciple(text: string, type: PrincipleType) {
     const next = [createPrinciple(text, type), ...principles];
@@ -226,26 +208,6 @@ export default function PrinciplesPage() {
   return (
     <div className="flex h-full flex-col gap-7 overflow-y-auto p-2 md:gap-7 md:p-4">
       <div className="flex flex-col gap-3">
-        <div className="relative flex items-center justify-center gap-2">
-          {showBunny && (
-            <button
-              type="button"
-              onClick={() => setIconPickerOpen(true)}
-              aria-label="Change routine icon and color"
-              title="Change routine icon and color"
-              className="absolute left-0 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-surface text-ink-muted shadow-theme hover:bg-surface-alt hover:text-accent"
-            >
-              <PaletteIcon className="h-4 w-4" />
-            </button>
-          )}
-          {showBunny && <PrincipleBunnyIcon className="h-5 w-5 text-accent" />}
-          <h1 className="m-0 text-base font-semibold text-ink">Routines</h1>
-          {showBunny && <PrincipleBunnyIcon className="h-5 w-5 text-accent" />}
-        </div>
-        <RoutinesPanel iconSettings={iconSettings} />
-      </div>
-
-      <div className="flex flex-col gap-3">
         <div className="flex items-center justify-center gap-2">
           {showBunny && <PrincipleBunnyIcon className="h-5 w-5 text-accent" />}
           <h1 className="m-0 text-base font-semibold text-ink">Principles</h1>
@@ -326,16 +288,6 @@ export default function PrinciplesPage() {
       </div>
 
       {dialogOpen && <AddPrincipleDialog onClose={() => setDialogOpen(false)} onSave={handleAddPrinciple} />}
-
-      {iconPickerOpen && (
-        <RoutineIconPickerDialog
-          shape={iconSettings.shape}
-          palette={iconSettings.palette}
-          onChangeShape={changeIconShape}
-          onChangePalette={changeIconPalette}
-          onClose={() => setIconPickerOpen(false)}
-        />
-      )}
     </div>
   );
 }

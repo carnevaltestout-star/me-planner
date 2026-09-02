@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 import { fromTimeInput, toTimeInput } from "@/lib/planner/planner-dates";
 import {
   DEFAULT_TINT_PERCENT,
@@ -45,6 +46,7 @@ interface EventModalProps {
 }
 
 export default function EventModal({ mode, initial, onSave, onDelete, onClose }: EventModalProps) {
+  const bottomReserve = useMobileBottomReserve();
   const [title, setTitle] = useState(initial.title);
   const [notes, setNotes] = useState(initial.notes);
   const [start, setStart] = useState(toTimeInput(initial.start));
@@ -93,7 +95,8 @@ export default function EventModal({ mode, initial, onSave, onDelete, onClose }:
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

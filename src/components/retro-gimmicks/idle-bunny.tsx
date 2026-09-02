@@ -3,7 +3,7 @@ import { BunnyIcon, KawaiiBunnyIcon } from "@/components/kawaii-icons/kawaii-ico
 
 export default function IdleBunny() {
   const theme = useTheme();
-  if (!(theme.retro || theme.kawaii) || !theme.gimmicks.bouncingBuddy) return null;
+  if (!(theme.retro || theme.kawaii || theme.tryout) || !theme.gimmicks.bouncingBuddy) return null;
   const Bunny = theme.kawaii ? KawaiiBunnyIcon : BunnyIcon;
 
   return (

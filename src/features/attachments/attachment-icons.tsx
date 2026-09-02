@@ -1,4 +1,4 @@
-import type { SVGProps } from "react";
+import { useId, type SVGProps } from "react";
 import { pixelGlyph } from "@/components/kawaii-icons/kawaii-icons";
 import { useTheme } from "@/components/theme-provider/theme-context";
 
@@ -22,6 +22,20 @@ function FolderLineIcon(props: SVGProps<SVGSVGElement>) {
         fill="currentColor"
         fillOpacity={0.12}
       />
+    </svg>
+  );
+}
+
+// "New folder" glyph — a plain folder outline with a "+" printed in the
+// middle, the standard create-a-folder icon. One shared design across every
+// theme (it's an action icon, not folder content, so it doesn't need its
+// own retro/kawaii/tryout variant the way FolderIcon does).
+export function NewFolderIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps({ strokeWidth: 1.7, ...props })}>
+      <path d="M3 6.3A1.8 1.8 0 0 1 4.8 4.5h4.6l2 2.3h7.8A1.8 1.8 0 0 1 21 8.6v9.1a1.8 1.8 0 0 1-1.8 1.8H4.8A1.8 1.8 0 0 1 3 17.7Z" />
+      <line x1="12" y1="10.6" x2="12" y2="15.8" />
+      <line x1="9.4" y1="13.2" x2="14.6" y2="13.2" />
     </svg>
   );
 }
@@ -78,12 +92,47 @@ function FolderKawaiiIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+const TRYOUT_FRONT_PATH = "M2 10A1.7 1.7 0 0 1 3.7 8.3h16.6A1.7 1.7 0 0 1 22 10v8.3a1.7 1.7 0 0 1-1.7 1.7H3.7A1.7 1.7 0 0 1 2 18.3Z";
+
+// Tryout-only: the same folder silhouette, but printed with diagonal white
+// "notebook lines" across the front pocket instead of a face — matching
+// the striped folder icon in the Tryout mockup. The stripes are clipped to
+// the front-pocket path via a per-instance id (useId) so multiple folder
+// cards on the same page don't collide on one shared <clipPath> id.
+function FolderTryoutIcon(props: SVGProps<SVGSVGElement>) {
+  const { style, ...rest } = props;
+  const clipId = `tryout-folder-front-${useId()}`;
+  return (
+    <svg viewBox="0 0 24 24" {...rest} style={{ filter: "drop-shadow(0 3px 3px rgba(60, 70, 140, 0.35))", ...style }}>
+      <defs>
+        <clipPath id={clipId}>
+          <path d={TRYOUT_FRONT_PATH} />
+        </clipPath>
+      </defs>
+      <path
+        d="M2 6.5A1.5 1.5 0 0 1 3.5 5h5.6l2.1 2.1h9.3A1.5 1.5 0 0 1 22 8.6V18.5A1.5 1.5 0 0 1 20.5 20h-17A1.5 1.5 0 0 1 2 18.5Z"
+        fill="#ff8fb8"
+      />
+      <path d={TRYOUT_FRONT_PATH} fill="#ff6fae" />
+      <g clipPath={`url(#${clipId})`} stroke="#ffffff" strokeOpacity={0.85} strokeWidth={0.9}>
+        <line x1="-2" y1="24" x2="8" y2="6" />
+        <line x1="2" y1="24" x2="12" y2="6" />
+        <line x1="6" y1="24" x2="16" y2="6" />
+        <line x1="10" y1="24" x2="20" y2="6" />
+        <line x1="14" y1="24" x2="24" y2="6" />
+        <line x1="18" y1="24" x2="28" y2="6" />
+      </g>
+    </svg>
+  );
+}
+
 // Big, bold folder glyph used for the folder cards — the kawaii cat-face
-// icon in kawaii, the plain classic pink icon in retro, a chunky filled
-// outline otherwise.
+// icon in kawaii, the striped icon in tryout, the plain classic pink icon
+// in retro, a chunky filled outline otherwise.
 export function FolderIcon(props: SVGProps<SVGSVGElement>) {
   const theme = useTheme();
   if (theme.kawaii) return <FolderKawaiiIcon {...props} />;
+  if (theme.tryout) return <FolderTryoutIcon {...props} />;
   if (theme.retro) return <FolderClassicIcon {...props} />;
   return <FolderLineIcon {...props} />;
 }
@@ -121,6 +170,15 @@ export function BackArrowIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...baseProps(props)}>
       <path d="M14.5 5.5 8 12l6.5 6.5" />
+    </svg>
+  );
+}
+
+export function PencilIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <path d="M14.3 4.7 19.3 9.7 8.8 20.2 4.3 21l0.8-4.5Z" />
+      <line x1="12.7" y1="6.3" x2="17.7" y2="11.3" />
     </svg>
   );
 }

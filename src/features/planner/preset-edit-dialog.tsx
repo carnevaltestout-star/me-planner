@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 import { fromTimeInput, toTimeInput } from "@/lib/planner/planner-dates";
 import { DEFAULT_TINT_PERCENT, EVENT_COLORS, PRIORITY_TINT_PERCENT, type EventPriority } from "@/lib/planner/planner-types";
 import type { EventPreset } from "@/lib/planner/preset-types";
@@ -24,6 +25,7 @@ interface PresetEditDialogProps {
 // preset-types.ts) — dropping still takes its start time from the grid
 // slot, not from these.
 export default function PresetEditDialog({ preset, onSave, onClose }: PresetEditDialogProps) {
+  const bottomReserve = useMobileBottomReserve();
   const [title, setTitle] = useState(preset.title);
   const [color, setColor] = useState(preset.color || EVENT_COLORS[0]);
   const [start, setStart] = useState(preset.start !== undefined ? toTimeInput(preset.start) : "");
@@ -63,7 +65,11 @@ export default function PresetEditDialog({ preset, onSave, onClose }: PresetEdit
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
       <div role="dialog" aria-modal="true" className="flex w-full max-w-[340px] flex-col gap-3.5 rounded-theme border border-border bg-surface p-[1.1rem] shadow-theme">
         <h2 className="m-0 text-base text-ink">Event preset</h2>
 

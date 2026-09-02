@@ -7,7 +7,6 @@ import {
   GoalsIcon,
   HomeIcon,
   JournalIcon,
-  OverviewIcon,
   PlannerIcon,
   PrinciplesIcon,
   ProjectsIcon,
@@ -27,12 +26,10 @@ export interface NavItem {
 // request, ahead of its original spec position; Statistics now sits right
 // under Trackers for the same reason. Overview (the daily agenda — todos,
 // habits, calendar, journal at a glance) is the very first tab and the
-// app's default landing page; Dashboard (the card-grid view of every tab)
-// sits right after it. Principles/Routines sits right under Goals/To-Dos
-// per explicit request, ahead of its original spec position.
+// app's default landing page. Principles/Routines sits right under
+// Goals/To-Dos per explicit request, ahead of its original spec position.
 export const navItems: NavItem[] = [
   { path: "/overview", label: "Overview", icon: HomeIcon },
-  { path: "/dashboard", label: "Dashboard", icon: OverviewIcon },
   { path: "/planner", label: "Calendar", icon: PlannerIcon },
   { path: "/goals", label: "Goals / To-Dos", icon: GoalsIcon },
   { path: "/principles", label: "Principles / Routines", icon: PrinciplesIcon },

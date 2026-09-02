@@ -10,7 +10,7 @@ interface StoryMemoryGameProps {
   onRoundComplete: (result: { attempts: number; correct: number }) => void;
   onExit: () => void;
   customStories: CustomStory[];
-  onAddCustomStory: (level: number, text: string) => void;
+  onAddCustomStory: (level: number, name: string, text: string) => string;
 }
 
 type Phase = "idle" | "reading" | "distraction" | "quiz" | "result";
@@ -29,10 +29,36 @@ export default function StoryMemoryGame({ level, onLevelChange, onRoundComplete,
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [distractionTotal, setDistractionTotal] = useState(DISTRACTION_S);
   const intervalRef = useRef<number>();
+  // Tracks the "reveal" timeout that handleAnswer schedules between picking
+  // an answer and advancing to the next question — if restart fires while
+  // one of these is pending, it must be cancelled too, or it'll go off
+  // against the freshly-restarted round's state (stale quizIndex/quizFacts
+  // closed over from before the restart) and can even fire onRoundComplete
+  // for a round the player just aborted.
+  const answerTimeoutRef = useRef<number>();
 
   const levelStories = customStories.filter((s) => s.level === level);
 
-  useEffect(() => () => window.clearInterval(intervalRef.current), []);
+  useEffect(
+    () => () => {
+      window.clearInterval(intervalRef.current);
+      window.clearTimeout(answerTimeoutRef.current);
+    },
+    [],
+  );
+
+  // Aborts the round in progress and immediately starts a fresh one at the
+  // same level. Clears both kinds of pending round timer first (the
+  // distraction countdown interval and any in-flight answer-reveal
+  // timeout) before handing off to startRound() — which supplies the same
+  // content-generation logic a normal round start uses — so nothing left
+  // over from the aborted round can fire later. Never touches
+  // onRoundComplete, so this doesn't count as a completed/failed attempt.
+  function handleRestart() {
+    window.clearInterval(intervalRef.current);
+    window.clearTimeout(answerTimeoutRef.current);
+    startRound();
+  }
 
   function startRound() {
     const chosen = selectedStoryId === "built-in" ? null : levelStories.find((s) => s.id === selectedStoryId);
@@ -72,7 +98,7 @@ export default function StoryMemoryGame({ level, onLevelChange, onRoundComplete,
     setPickedChoice(choice);
     const correct = choice === quizFacts[quizIndex].answer;
     if (correct) setQuizCorrect((c) => c + 1);
-    window.setTimeout(() => {
+    answerTimeoutRef.current = window.setTimeout(() => {
       setPickedChoice(null);
       if (quizIndex + 1 < quizFacts.length) {
         setQuizIndex((i) => i + 1);
@@ -89,7 +115,13 @@ export default function StoryMemoryGame({ level, onLevelChange, onRoundComplete,
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-3 md:p-5">
-      <GameHeader title="Story Memory" level={level} onLevelChange={onLevelChange} onExit={onExit} />
+      <GameHeader
+        title="Story Memory"
+        level={level}
+        onLevelChange={onLevelChange}
+        onExit={onExit}
+        onRestart={phase === "reading" || phase === "distraction" || phase === "quiz" ? handleRestart : undefined}
+      />
 
       {phase === "idle" && (
         <div className="flex flex-col gap-3">
@@ -104,9 +136,9 @@ export default function StoryMemoryGame({ level, onLevelChange, onRoundComplete,
               className="rounded-theme-sm border border-border bg-canvas px-2.5 py-2 text-sm text-ink focus:outline focus:outline-2 focus:outline-accent"
             >
               <option value="built-in">Built-in story (regenerates each time)</option>
-              {levelStories.map((s, i) => (
+              {levelStories.map((s) => (
                 <option key={s.id} value={s.id}>
-                  My story #{i + 1}
+                  {s.name}
                 </option>
               ))}
             </select>
@@ -214,8 +246,15 @@ export default function StoryMemoryGame({ level, onLevelChange, onRoundComplete,
       {uploadOpen && (
         <StoryUploadDialog
           onClose={() => setUploadOpen(false)}
-          onSave={(uploadLevel, text) => {
-            onAddCustomStory(uploadLevel, text);
+          onSave={(uploadLevel, name, text) => {
+            // Jump the game to whatever level the story was uploaded for
+            // (it only appears in that level's picker) and select it
+            // immediately, so Start plays the story just uploaded — not an
+            // unrelated built-in one, and not a story for a level the
+            // player wasn't even on.
+            const newId = onAddCustomStory(uploadLevel, name, text);
+            if (uploadLevel !== level) onLevelChange(uploadLevel);
+            setSelectedStoryId(newId);
             setUploadOpen(false);
           }}
         />

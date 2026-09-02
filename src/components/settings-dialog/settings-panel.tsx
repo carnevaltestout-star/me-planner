@@ -1,8 +1,19 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import type { ComponentType, SVGProps } from "react";
 import { resolvesToDark } from "@/lib/theme/apply-theme";
 import { useSetTheme, useTheme } from "@/components/theme-provider/theme-context";
 import { KAWAII_ICON_PACKS, KawaiiBunnyIcon } from "@/components/kawaii-icons/kawaii-icons";
-import { paletteKeyFor, type IconPackKey, type PaletteKey, type ThemeColors, type ThemeMode } from "@/lib/theme/theme-types";
+import {
+  isTabEnabled,
+  paletteKeyFor,
+  type IconPackKey,
+  type PaletteKey,
+  type ThemeColors,
+  type ThemeMode,
+  type ThemeSettings,
+} from "@/lib/theme/theme-types";
+import { countStoredEntries, exportAppData, importAppData } from "@/lib/data-transfer";
+import { navItems } from "@/routes/nav-items";
 
 const FAVORITES_STORAGE_KEY = "me-planner:favoriteColors";
 const FAVORITES_MAX = 16;
@@ -36,6 +47,15 @@ const ICON_PACKS: { key: IconPackKey; name: string }[] = [
   { key: "sparkle", name: "Sparkle" },
   { key: "snacks", name: "Snacks" },
 ];
+
+type SettingsTab = "features" | "appearance";
+const TABS: { value: SettingsTab; label: string }[] = [
+  { value: "features", label: "Activated features" },
+  { value: "appearance", label: "Appearance" },
+];
+// How long the "Saved" notice stays up after a change — long enough to
+// register as feedback, short enough to not linger and feel stuck.
+const SAVED_NOTICE_MS = 1600;
 
 function loadFavorites(): string[] {
   try {
@@ -73,17 +93,25 @@ function ToggleRow({
   description,
   checked,
   onChange,
+  icon: Icon,
 }: {
   title: string;
-  description: string;
+  description?: string;
   checked: boolean;
   onChange: (v: boolean) => void;
+  // Optional so the gimmick toggles (no icon, just title+description) keep
+  // working unchanged — only "Activated features" below passes one, since
+  // a tab's icon is the same one it already shows in the nav.
+  icon?: ComponentType<SVGProps<SVGSVGElement>>;
 }) {
   return (
     <div className="flex items-center justify-between gap-4 rounded-theme border border-border bg-surface-alt p-3 shadow-theme">
-      <div className="flex flex-col gap-0.5">
-        <strong className="text-sm text-ink">{title}</strong>
-        <span className="text-xs text-ink-muted">{description}</span>
+      <div className="flex items-center gap-2.5">
+        {Icon && <Icon className="h-[18px] w-[18px] flex-shrink-0 text-ink-muted" />}
+        <div className="flex flex-col gap-0.5">
+          <strong className="text-sm text-ink">{title}</strong>
+          {description && <span className="text-xs text-ink-muted">{description}</span>}
+        </div>
       </div>
       <Switch checked={checked} onChange={onChange} label={title} />
     </div>
@@ -97,8 +125,24 @@ function ToggleRow({
 export default function SettingsPanel() {
   const theme = useTheme();
   const setTheme = useSetTheme();
+  const [activeTab, setActiveTab] = useState<SettingsTab>("features");
   const [favorites, setFavorites] = useState<string[]>(loadFavorites);
   const [lastSwatchKey, setLastSwatchKey] = useState<keyof ThemeColors>("accent");
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const [transferStatus, setTransferStatus] = useState<string | null>(null);
+  // Every control below still autosaves the instant it changes (same as
+  // before — no Save button, ever) — this just also flashes a brief "Saved"
+  // notice so that's visible feedback instead of a silent write, without
+  // slowing anything down or requiring confirmation.
+  const [savedNotice, setSavedNotice] = useState(false);
+  const savedNoticeTimeoutRef = useRef<number>();
+
+  function applyChange(next: ThemeSettings) {
+    setTheme(next);
+    setSavedNotice(true);
+    window.clearTimeout(savedNoticeTimeoutRef.current);
+    savedNoticeTimeoutRef.current = window.setTimeout(() => setSavedNotice(false), SAVED_NOTICE_MS);
+  }
 
   const dark = resolvesToDark(theme.mode);
   const paletteKey: PaletteKey = paletteKeyFor(theme.retro, dark);
@@ -107,8 +151,8 @@ export default function SettingsPanel() {
   // swatch while it's on would silently change a palette that isn't even
   // visible right now, so these sections grey out instead of pretending to
   // do something.
-  const colorsDisabled = theme.kawaii;
-  const showGimmicks = theme.retro || theme.kawaii;
+  const colorsDisabled = theme.kawaii || theme.tryout;
+  const showGimmicks = theme.retro || theme.kawaii || theme.tryout;
 
   function persistFavorites(next: string[]) {
     setFavorites(next);
@@ -123,42 +167,122 @@ export default function SettingsPanel() {
   }
 
   function updatePaletteColor(key: keyof ThemeColors, value: string) {
-    setTheme({ ...theme, palettes: { ...theme.palettes, [paletteKey]: { ...palette, [key]: value } } });
+    applyChange({ ...theme, palettes: { ...theme.palettes, [paletteKey]: { ...palette, [key]: value } } });
   }
 
   function applyPreset(p: (typeof PRESETS)[number]) {
-    setTheme({
+    applyChange({
       ...theme,
       palettes: { ...theme.palettes, [paletteKey]: { ...palette, bg: p.bg, accent: p.accent, text: p.text } },
     });
   }
 
   function setMode(mode: ThemeMode) {
-    setTheme({ ...theme, mode });
+    applyChange({ ...theme, mode });
   }
 
   function setRetro(on: boolean) {
-    setTheme({ ...theme, retro: on, kawaii: on ? false : theme.kawaii });
+    applyChange({ ...theme, retro: on, kawaii: on ? false : theme.kawaii, tryout: on ? false : theme.tryout });
   }
 
   function setKawaii(on: boolean) {
-    setTheme({ ...theme, kawaii: on, retro: on ? false : theme.retro });
+    applyChange({ ...theme, kawaii: on, retro: on ? false : theme.retro, tryout: on ? false : theme.tryout });
+  }
+
+  function setTryout(on: boolean) {
+    applyChange({ ...theme, tryout: on, retro: on ? false : theme.retro, kawaii: on ? false : theme.kawaii });
   }
 
   function setGimmick(key: "starfield" | "pawDivider" | "bouncingBuddy", on: boolean) {
-    setTheme({ ...theme, gimmicks: { ...theme.gimmicks, [key]: on } });
+    applyChange({ ...theme, gimmicks: { ...theme.gimmicks, [key]: on } });
+  }
+
+  function setTabEnabled(path: string, on: boolean) {
+    applyChange({ ...theme, enabledTabs: { ...theme.enabledTabs, [path]: on } });
   }
 
   function setIconPack(key: IconPackKey) {
-    setTheme({ ...theme, iconPack: key });
+    applyChange({ ...theme, iconPack: key });
   }
 
   function isPresetActive(p: (typeof PRESETS)[number]) {
     return palette.bg === p.bg && palette.accent === p.accent && palette.text === p.text;
   }
 
+  function handleExport() {
+    exportAppData();
+    setTransferStatus("Backup file downloaded.");
+  }
+
+  function handleImportClick() {
+    importInputRef.current?.click();
+  }
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // let re-selecting the same file re-trigger onChange
+    if (!file) return;
+    try {
+      const { imported } = await importAppData(file);
+      setTransferStatus(`Imported ${imported} item${imported === 1 ? "" : "s"} — reloading…`);
+      window.setTimeout(() => window.location.reload(), 700);
+    } catch (err) {
+      setTransferStatus(err instanceof Error ? err.message : "Import failed — that file isn't a valid backup.");
+    }
+  }
+
   return (
-    <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-4 md:p-5">
+    <div className="flex flex-1 flex-col overflow-hidden">
+      {/* Pinned above the scrolling content below (not part of it) so the
+          tab switcher and the "Saved" notice both stay reachable/visible
+          regardless of scroll position within whichever tab is open. */}
+      <div className="flex flex-shrink-0 items-center gap-2 border-b border-border px-4 pt-3 md:px-5">
+        <div className="inline-flex overflow-hidden rounded-theme border border-border">
+          {TABS.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              aria-pressed={activeTab === t.value}
+              onClick={() => setActiveTab(t.value)}
+              className={`border-r border-border px-3.5 py-1.5 text-sm last:border-r-0 ${
+                activeTab === t.value ? "bg-accent font-semibold text-accent-contrast" : "bg-surface text-ink-muted hover:bg-surface-alt"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <span
+          aria-live="polite"
+          className={`ml-auto rounded-theme-sm bg-accent-soft px-2 py-1 text-xs font-semibold text-accent transition-opacity ${
+            savedNotice ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          Saved
+        </span>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-4 md:p-5">
+        {activeTab === "features" ? (
+          <section className="flex flex-col gap-2.5">
+            <p className="m-0 text-xs text-ink-muted">
+              Turn a tab off to hide it from the desktop sidebar and its group's sub-menu in mobile view — the page
+              itself isn't deleted, just tucked out of the way until you turn it back on.
+            </p>
+            <div className="flex flex-col gap-2">
+              {navItems.map((item) => (
+                <ToggleRow
+                  key={item.path}
+                  title={item.label}
+                  icon={item.icon}
+                  checked={isTabEnabled(theme.enabledTabs, item.path)}
+                  onChange={(v) => setTabEnabled(item.path, v)}
+                />
+              ))}
+            </div>
+          </section>
+        ) : (
+          <>
       <section className="flex flex-col gap-2.5">
         <h2 className="m-0 text-sm font-semibold text-ink">Appearance</h2>
         <div className="inline-flex w-fit overflow-hidden rounded-theme border border-border">
@@ -284,6 +408,13 @@ export default function SettingsPanel() {
         </div>
       </div>
 
+      <ToggleRow
+        title="🖥️ Tryout Mode"
+        description="Pastel Windows-98 study-desktop look — blue-to-pink window chrome, a diagonal pastel grid backdrop, star/moon/cloud stickers. Its own skin too, so this turns Retro and Kawaii off."
+        checked={theme.tryout}
+        onChange={setTryout}
+      />
+
       {showGimmicks && (
         <section className="flex flex-col gap-2.5">
           <h2 className="m-0 text-sm font-semibold text-ink">Retro gimmicks</h2>
@@ -340,6 +471,43 @@ export default function SettingsPanel() {
           })}
         </div>
       </section>
+
+      <section className="flex flex-col gap-2.5 border-t border-dashed border-border pt-4">
+        <h2 className="m-0 text-sm font-semibold text-ink">Your data</h2>
+        <p className="m-0 text-xs text-ink-muted">
+          Everything you enter lives only in this browser/app's local storage — it doesn't sync anywhere on its own.
+          Export a backup here, then import it after installing a new build or switching devices, to carry your
+          entries across ({countStoredEntries()} item{countStoredEntries() === 1 ? "" : "s"} stored right now).
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleExport}
+            className="rounded-theme border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-ink hover:bg-surface-alt"
+          >
+            Export backup
+          </button>
+          <button
+            type="button"
+            onClick={handleImportClick}
+            className="rounded-theme border border-border bg-surface px-3 py-1.5 text-xs font-semibold text-ink hover:bg-surface-alt"
+          >
+            Import backup
+          </button>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept="application/json"
+            onChange={handleImportFile}
+            className="hidden"
+            aria-label="Import backup file"
+          />
+        </div>
+        {transferStatus && <p className="m-0 text-xs text-accent">{transferStatus}</p>}
+      </section>
+          </>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 import { buildSessionQueue } from "@/lib/vocabulary/vocab-srs";
 import type { VocabTopic } from "@/lib/vocabulary/vocab-types";
 
@@ -9,6 +10,7 @@ interface MixedTrainingDialogProps {
 }
 
 export default function MixedTrainingDialog({ topics, onClose, onStart }: MixedTrainingDialogProps) {
+  const bottomReserve = useMobileBottomReserve();
   const [selected, setSelected] = useState<Set<string>>(() => new Set(topics.map((t) => t.id)));
 
   function toggle(id: string) {
@@ -22,7 +24,8 @@ export default function MixedTrainingDialog({ topics, onClose, onStart }: MixedT
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

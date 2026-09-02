@@ -178,3 +178,37 @@ export function MenuIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+// The three mobile bottom-nav group icons — Plan/Reflect/Learn each stand in
+// for several tabs at once (see bottom-nav.tsx), so these are deliberately
+// broader/more abstract than any single tab's own icon.
+export function PlanGroupIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <rect x="3.5" y="4.5" width="17" height="16" rx="2" />
+      <line x1="3.5" y1="9" x2="20.5" y2="9" />
+      <line x1="8" y1="2.5" x2="8" y2="6.5" />
+      <line x1="16" y1="2.5" x2="16" y2="6.5" />
+      <path d="M8.5 14.5 l2 2 4-4" />
+    </svg>
+  );
+}
+
+export function ReflectGroupIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <path d="M12 5 C 9 3.5 5 3.5 3.5 4.5 V 18.5 C 5 17.5 9 17.5 12 19 C 15 17.5 19 17.5 20.5 18.5 V 4.5 C 19 3.5 15 3.5 12 5 Z" />
+      <path d="M12 5 V 19" />
+    </svg>
+  );
+}
+
+export function LearnGroupIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <path d="M12 4 L2 9 L12 14 L22 9 Z" />
+      <path d="M6 11.5 V16.5 C 6 18 9 19.5 12 19.5 C 15 19.5 18 18 18 16.5 V11.5" />
+      <path d="M22 9 V15" />
+    </svg>
+  );
+}

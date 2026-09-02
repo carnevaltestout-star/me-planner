@@ -19,6 +19,18 @@ const KAWAII_COLORS: ThemeColors = {
   border: "#ffffff",
 };
 
+// Tryout's colors are fixed too, same mechanism as kawaii — the background
+// is a diagonal pastel grid (applied separately in index.css) and this
+// solid tone is just the --color-canvas fallback.
+const TRYOUT_COLORS: ThemeColors = {
+  bg: "#c9d9f5",
+  sidenav: "#c9d9f5",
+  surface: "#ffffff",
+  text: "#3a3568",
+  accent: "#ff8fc0",
+  border: "#8fa8e8",
+};
+
 // The colors actually in effect right now, given mode + retro. Each of the
 // four contexts (light/dark/retroLight/retroDark) keeps its own colors, so
 // this always returns that context's own values — never a leftover
@@ -26,6 +38,7 @@ const KAWAII_COLORS: ThemeColors = {
 // its own fixed colors.
 export function getActivePalette(theme: ThemeSettings): ThemeColors {
   if (theme.kawaii) return KAWAII_COLORS;
+  if (theme.tryout) return TRYOUT_COLORS;
   const dark = resolvesToDark(theme.mode);
   return theme.palettes[paletteKeyFor(theme.retro, dark)];
 }
@@ -42,17 +55,19 @@ export function applyTheme(theme: ThemeSettings) {
   root.style.setProperty("--color-accent", palette.accent);
   root.style.setProperty("--color-border", palette.border);
 
-  // Kawaii and retro are separate skins, not combinable — kawaii wins if
-  // both are somehow set (shouldn't happen; the UI that sets these keeps
-  // them mutually exclusive before saving).
-  root.dataset.retro = theme.retro && !theme.kawaii ? "true" : "false";
+  // Kawaii, retro, and tryout are separate skins, not combinable — kawaii
+  // wins over both, then retro, if more than one is somehow set (shouldn't
+  // happen; the UI that sets these keeps them mutually exclusive before
+  // saving).
+  root.dataset.retro = theme.retro && !theme.kawaii && !theme.tryout ? "true" : "false";
   root.dataset.kawaii = theme.kawaii ? "true" : "false";
+  root.dataset.tryout = theme.tryout && !theme.kawaii ? "true" : "false";
   root.dataset.mode = dark ? "dark" : "light";
   root.dataset.iconPack = theme.iconPack;
 
-  // Gimmicks (starfield/paw divider/bunny buddy) are shared between the two
-  // skins — available under either, reset when neither is active.
-  const gimmicksActive = theme.retro || theme.kawaii ? theme.gimmicks : DEFAULT_GIMMICKS;
+  // Gimmicks (starfield/paw divider/bunny buddy) are shared between all
+  // three skins — available under any of them, reset when none is active.
+  const gimmicksActive = theme.retro || theme.kawaii || theme.tryout ? theme.gimmicks : DEFAULT_GIMMICKS;
   root.dataset.gimmickStarfield = gimmicksActive.starfield ? "true" : "false";
   root.dataset.gimmickPawDivider = gimmicksActive.pawDivider ? "true" : "false";
   root.dataset.gimmickBuddy = gimmicksActive.bouncingBuddy ? "true" : "false";

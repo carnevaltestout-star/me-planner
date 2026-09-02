@@ -1,7 +1,6 @@
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import AppShell from "@/components/app-shell/app-shell";
 import OverviewTodayPage from "@/features/overview/overview-today-page";
-import DashboardPage from "@/features/overview/overview-page";
 import PlannerPage from "@/features/planner/planner-page";
 import JournalPage from "@/features/journal/journal-page";
 import PrinciplesPage from "@/features/principles/principles-page";
@@ -25,7 +24,6 @@ export default function AppRoutes() {
         <Route element={<AppShell />}>
           <Route index element={<Navigate to="/overview" replace />} />
           <Route path="/overview" element={<OverviewTodayPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/planner" element={<PlannerPage />} />
           <Route path="/journal" element={<JournalPage />} />
           <Route path="/principles" element={<PrinciplesPage />} />

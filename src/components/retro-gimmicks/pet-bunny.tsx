@@ -13,6 +13,11 @@ const SIT_MIN_MS = 1200;
 const SIT_MAX_MS = 3200;
 const STEP_RANGE_PX = 22;
 const WANDER_RADIUS_PX = 40;
+// Mobile still wanders and flips which way it's facing, just over a smaller
+// patch of ground — less screen to spare, and a full-size desktop-scale
+// wander would cover most of a phone's width.
+const STEP_RANGE_PX_MOBILE = 10;
+const WANDER_RADIUS_PX_MOBILE = 18;
 const ICON_SIZE_PX = 32;
 const ICON_SIZE_PX_MOBILE = 22;
 const EDGE_MARGIN_PX = 16;
@@ -21,11 +26,16 @@ const EDGE_MARGIN_PX = 16;
 // over page content. Kept a bit clear of the true edge (not flush) since
 // some phones' bottom gesture bar/home indicator overlaps the last few px
 // of viewport and would otherwise clip the bunny and its mood bubble.
-const EDGE_MARGIN_PX_MOBILE = 12;
-// Sized to the resting icon + its edge margin — a hop's ~7px bounce (see
-// @keyframes hop-arc in index.css) pokes slightly above it, which reads as
-// the bunny actually leaving the ground rather than a sizing bug.
-const FOOTER_HEIGHT_PX_MOBILE = 34;
+// A bit taller than the sprite + edge margin alone would need (22 + 12 =
+// 34) so the bunny rests a little higher off the true bottom edge rather
+// than flush against it — the extra 10px is pure breathing room, not
+// needed for the hop-arc bounce (see @keyframes hop-arc in index.css),
+// which stays well inside it.
+const EDGE_MARGIN_PX_MOBILE = 22;
+// Sized to the resting icon + its edge margin. Exported so app-shell.tsx
+// can stack the mobile bottom nav directly above this strip (rather than
+// duplicating the number) whenever it's showing.
+export const FOOTER_HEIGHT_PX_MOBILE = 44;
 const MOOD_MIN_MS = 7000;
 const MOOD_MAX_MS = 12000;
 const MOOD_DISPLAY_MIN_MS = 4000;
@@ -70,16 +80,15 @@ const MOODS = [
   "Replace \"What if\'s!?\" with \"Let\'s find out!\"",
   "Anxiety always wins a debate",
   "Choose: Pain of discipline or regret?!",
-  "Notice, don\'t react to all thoughts, dummy",
+  "Notice, don\'t react, dummy",
   "Kiss yourself",
   "discipline over feelings",
-  "Slow down, to regain control",
-  "Always stay critical, question and debate! ;3",
   "Do what u fear",
   "Just do your thing..whatever it is.",
   "Touch some grass",
   "Be there for someone : 3",
-  "bounce back and learn :3"
+  "bounce back and learn :3",
+  "Girl up Girl!"
 ];
 
 function homePosition(iconSize: number, edgeMargin: number) {
@@ -102,7 +111,17 @@ function homePosition(iconSize: number, edgeMargin: number) {
 // motion), just without the pop animation.
 export default function PetBunny() {
   const theme = useTheme();
-  const active = theme.gimmicks.bouncingBuddy;
+  // Gimmicks are only meaningful under a skin (retro/kawaii/tryout) — same
+  // rule apply-theme.ts already enforces for the CSS-driven gimmick
+  // data-attributes (resetting to DEFAULT_GIMMICKS when no skin is active)
+  // and IdleBunny already enforces for the topbar's mini bunny. This used to
+  // check that too, until it was dropped in the Overview-tab refactor,
+  // leaving a stale `bouncingBuddy: true` in storage (e.g. saved while Retro
+  // was on) able to show the bunny — and its mobile footer bar — the moment
+  // the app opens, even in plain light/dark mode with no skin on, and with
+  // no way to turn it off since the "Retro gimmicks" section in Settings is
+  // itself hidden whenever no skin is active.
+  const active = (theme.retro || theme.kawaii || theme.tryout) && theme.gimmicks.bouncingBuddy;
   const Bunny = theme.kawaii ? KawaiiBunnyIcon : BunnyIcon;
   const [awake, setAwake] = useState(false);
   const [walking, setWalking] = useState(false);
@@ -162,12 +181,14 @@ export default function PetBunny() {
 
     function step() {
       if (!isAwakeRef.current) return;
+      const stepRange = isMobile ? STEP_RANGE_PX_MOBILE : STEP_RANGE_PX;
+      const wanderRadius = isMobile ? WANDER_RADIUS_PX_MOBILE : WANDER_RADIUS_PX;
       const home = homePosition(iconSize, edgeMargin);
-      const delta = (Math.random() * 2 - 1) * STEP_RANGE_PX;
+      const delta = (Math.random() * 2 - 1) * stepRange;
       const proposedX = posRef.current.x + delta;
       const clampedToWander = Math.min(
-        home.x + WANDER_RADIUS_PX,
-        Math.max(home.x - WANDER_RADIUS_PX, proposedX),
+        home.x + wanderRadius,
+        Math.max(home.x - wanderRadius, proposedX),
       );
       const nextX = Math.min(
         window.innerWidth - iconSize - edgeMargin,
@@ -227,6 +248,23 @@ export default function PetBunny() {
     window.addEventListener("click", onClick);
     window.addEventListener("resize", onResize);
     window.addEventListener("message", onMessage);
+    // Fully re-home (not just clamp) the moment this effect re-runs — it
+    // only reruns when iconSize/edgeMargin change, i.e. exactly when
+    // isMobile flips (the mobile<->desktop devtools toggle). clampToViewport
+    // alone isn't enough here: going mobile->desktop, the old mobile X is
+    // already comfortably inside the much wider desktop bounds, so a plain
+    // clamp leaves it stranded wherever mobile put it instead of snapping
+    // back to the right edge — unlike Y, home X isn't a continuous function
+    // of viewport width, it jumps with iconSize, so only a real breakpoint
+    // change (not an ordinary same-breakpoint resize, handled by onResize's
+    // gentler clamp below) should reset it outright.
+    posRef.current = homePosition(iconSize, edgeMargin);
+    applyTransform();
+    // The old effect instance's cleanup (below) already cleared the
+    // previous walkTimeoutRef, so if it was awake and mid-wander, nothing
+    // would ever call step() again — resume the loop from home instead of
+    // leaving it frozen there.
+    if (isAwakeRef.current && !prefersReducedMotion) step();
     // Moods run continuously regardless of awake/asleep, for as long as this
     // gimmick is on — not gated on activity like the walking is.
     scheduleMood();
@@ -239,7 +277,7 @@ export default function PetBunny() {
       window.clearTimeout(moodTimeoutRef.current);
       window.clearTimeout(heartEyesTimeoutRef.current);
     };
-  }, [active, iconSize, edgeMargin]);
+  }, [active, iconSize, edgeMargin, isMobile]);
 
   useEffect(() => {
     const mql = window.matchMedia("(min-width: 768px)");

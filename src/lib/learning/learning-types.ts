@@ -37,6 +37,7 @@ export function accuracyPercent(p: GameProgress): number {
 export interface CustomStory {
   id: string;
   level: number;
+  name: string;
   text: string;
   createdAt: string;
 }

@@ -172,7 +172,7 @@ const TEMPLATES: Array<() => Sentence> = [
 ];
 
 // Level 1 has 3 recallable facts; every level after that adds 2 more
-// (level 2 = 5, level 3 = 7, ... level 20 = 41). This is the *pool* of
+// (level 2 = 5, level 3 = 7, ... level 20 = 41, level 30 = 61). This is the *pool* of
 // facts embedded in the story — how much a player has to read and hold in
 // mind — not how many questions get asked at the end (see pickQuizFacts).
 export function factCountForLevel(level: number): number {
@@ -225,8 +225,57 @@ export function pickQuizFacts(facts: RecallFact[]): RecallFact[] {
 // capitalized words (skipping the very first word, which is always
 // capitalized by sentence position rather than being a proper noun) become
 // simple "which X appeared in the story" multiple-choice questions.
+// Words too common/short to make a fair "did this appear in the story"
+// question — almost any story contains several of these, so they wouldn't
+// actually test whether the reader remembers anything specific.
+const STOPWORDS = new Set([
+  "the", "and", "that", "with", "have", "this", "from", "they", "were",
+  "which", "their", "would", "there", "could", "about", "into", "then",
+  "than", "when", "your", "just", "some", "them", "what", "very",
+]);
+
+// A quiz question is only fair if the wrong choices are genuinely absent
+// from the story — otherwise "did this appear" has more than one right
+// answer. Distractors are drawn from a large fixed word bank instead of the
+// story's own remaining words, since a short story might not contain enough
+// *other* words to safely rule out.
+const GENERIC_DISTRACTOR_WORDS = [
+  "garden", "window", "mountain", "silver", "quiet", "afternoon", "bicycle",
+  "kitchen", "forest", "ocean", "letter", "candle", "market", "bridge",
+  "harbor", "meadow", "thunder", "lantern", "corner", "valley",
+];
+
+// Guarantees at least one fair quiz question for ANY non-trivial story,
+// even a plain one with no numbers, weekdays, or capitalized names — those
+// three specific checks above only fire when the story happens to contain
+// that kind of detail, which an ordinary short story often doesn't (e.g.
+// "the cat sat on the mat and fell asleep" has none of them). Without this,
+// the quiz would end up with zero questions and the game would be stuck on
+// a blank quiz screen — using someone's own story would silently break
+// instead of "asking it the way it is".
+function fallbackWordFacts(text: string, exclude: Set<string>, count: number): RecallFact[] {
+  const seen = new Set<string>();
+  const candidates = text
+    .split(/\s+/)
+    .map((w) => w.replace(/[^A-Za-z]/g, ""))
+    .filter((w) => {
+      const lower = w.toLowerCase();
+      if (w.length < 4 || STOPWORDS.has(lower) || exclude.has(lower)) return false;
+      if (seen.has(lower)) return false;
+      seen.add(lower);
+      return true;
+    });
+  return sampleN(candidates, Math.min(count, candidates.length)).map((w) => ({
+    id: nextFactId(),
+    question: "Which word appeared in the story?",
+    answer: w,
+    choices: choicesFor(w, GENERIC_DISTRACTOR_WORDS),
+  }));
+}
+
 export function extractFactsFromCustomText(text: string): RecallFact[] {
   const facts: RecallFact[] = [];
+  const usedWords = new Set<string>();
 
   const numbers = Array.from(new Set(text.match(/\b\d+\b/g) ?? [])).slice(0, 2);
   numbers.forEach((n) => {
@@ -254,9 +303,14 @@ export function extractFactsFromCustomText(text: string): RecallFact[] {
     ),
   ).slice(0, 2);
   properNouns.forEach((w) => {
+    usedWords.add(w.toLowerCase());
     const distractorPool = [...NAMES, ...PLACES, ...COUNTRY_CAPITALS.map((c) => c.country)];
     facts.push({ id: nextFactId(), question: "Which word was mentioned in the story?", answer: w, choices: choicesFor(w, distractorPool) });
   });
+
+  if (facts.length < 2) {
+    facts.push(...fallbackWordFacts(text, usedWords, 2 - facts.length));
+  }
 
   return facts.slice(0, 4);
 }

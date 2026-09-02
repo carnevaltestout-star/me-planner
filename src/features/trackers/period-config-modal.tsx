@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 import { dateKey } from "@/lib/trackers/tracker-dates";
 import { DEFAULT_CYCLE_LENGTH_DAYS, DEFAULT_PERIOD_LENGTH_DAYS, TRACKER_COLORS, type Tracker } from "@/lib/trackers/tracker-types";
 import TrackerIcon from "./tracker-icon";
@@ -15,6 +16,7 @@ function toDateInput(d: Date): string {
 }
 
 export default function PeriodConfigModal({ onClose, onCreate }: PeriodConfigModalProps) {
+  const bottomReserve = useMobileBottomReserve();
   const [periodLength, setPeriodLength] = useState(DEFAULT_PERIOD_LENGTH_DAYS);
   const [cycleLength, setCycleLength] = useState(DEFAULT_CYCLE_LENGTH_DAYS);
   const [startDate, setStartDate] = useState(() => toDateInput(new Date()));
@@ -42,7 +44,8 @@ export default function PeriodConfigModal({ onClose, onCreate }: PeriodConfigMod
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

@@ -1,3 +1,4 @@
+import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 import { dateKey, shiftDay } from "@/lib/journal/journal-dates";
 import { STATIC_QUESTIONS, type JournalEntry } from "@/lib/journal/journal-types";
 
@@ -17,6 +18,7 @@ function dayLabel(offset: number, date: Date) {
 // from. Jumping to a day (via its header) and editing there stays the one
 // path for changes, so autosave/lock logic never has to be duplicated here.
 export default function JournalOverview({ entries, onSelect, onClose }: JournalOverviewProps) {
+  const bottomReserve = useMobileBottomReserve();
   const today = new Date();
   const days = [0, -1, -2].map((offset) => {
     const date = shiftDay(today, offset);
@@ -26,7 +28,8 @@ export default function JournalOverview({ entries, onSelect, onClose }: JournalO
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

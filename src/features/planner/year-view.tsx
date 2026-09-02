@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 import { isSameDay, monthGridDays } from "@/lib/planner/planner-dates";
 
 interface YearViewProps {
@@ -58,13 +59,15 @@ function MonthCard({
 // Apple Calendar-style year view: all 12 months at once, click any date to
 // jump the main planner view there.
 export default function YearView({ anchor, onSelect, onClose }: YearViewProps) {
+  const bottomReserve = useMobileBottomReserve();
   const [year, setYear] = useState(anchor.getFullYear());
   const today = new Date();
   const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1));
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
+      className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"
+      style={{ bottom: bottomReserve }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
