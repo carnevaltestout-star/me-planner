@@ -49,9 +49,7 @@ export function countStoredEntries(): number {
   return Object.keys(collectEntries()).length;
 }
 
-export async function importAppData(file: File): Promise<{ imported: number }> {
-  const text = await file.text();
-  const parsed = JSON.parse(text) as Partial<ExportPayload>;
+function applyPayload(parsed: Partial<ExportPayload>): { imported: number } {
   if (!parsed || typeof parsed !== "object" || !parsed.entries || typeof parsed.entries !== "object") {
     throw new Error("That file doesn't look like a me-planner backup.");
   }
@@ -62,4 +60,28 @@ export async function importAppData(file: File): Promise<{ imported: number }> {
     window.localStorage.setItem(key, value as string);
   }
   return { imported: entries.length };
+}
+
+export async function importAppData(file: File): Promise<{ imported: number }> {
+  const text = await file.text();
+  return applyPayload(JSON.parse(text) as Partial<ExportPayload>);
+}
+
+// Some builds (e.g. a one-off APK meant to carry over the entries visible in
+// the dev browser at install time) ship a public/seed-data.json produced by
+// exportAppData's own format. On first launch of a fresh install — i.e. only
+// when this origin's storage is still completely empty — silently hydrate
+// from it, so the app opens already showing those entries instead of an
+// empty state. Never overwrites anything: once a single "me-planner:" key
+// exists (from this seed or from real use), it's a no-op forever after.
+export async function loadBundledSeedDataIfEmpty(): Promise<void> {
+  if (countStoredEntries() > 0) return;
+  try {
+    const res = await fetch("/seed-data.json");
+    if (!res.ok) return;
+    applyPayload((await res.json()) as Partial<ExportPayload>);
+  } catch {
+    // No bundled seed in this build, or it failed to load — fine, just
+    // start empty like any other fresh install.
+  }
 }

@@ -7,3 +7,8 @@ dist-ssr
 # Tauri build output / generated mobile projects
 src-tauri/target
 src-tauri/gen
+
+# One-off personal data snapshot bundled into a specific APK build so a
+# fresh Android install starts with the same entries as the dev browser —
+# never committed, since it's real personal data (see data-transfer.ts).
+public/seed-data.json
