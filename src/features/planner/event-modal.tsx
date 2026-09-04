@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 import { fromTimeInput, toTimeInput } from "@/lib/planner/planner-dates";
 import {
   DEFAULT_TINT_PERCENT,
@@ -47,6 +48,7 @@ interface EventModalProps {
 
 export default function EventModal({ mode, initial, onSave, onDelete, onClose }: EventModalProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [title, setTitle] = useState(initial.title);
   const [notes, setNotes] = useState(initial.notes);
   const [start, setStart] = useState(toTimeInput(initial.start));

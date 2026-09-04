@@ -1,5 +1,6 @@
 import RoutinesPanel from "@/features/principles/routines-panel";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 
 interface RoutinesDialogProps {
   onClose: () => void;
@@ -10,6 +11,7 @@ interface RoutinesDialogProps {
 // tab — changes made here are the same underlying data, not a copy.
 export default function RoutinesDialog({ onClose }: RoutinesDialogProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   return (
     <div
       className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"

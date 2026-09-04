@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 
 interface AddTopicDialogProps {
   onClose: () => void;
@@ -8,6 +9,7 @@ interface AddTopicDialogProps {
 
 export default function AddTopicDialog({ onClose, onSave }: AddTopicDialogProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [name, setName] = useState("");
 
   function handleSave() {

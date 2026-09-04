@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 import { isFuture, isSameDay, monthGridDays } from "@/lib/journal/journal-dates";
 
 interface JournalYearViewProps {
@@ -62,6 +63,7 @@ function MonthCard({
 // editable, so there's nothing to jump to there.
 export default function JournalYearView({ anchor, onSelect, onClose }: JournalYearViewProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [year, setYear] = useState(anchor.getFullYear());
   const today = new Date();
   const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1));

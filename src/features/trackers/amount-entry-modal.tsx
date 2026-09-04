@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 
 interface AmountEntryModalProps {
   trackerName: string;
@@ -10,6 +11,7 @@ interface AmountEntryModalProps {
 
 export default function AmountEntryModal({ trackerName, initialValue, onClose, onSave }: AmountEntryModalProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [value, setValue] = useState(initialValue);
 
   function handleSave() {

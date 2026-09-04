@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import type { EnergyNote } from "@/lib/trackers/energy-note-types";
 
 interface EnergyNotesFieldProps {
@@ -6,6 +6,13 @@ interface EnergyNotesFieldProps {
   locked: boolean;
   onCommitText: (text: string) => void;
   onTogglePrinciple: (value: boolean) => void;
+  // Owned by the page-level parent (EnergyTrackerCard), not local state here
+  // — this field remounts (key={anchorKey}) every time the viewed day
+  // changes, and that remount can land in the very same render as the blur
+  // that triggers a save (e.g. typing a note, then clicking the "next day"
+  // arrow), which would wipe a locally-owned flag before it ever painted.
+  // Lifting it up, same as Journal's justSaved, keeps it alive across that.
+  justSaved: boolean;
   // Only passed by the main single-day view — the Overview panel's per-day
   // mini cards don't get this button, since "all notes" wouldn't make sense
   // repeated on every card.
@@ -15,24 +22,24 @@ interface EnergyNotesFieldProps {
 // Remounted with key={anchorKey} by the parent whenever the viewed day
 // changes, so this field's local (blur-to-commit) draft state naturally
 // resets — same reasoning as JournalPrompts's own per-date remount.
-export default function EnergyNotesField({ note, locked, onCommitText, onTogglePrinciple, showAllNotes }: EnergyNotesFieldProps) {
+export default function EnergyNotesField({ note, locked, onCommitText, onTogglePrinciple, justSaved, showAllNotes }: EnergyNotesFieldProps) {
   const [text, setText] = useState(note?.text ?? "");
   const [isPrinciple, setIsPrinciple] = useState(note?.isPrinciple ?? false);
-  const [justSaved, setJustSaved] = useState(false);
-  const savedTimeoutRef = useRef<number>();
-
-  function pulseSaved() {
-    window.clearTimeout(savedTimeoutRef.current);
-    setJustSaved(true);
-    savedTimeoutRef.current = window.setTimeout(() => setJustSaved(false), 1600);
-  }
 
   return (
     <div className="flex flex-col gap-1.5 border-t border-border pt-3">
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 border-l-[3px] border-accent pl-2.5 text-sm font-semibold text-ink">
         <span className="text-base">📝</span>
         <span>Notes</span>
-        <label className="relative flex flex-shrink-0 items-center gap-1.5">
+        <span
+          aria-live="polite"
+          className={`whitespace-nowrap text-[10px] font-medium text-ink-muted transition-opacity duration-300 ${
+            justSaved ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          Saved
+        </span>
+        <label className="flex flex-shrink-0 items-center gap-1.5">
           <input
             type="checkbox"
             checked={isPrinciple}
@@ -40,19 +47,10 @@ export default function EnergyNotesField({ note, locked, onCommitText, onToggleP
             onChange={(e) => {
               setIsPrinciple(e.target.checked);
               onTogglePrinciple(e.target.checked);
-              if (e.target.checked) pulseSaved();
             }}
             className="h-3.5 w-3.5 accent-accent"
           />
           Principle
-          <span
-            aria-live="polite"
-            className={`pointer-events-none absolute -top-4 left-0 whitespace-nowrap text-[10px] font-medium text-ink-muted transition-opacity duration-300 ${
-              justSaved ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            Saved
-          </span>
         </label>
         {showAllNotes && (
           <button

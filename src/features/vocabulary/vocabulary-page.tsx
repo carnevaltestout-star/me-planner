@@ -35,12 +35,19 @@ function applySessionResults(session: TrainingSession, topics: VocabTopic[]): Vo
   });
 }
 
-// True only until the first VocabularyPage mount of this JS session consumes
-// it — a genuine page reload re-evaluates this module (back to false, so the
-// restore below runs), but switching to another tab and back is just a
-// React Router remount within the same session, and should always land on
-// the plain topic list rather than wherever you last were.
-let hasRestoredEditingTopicThisSession = false;
+// Seeded from the URL hash at the exact moment this module first
+// evaluates (i.e. once per real page load) rather than starting flat
+// `false` — a genuine reload re-evaluates this module fresh, so if the
+// hash is already "#/vocabulary" at that instant, this *is* that reload
+// and the restore below should run. If the app booted on some other tab
+// and the user then clicks into Vocabulary — even for the very first time
+// this session — that's just a React Router mount, not a reload, and
+// should always land on the plain topic list rather than wherever the
+// last session left off. (The previous version only checked "has
+// VocabularyPage mounted before", which incorrectly restored on that
+// first in-app navigation too, since the flag hadn't been consumed by
+// anything yet.)
+let hasRestoredEditingTopicThisSession = !window.location.hash.startsWith("#/vocabulary");
 
 export default function VocabularyPage() {
   const [state, setState] = useState<VocabState>(() => loadVocabState());
@@ -308,14 +315,14 @@ export default function VocabularyPage() {
           {trainDropdownOpen && (
             <>
               <div className="fixed inset-0 z-10" onClick={() => setTrainDropdownOpen(false)} />
-              <div className="absolute left-0 top-[calc(100%+4px)] z-20 flex w-56 flex-col gap-0.5 rounded-theme border border-border bg-surface p-1 shadow-theme">
+              <div className="absolute left-0 top-[calc(100%+4px)] z-20 flex w-56 flex-col divide-y divide-border rounded-theme border border-border bg-surface p-1 shadow-theme">
                 <button
                   type="button"
                   onClick={() => {
                     setTrainDropdownOpen(false);
                     window.alert('Pick a topic card\'s own "Start Training" button to begin — this mode trains just that one topic.');
                   }}
-                  className="rounded-theme-sm px-2.5 py-2 text-left text-sm text-ink hover:bg-surface-alt"
+                  className="rounded-theme-sm px-2.5 py-2.5 text-left text-sm text-ink hover:bg-surface-alt"
                 >
                   Start Training
                   <span className="block text-xs text-ink-muted">Pick one topic card to train on</span>
@@ -326,7 +333,7 @@ export default function VocabularyPage() {
                     setTrainDropdownOpen(false);
                     setMixedOpen(true);
                   }}
-                  className="rounded-theme-sm px-2.5 py-2 text-left text-sm text-ink hover:bg-surface-alt"
+                  className="rounded-theme-sm px-2.5 py-2.5 text-left text-sm text-ink hover:bg-surface-alt"
                 >
                   Start Mixed Training
                   <span className="block text-xs text-ink-muted">Combine due words from multiple topics</span>

@@ -150,6 +150,23 @@ export function BrainIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+// A node-graph glyph (deliberately not another brain silhouette) for the
+// "Brain" mind-map tab — visually distinct from BrainIcon above, which
+// already belongs to the unrelated "Brain & Training" cognitive-games tab.
+export function BrainMapIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg {...baseProps(props)}>
+      <path d="M12 5.5 6 9.5M12 5.5l6 4M6 9.5v5M18 9.5v5M6 14.5l6 4M18 14.5l-6 4M12 5.5v13" />
+      <circle cx="12" cy="5.5" r="2" fill="currentColor" stroke="none" />
+      <circle cx="6" cy="9.5" r="1.8" fill="currentColor" stroke="none" />
+      <circle cx="18" cy="9.5" r="1.8" fill="currentColor" stroke="none" />
+      <circle cx="6" cy="14.5" r="1.8" fill="currentColor" stroke="none" />
+      <circle cx="18" cy="14.5" r="1.8" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="18.5" r="2" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function ProjectsIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg {...baseProps(props)}>

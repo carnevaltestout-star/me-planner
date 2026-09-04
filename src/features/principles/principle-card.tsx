@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PRINCIPLE_TYPE_COLORS } from "@/lib/principles/principle-types";
 import { SELECTABLE_PRINCIPLE_TYPES, type PrincipleType } from "@/lib/journal/journal-types";
-import { TrashIcon } from "./principle-icons";
+import { PencilIcon, TrashIcon } from "./principle-icons";
 
 interface PrincipleCardProps {
   text: string;
@@ -56,6 +56,16 @@ export default function PrincipleCard({ text, type, savedAt, updatedAt, source, 
           so it already spans the card's full width without needing flex-1. */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-2.5">
         <div className="flex flex-shrink-0 items-center justify-end gap-2 sm:order-2">
+          {editable && (
+            <button
+              type="button"
+              onClick={startEditing}
+              aria-label="Rename principle"
+              className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-theme-sm text-ink-muted opacity-100 hover:bg-surface-alt hover:text-accent md:opacity-0 md:group-hover:opacity-100"
+            >
+              <PencilIcon className="h-3.5 w-3.5" />
+            </button>
+          )}
           {onDelete && (
             <button
               type="button"

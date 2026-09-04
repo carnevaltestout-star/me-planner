@@ -3,7 +3,7 @@ import { DndContext, MouseSensor, TouchSensor, closestCenter, useSensor, useSens
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useTheme } from "@/components/theme-provider/theme-context";
-import { loadEntries } from "@/lib/journal/journal-storage";
+import { loadEntries, saveEntries } from "@/lib/journal/journal-storage";
 import { PRINCIPLE_TYPES, type PrincipleType } from "@/lib/journal/journal-types";
 import { loadPrinciples, savePrinciples } from "@/lib/principles/principle-storage";
 import { createPrinciple, type Principle } from "@/lib/principles/principle-types";
@@ -55,6 +55,7 @@ function energyDerivedPrinciples(): Principle[] {
 }
 
 const ENERGY_ID_PREFIX = "energy-";
+const JOURNAL_ID_PREFIX = "journal-";
 
 // No dedicated drag handle here (unlike SortableCard elsewhere) — the card
 // already has a trash icon + type dropdown pinned to its own top-right
@@ -135,10 +136,11 @@ export default function PrinciplesPage() {
     savePrinciples(next);
   }
 
-  // "Delete" on a tracker-derived principle only unflags it as a
-  // principle — the note itself is Energy Tracker's own data (still shown
-  // there, still editable there), not something this tab owns and should
-  // be able to erase outright the way it can for principles it does own.
+  // "Delete" on a tracker- or journal-derived principle only unflags it as
+  // a principle — that data belongs to Energy Tracker/Journal respectively
+  // (still shown there, still editable there), not something this tab owns
+  // and should be able to erase outright the way it can for principles it
+  // does own.
   function handleDeletePrinciple(id: string) {
     if (id.startsWith(ENERGY_ID_PREFIX)) {
       const dateKey = id.slice(ENERGY_ID_PREFIX.length);
@@ -146,6 +148,15 @@ export default function PrinciplesPage() {
       const existing = notes[dateKey];
       if (!existing) return;
       saveEnergyNotes({ ...notes, [dateKey]: { ...existing, isPrinciple: false } });
+      setDerivedRefresh((t) => t + 1);
+      return;
+    }
+    if (id.startsWith(JOURNAL_ID_PREFIX)) {
+      const dateKey = id.slice(JOURNAL_ID_PREFIX.length);
+      const entries = loadEntries();
+      const existing = entries[dateKey];
+      if (!existing) return;
+      saveEntries({ ...entries, [dateKey]: { ...existing, isPrinciple: false } });
       setDerivedRefresh((t) => t + 1);
       return;
     }
@@ -276,7 +287,7 @@ export default function PrinciplesPage() {
                       updatedAt={p.updatedAt}
                       source={p.source}
                       onEdit={p.source === "journal" ? undefined : (text) => handleEditPrinciple(p.id, text)}
-                      onDelete={p.source === "journal" ? undefined : () => handleDeletePrinciple(p.id)}
+                      onDelete={() => handleDeletePrinciple(p.id)}
                       onChangeType={p.source ? undefined : (type) => handleChangePrincipleType(p.id, type)}
                     />
                   </SortablePrincipleCard>

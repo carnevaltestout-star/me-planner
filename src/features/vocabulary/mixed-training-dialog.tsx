@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 import { buildSessionQueue } from "@/lib/vocabulary/vocab-srs";
 import type { VocabTopic } from "@/lib/vocabulary/vocab-types";
 
@@ -11,6 +12,7 @@ interface MixedTrainingDialogProps {
 
 export default function MixedTrainingDialog({ topics, onClose, onStart }: MixedTrainingDialogProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [selected, setSelected] = useState<Set<string>>(() => new Set(topics.map((t) => t.id)));
 
   function toggle(id: string) {

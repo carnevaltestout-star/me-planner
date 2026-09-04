@@ -3,6 +3,7 @@ import SettingsPanel from "./settings-panel";
 import { BOTTOM_NAV_HEIGHT_PX } from "@/components/app-shell/bottom-nav";
 import { FOOTER_HEIGHT_PX_MOBILE } from "@/components/retro-gimmicks/pet-bunny";
 import { useTheme } from "@/components/theme-provider/theme-context";
+import { useEscapeKey } from "@/lib/use-escape-key";
 
 interface SettingsDialogProps {
   onClose: () => void;
@@ -71,6 +72,10 @@ export default function SettingsDialog({ onClose }: SettingsDialogProps) {
       heartTimeoutsRef.current.forEach((t) => window.clearTimeout(t));
     };
   }, []);
+
+  // Goes through handleClose (not onClose directly) so Escape plays the
+  // same per-theme close animation as clicking the backdrop or the ✕.
+  useEscapeKey(handleClose);
 
   function spawnCloseHearts() {
     const burst = Array.from({ length: 7 }, () => ({

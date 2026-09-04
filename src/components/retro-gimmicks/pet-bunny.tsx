@@ -6,6 +6,7 @@ import {
   KawaiiBunnyIcon,
   SleepingBunnyIcon,
 } from "@/components/kawaii-icons/kawaii-icons";
+import ReadingBunnyScene from "./reading-bunny-scene";
 
 const AWAKE_WINDOW_MS = 4 * 60 * 1000;
 const WALK_DURATION_MS = 900;
@@ -38,6 +39,13 @@ const EDGE_MARGIN_PX_MOBILE = 22;
 export const FOOTER_HEIGHT_PX_MOBILE = 44;
 const MOOD_MIN_MS = 7000;
 const MOOD_MAX_MS = 12000;
+// While awake (never while asleep), it climbs up a little book stack and
+// reads for a while every so often — "at random every ~20s" via the same
+// randomized-window pattern the mood loop above uses, rather than a
+// metronomic fixed interval.
+const READING_INTERVAL_MIN_MS = 16000;
+const READING_INTERVAL_MAX_MS = 24000;
+const READING_DURATION_MS = 10000;
 const MOOD_DISPLAY_MIN_MS = 4000;
 const MOOD_DISPLAY_MAX_MS = 6000;
 // Clicking the bunny itself (not just anywhere on the page) 3-4 times within
@@ -125,6 +133,10 @@ export default function PetBunny() {
   const Bunny = theme.kawaii ? KawaiiBunnyIcon : BunnyIcon;
   const [awake, setAwake] = useState(false);
   const [walking, setWalking] = useState(false);
+  const [reading, setReading] = useState(false);
+  // True only for the brief "hop off the book stack" window right before
+  // reading actually ends — see stopReading below and .gimmick-hop-off.
+  const [leaving, setLeaving] = useState(false);
   const [facingLeft, setFacingLeft] = useState(false);
   const [mood, setMood] = useState<string | null>(null);
   // Smaller sprite (and correspondingly smaller emotes/bubble, see the JSX
@@ -143,6 +155,11 @@ export default function PetBunny() {
   const asleepTimeoutRef = useRef<number>();
   const walkTimeoutRef = useRef<number>();
   const moodTimeoutRef = useRef<number>();
+  const readingTimeoutRef = useRef<number>();
+  // Bridges the eating-exit's completion (reported from the JSX below, via
+  // ReadingBunnyScene's onEatComplete) into the main effect's closure below,
+  // where scheduleReading/step and their shared timeout refs actually live.
+  const finishEatingRef = useRef<() => void>();
   const [heartEyes, setHeartEyes] = useState(false);
   const [hearts, setHearts] = useState<{ id: number; left: number }[]>([]);
   const clickTimestampsRef = useRef<number[]>([]);
@@ -176,6 +193,8 @@ export default function PetBunny() {
       isAwakeRef.current = false;
       setAwake(false);
       setWalking(false);
+      setReading(false);
+      setLeaving(false);
       window.clearTimeout(walkTimeoutRef.current);
     }
 
@@ -218,6 +237,45 @@ export default function PetBunny() {
       window.setTimeout(() => setMood(null), displayFor);
       scheduleMood();
     }
+
+    // Runs continuously the whole time this gimmick is on, same as the mood
+    // loop — while asleep it just skips this cycle and checks again next
+    // time, rather than needing to be separately kicked off on waking up.
+    function scheduleReading() {
+      const delay = READING_INTERVAL_MIN_MS + Math.random() * (READING_INTERVAL_MAX_MS - READING_INTERVAL_MIN_MS);
+      readingTimeoutRef.current = window.setTimeout(startReading, delay);
+    }
+
+    function startReading() {
+      if (!isAwakeRef.current) {
+        scheduleReading();
+        return;
+      }
+      // Sitting still to read, same as clicking pauses nothing else —
+      // wandering just resumes on its own schedule once reading ends.
+      window.clearTimeout(walkTimeoutRef.current);
+      setWalking(false);
+      setReading(true);
+      readingTimeoutRef.current = window.setTimeout(stopReading, READING_DURATION_MS);
+    }
+
+    function stopReading() {
+      // Starts the Kirby-style eating exit over the still-visible reading
+      // scene (see ReadingBunnyScene's `eating` prop) instead of cutting
+      // back to the plain bunny instantly. finishEating (called from the
+      // JSX below via onEatComplete) does the actual swap-back once that
+      // sequence reports it's done — under prefers-reduced-motion the
+      // sequence itself completes on its first tick, so this still ends up
+      // there almost immediately without a separate branch here.
+      setLeaving(true);
+    }
+
+    finishEatingRef.current = function finishEating() {
+      setReading(false);
+      setLeaving(false);
+      scheduleReading();
+      if (isAwakeRef.current && !prefersReducedMotion) step();
+    };
 
     function onClick() {
       window.clearTimeout(asleepTimeoutRef.current);
@@ -268,6 +326,7 @@ export default function PetBunny() {
     // Moods run continuously regardless of awake/asleep, for as long as this
     // gimmick is on — not gated on activity like the walking is.
     scheduleMood();
+    scheduleReading();
     return () => {
       window.removeEventListener("click", onClick);
       window.removeEventListener("resize", onResize);
@@ -276,6 +335,7 @@ export default function PetBunny() {
       window.clearTimeout(walkTimeoutRef.current);
       window.clearTimeout(moodTimeoutRef.current);
       window.clearTimeout(heartEyesTimeoutRef.current);
+      window.clearTimeout(readingTimeoutRef.current);
     };
   }, [active, iconSize, edgeMargin, isMobile]);
 
@@ -360,7 +420,7 @@ export default function PetBunny() {
     >
       {mood && (
         <span
-          className={`gimmick-mood-pop absolute right-full top-1/2 mr-3 max-w-[46vw] -translate-y-1/2 whitespace-nowrap rounded-2xl border-[3px] font-semibold sm:max-w-none ${
+          className={`gimmick-mood-pop absolute right-full top-1/2 mr-3 max-w-[46vw] -translate-y-1/2 break-words rounded-2xl border-[3px] font-semibold sm:max-w-none sm:whitespace-nowrap sm:break-normal ${
             isMobile ? "px-2 py-1 text-[0.62rem]" : "px-3 py-1.5 text-xs"
           }`}
           style={{ color: "var(--color-ink)", background: "var(--color-surface)", borderColor: "var(--color-accent)" }}
@@ -385,15 +445,39 @@ export default function PetBunny() {
           style={{ transform: facingLeft ? "scaleX(-1)" : undefined }}
           onClick={handlePetClick}
         >
-          <Bunny
-            className={`h-full w-full ${walking ? "gimmick-hop-arc" : "gimmick-idle-bob"}`}
-            style={{ color: "var(--color-accent)", imageRendering: "pixelated" }}
-          />
-          {heartEyes && (
-            <BunnyHeartEyesIcon
-              className="absolute inset-0 h-full w-full"
-              style={{ color: "#ff2d78", imageRendering: "pixelated" }}
+          {reading ? (
+            // Overflows the normal iconSize×iconSize box upward (the box
+            // itself keeps tracking position/movement unchanged) so the
+            // book stack reads as rising up from the ground the bunny is
+            // already standing on, rather than resizing its hitbox. Once
+            // `leaving`, switches to the Kirby-style eating exit — no
+            // gimmick-climb-in there since that animation's own frozen
+            // transform would otherwise fight the eat-bounce's for control
+            // of the same CSS property. -translate-x-1/2 is applied as a
+            // plain (non-animated) class throughout so centering holds up
+            // in between the two — each animation's own keyframes include
+            // translateX(-50%) too and take over for their duration, but
+            // this is what centers it the rest of the time, including the
+            // gap between them.
+            <ReadingBunnyScene
+              eating={leaving}
+              onEatComplete={() => finishEatingRef.current?.()}
+              className={`absolute bottom-0 left-1/2 -translate-x-1/2 ${leaving ? "" : "gimmick-climb-in gimmick-idle-bob"}`}
+              style={{ color: "var(--color-accent)", imageRendering: "pixelated", width: iconSize, height: iconSize * 2.25 }}
             />
+          ) : (
+            <>
+              <Bunny
+                className={`h-full w-full ${walking ? "gimmick-hop-arc" : "gimmick-idle-bob"}`}
+                style={{ color: "var(--color-accent)", imageRendering: "pixelated" }}
+              />
+              {heartEyes && (
+                <BunnyHeartEyesIcon
+                  className="absolute inset-0 h-full w-full"
+                  style={{ color: "#ff2d78", imageRendering: "pixelated" }}
+                />
+              )}
+            </>
           )}
         </div>
       ) : (

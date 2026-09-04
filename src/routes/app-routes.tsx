@@ -14,6 +14,7 @@ import StatisticsPage from "@/features/statistics/statistics-page";
 import FinanceOverviewPage from "@/features/finance-overview/finance-overview-page";
 import LearningPage from "@/features/learning/learning-page";
 import ProjectsPage from "@/features/projects/projects-page";
+import BrainPage from "@/features/brain/brain-page";
 
 // HashRouter: Tauri serves the production bundle without a server that can
 // rewrite deep links, so path-based routing would 404 on refresh.
@@ -37,6 +38,7 @@ export default function AppRoutes() {
           <Route path="/statistics" element={<StatisticsPage />} />
           <Route path="/finance-overview" element={<FinanceOverviewPage />} />
           <Route path="/learning" element={<LearningPage />} />
+          <Route path="/brain" element={<BrainPage />} />
         </Route>
       </Routes>
     </HashRouter>

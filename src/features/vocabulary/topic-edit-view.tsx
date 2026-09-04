@@ -362,7 +362,7 @@ function WordRow({
   }
 
   return (
-    <div className="relative grid grid-cols-1 border-b border-border last:border-b-0 sm:grid-cols-[1fr_1.6fr_34px]">
+    <div className="relative grid grid-cols-1 border-b-2 border-border last:border-b-0 sm:grid-cols-[1fr_1.6fr_34px]">
       <div
         className={`flex items-stretch border-l-0 border-border transition-colors ${
           isTermNew ? "bg-accent-soft ring-2 ring-inset ring-accent" : ""
@@ -389,6 +389,7 @@ function WordRow({
             <button
               key={c.value}
               type="button"
+              tabIndex={-1}
               title={`Highlight ${c.label}`}
               onMouseDown={runToolbarCommand(() => document.execCommand("hiliteColor", false, c.value))}
               className="h-4 w-4 flex-shrink-0 rounded-full border border-border"
@@ -397,6 +398,7 @@ function WordRow({
           ))}
           <button
             type="button"
+            tabIndex={-1}
             title="Clear highlight"
             onMouseDown={runToolbarCommand(() => document.execCommand("hiliteColor", false, "transparent"))}
             className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border border-dashed border-border text-[8px] text-ink-muted"
@@ -409,6 +411,7 @@ function WordRow({
             <button
               key={c.value}
               type="button"
+              tabIndex={-1}
               title={`Text ${c.label}`}
               onMouseDown={runToolbarCommand(() => document.execCommand("foreColor", false, c.value))}
               className="h-4 w-4 flex-shrink-0 rounded-full border border-border"
@@ -418,6 +421,7 @@ function WordRow({
           <span className="mx-0.5 h-3 w-px flex-shrink-0 bg-border" />
           <button
             type="button"
+            tabIndex={-1}
             title="Smaller text"
             onMouseDown={runToolbarCommand(() => {
               fontLevelRef.current = Math.max(MIN_FONT_LEVEL, fontLevelRef.current - 1);
@@ -429,6 +433,7 @@ function WordRow({
           </button>
           <button
             type="button"
+            tabIndex={-1}
             title="Bigger text"
             onMouseDown={runToolbarCommand(() => {
               fontLevelRef.current = Math.min(MAX_FONT_LEVEL, fontLevelRef.current + 1);

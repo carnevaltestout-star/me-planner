@@ -1,4 +1,5 @@
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 
 interface BookReviewDeleteConfirmProps {
   title: string;
@@ -8,6 +9,7 @@ interface BookReviewDeleteConfirmProps {
 
 export default function BookReviewDeleteConfirm({ title, onCancel, onConfirm }: BookReviewDeleteConfirmProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onCancel);
   return (
     <div
       className="fixed inset-x-0 top-0 z-50 flex items-center justify-center bg-black/35 p-4 md:inset-0"

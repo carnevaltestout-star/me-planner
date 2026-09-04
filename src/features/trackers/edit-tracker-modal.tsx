@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 import { dateKey } from "@/lib/trackers/tracker-dates";
 import { TRACKER_COLORS, TRACKER_ICON_KEYS, type Tracker, type TrackerIconKey } from "@/lib/trackers/tracker-types";
 import TrackerIcon from "./tracker-icon";
@@ -26,6 +27,7 @@ function toDateInput(d: Date): string {
 
 export default function EditTrackerModal({ tracker, onClose, onSave, onDelete }: EditTrackerModalProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [name, setName] = useState(tracker.name);
   const [icon, setIcon] = useState<TrackerIconKey>(tracker.icon);
   const [color, setColor] = useState(tracker.color);

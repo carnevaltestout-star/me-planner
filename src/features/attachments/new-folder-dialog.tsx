@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 
 interface NewFolderDialogProps {
   onSave: (name: string) => void;
@@ -8,6 +9,7 @@ interface NewFolderDialogProps {
 
 export default function NewFolderDialog({ onSave, onClose }: NewFolderDialogProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
 

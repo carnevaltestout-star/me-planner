@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { SVGProps } from "react";
 import { dateKey, isFuture, monthLabel, shiftDay } from "@/lib/trackers/tracker-dates";
 import { loadEnergyState, saveEnergyState } from "@/lib/trackers/energy-storage";
@@ -34,6 +34,19 @@ export default function EnergyTrackerCard() {
   // Never persisted — always starts closed on a fresh page load, by design.
   const [overviewOpen, setOverviewOpen] = useState(false);
   const [showAllNotesOpen, setShowAllNotesOpen] = useState(false);
+  // Owned here (not inside EnergyNotesField) so a note-save survives the
+  // field remounting — e.g. typing a note then clicking the day-nav arrow
+  // both blurs (saving it) and changes anchorKey in the same render, which
+  // would otherwise wipe a locally-owned flag before it ever painted. Same
+  // reasoning as Journal's page-level justSaved.
+  const [justSaved, setJustSaved] = useState(false);
+  const savedTimeoutRef = useRef<number>();
+
+  function pulseSaved() {
+    window.clearTimeout(savedTimeoutRef.current);
+    setJustSaved(true);
+    savedTimeoutRef.current = window.setTimeout(() => setJustSaved(false), 1600);
+  }
 
   const anchorKey = dateKey(anchor);
   const locked = isFuture(anchor);
@@ -67,9 +80,11 @@ export default function EnergyTrackerCard() {
       const next = { ...notes };
       delete next[key];
       persistNotes(next);
+      pulseSaved();
       return;
     }
     persistNotes({ ...notes, [key]: { text, isPrinciple: existing?.isPrinciple ?? false, updatedAt: existing?.updatedAt ?? "" } });
+    pulseSaved();
   }
 
   function handleToggleNotePrinciple(key: string, value: boolean) {
@@ -78,9 +93,11 @@ export default function EnergyTrackerCard() {
       const next = { ...notes };
       delete next[key];
       persistNotes(next);
+      pulseSaved();
       return;
     }
     persistNotes({ ...notes, [key]: { text: existing?.text ?? "", isPrinciple: value, updatedAt: existing?.updatedAt ?? "" } });
+    pulseSaved();
   }
 
   function shiftMonth(date: Date, delta: number) {
@@ -195,6 +212,7 @@ export default function EnergyTrackerCard() {
         <EnergyOverviewPanel
           state={state}
           notes={notes}
+          justSaved={justSaved}
           onChangeDay={handleChangeDayPoints}
           onCommitNoteText={handleCommitNoteText}
           onToggleNotePrinciple={handleToggleNotePrinciple}
@@ -207,6 +225,7 @@ export default function EnergyTrackerCard() {
             key={anchorKey}
             note={notes[anchorKey]}
             locked={locked}
+            justSaved={justSaved}
             onCommitText={(text) => handleCommitNoteText(anchorKey, text)}
             onTogglePrinciple={(value) => handleToggleNotePrinciple(anchorKey, value)}
             showAllNotes={{ active: showAllNotesOpen, onToggle: () => setShowAllNotesOpen((o) => !o) }}

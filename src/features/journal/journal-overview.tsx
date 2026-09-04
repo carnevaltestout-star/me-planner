@@ -1,4 +1,5 @@
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 import { dateKey, shiftDay } from "@/lib/journal/journal-dates";
 import { STATIC_QUESTIONS, type JournalEntry } from "@/lib/journal/journal-types";
 
@@ -19,6 +20,7 @@ function dayLabel(offset: number, date: Date) {
 // path for changes, so autosave/lock logic never has to be duplicated here.
 export default function JournalOverview({ entries, onSelect, onClose }: JournalOverviewProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const today = new Date();
   const days = [0, -1, -2].map((offset) => {
     const date = shiftDay(today, offset);

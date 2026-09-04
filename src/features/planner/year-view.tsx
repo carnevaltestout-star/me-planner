@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 import { isSameDay, monthGridDays } from "@/lib/planner/planner-dates";
 
 interface YearViewProps {
@@ -60,6 +61,7 @@ function MonthCard({
 // jump the main planner view there.
 export default function YearView({ anchor, onSelect, onClose }: YearViewProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [year, setYear] = useState(anchor.getFullYear());
   const today = new Date();
   const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1));

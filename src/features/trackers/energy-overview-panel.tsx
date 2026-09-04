@@ -8,6 +8,7 @@ import EnergyNotesField from "./energy-notes-field";
 interface EnergyOverviewPanelProps {
   state: EnergyState;
   notes: EnergyNoteState;
+  justSaved: boolean;
   onChangeDay: (dateKeyValue: string, points: EnergyPoint[]) => void;
   onCommitNoteText: (dateKeyValue: string, text: string) => void;
   onToggleNotePrinciple: (dateKeyValue: string, value: boolean) => void;
@@ -110,7 +111,7 @@ const DayCountWheel = forwardRef<DayCountWheelHandle, { value: number; onChange:
 // as it's open, rather than sitting underneath it. Never persisted: dayCount
 // and open/closed both reset to their defaults on every page load, by
 // design (plain useState, no storage read/write).
-export default function EnergyOverviewPanel({ state, notes, onChangeDay, onCommitNoteText, onToggleNotePrinciple, onClose }: EnergyOverviewPanelProps) {
+export default function EnergyOverviewPanel({ state, notes, justSaved, onChangeDay, onCommitNoteText, onToggleNotePrinciple, onClose }: EnergyOverviewPanelProps) {
   const [dayCount, setDayCount] = useState(DEFAULT_DAYS);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640);
   const wheelRef = useRef<DayCountWheelHandle>(null);
@@ -182,6 +183,7 @@ export default function EnergyOverviewPanel({ state, notes, onChangeDay, onCommi
                 key={`${key}-notes`}
                 note={notes[key]}
                 locked={isFuture(d)}
+                justSaved={justSaved}
                 onCommitText={(text) => onCommitNoteText(key, text)}
                 onTogglePrinciple={(value) => onToggleNotePrinciple(key, value)}
               />

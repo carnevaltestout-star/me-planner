@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 import { fromTimeInput, toTimeInput } from "@/lib/planner/planner-dates";
 import { DEFAULT_TINT_PERCENT, EVENT_COLORS, PRIORITY_TINT_PERCENT, type EventPriority } from "@/lib/planner/planner-types";
 import type { EventPreset } from "@/lib/planner/preset-types";
@@ -26,6 +27,7 @@ interface PresetEditDialogProps {
 // slot, not from these.
 export default function PresetEditDialog({ preset, onSave, onClose }: PresetEditDialogProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [title, setTitle] = useState(preset.title);
   const [color, setColor] = useState(preset.color || EVENT_COLORS[0]);
   const [start, setStart] = useState(preset.start !== undefined ? toTimeInput(preset.start) : "");

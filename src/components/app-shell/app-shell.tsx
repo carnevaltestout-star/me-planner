@@ -14,6 +14,7 @@ import { RETRO_NAV_ICONS } from "@/components/retro-gimmicks/retro-nav-icons";
 import { useTheme } from "@/components/theme-provider/theme-context";
 import SettingsDialog from "@/components/settings-dialog/settings-dialog";
 import { isTabEnabled } from "@/lib/theme/theme-types";
+import MusicControl from "@/components/music-provider/music-control";
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const theme = useTheme();
@@ -73,9 +74,10 @@ function TabTitleBunny() {
 function BrandMark() {
   return (
     <div className="flex items-center gap-1.5 px-2">
-      <span className="font-theme text-base font-bold text-ink">Me</span>
-      <span className="text-xs text-ink-muted">planner</span>
+      <span className="font-theme text-xl font-bold text-ink">Me</span>
+      <span className="text-sm text-ink-muted">planner</span>
       <IdleBunny />
+      <MusicControl />
     </div>
   );
 }
@@ -148,6 +150,13 @@ export default function AppShell() {
             className="flex flex-shrink-0 items-center gap-2 border-b border-border bg-surface px-2.5 py-1.5 md:px-4 md:py-3"
             data-theme-surface="chrome"
           >
+            {/* BrandMark (with its own MusicControl) only renders in the
+                desktop sidebar below — this is the one place a mobile user
+                can reach the same note/skip controls, since there's no
+                "Me planner" brand text on mobile at all. */}
+            <div className="md:hidden">
+              <MusicControl />
+            </div>
             <div className="flex flex-1 items-center justify-center gap-1.5 md:justify-start">
               <TabTitleBunny />
               <h1 className="font-theme text-xs font-semibold text-ink md:text-sm">{currentLabel}</h1>

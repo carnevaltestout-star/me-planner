@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 import { SELECTABLE_PRINCIPLE_TYPES, type PrincipleType } from "@/lib/journal/journal-types";
 
 interface AddPrincipleDialogProps {
@@ -13,6 +14,7 @@ const labelClass = "text-xs text-ink-muted";
 
 export default function AddPrincipleDialog({ onClose, onSave }: AddPrincipleDialogProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [text, setText] = useState("");
   const [type, setType] = useState<PrincipleType>("Personal");
   const [error, setError] = useState("");

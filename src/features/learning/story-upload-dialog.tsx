@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 import { ACCEPTED_FILE_TYPES, extractTextFromFile } from "@/lib/learning/file-text-extract";
 
 interface StoryUploadDialogProps {
@@ -25,6 +26,7 @@ function nameFromFilename(filename: string): string {
 
 export default function StoryUploadDialog({ onClose, onSave }: StoryUploadDialogProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [level, setLevel] = useState(1);
   const [name, setName] = useState("");
   const [text, setText] = useState("");

@@ -1,5 +1,6 @@
 import { useState, type KeyboardEvent } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 import { ITEM_COLORS, PRIORITY_TINT_PERCENT, type ChecklistStep, type GoalPriority, type GoalTodoItem } from "@/lib/goals/goal-todo-types";
 
 interface GoalTodoFormProps {
@@ -21,6 +22,7 @@ const PRIORITIES: { value: GoalPriority; label: string }[] = [
 
 export default function GoalTodoForm({ item, onClose, onSave }: GoalTodoFormProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [title, setTitle] = useState(item.title);
   const [category, setCategory] = useState(item.category);
   const [color, setColor] = useState(item.color);

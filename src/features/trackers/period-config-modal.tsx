@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 import { dateKey } from "@/lib/trackers/tracker-dates";
 import { DEFAULT_CYCLE_LENGTH_DAYS, DEFAULT_PERIOD_LENGTH_DAYS, TRACKER_COLORS, type Tracker } from "@/lib/trackers/tracker-types";
 import TrackerIcon from "./tracker-icon";
@@ -17,6 +18,7 @@ function toDateInput(d: Date): string {
 
 export default function PeriodConfigModal({ onClose, onCreate }: PeriodConfigModalProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [periodLength, setPeriodLength] = useState(DEFAULT_PERIOD_LENGTH_DAYS);
   const [cycleLength, setCycleLength] = useState(DEFAULT_CYCLE_LENGTH_DAYS);
   const [startDate, setStartDate] = useState(() => toDateInput(new Date()));

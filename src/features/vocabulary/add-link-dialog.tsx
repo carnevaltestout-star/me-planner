@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 import type { VocabLink } from "@/lib/vocabulary/vocab-types";
 
 interface AddLinkDialogProps {
@@ -13,6 +14,7 @@ interface AddLinkDialogProps {
 // immediately without an extra click on "+" first.
 export default function AddLinkDialog({ links, onClose, onSave }: AddLinkDialogProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [rows, setRows] = useState<VocabLink[]>([...links, { id: crypto.randomUUID(), url: "" }]);
 
   function updateRow(id: string, url: string) {

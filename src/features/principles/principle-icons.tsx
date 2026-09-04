@@ -157,6 +157,17 @@ export function TrashIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+// Same stroke convention as TrashIcon above — pairs with it as the
+// hover-reveal edit affordance on a principle card.
+export function PencilIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinejoin="round" strokeLinecap="round" {...props}>
+      <path d="M13.5 3.5 16.5 6.5 7 16 3.5 16.5 4 13Z" />
+      <line x1="12" y1="5" x2="15" y2="8" />
+    </svg>
+  );
+}
+
 // Small paint-swatch trigger icon for the "change routine icon" button.
 export function PaletteIcon(props: SVGProps<SVGSVGElement>) {
   return (

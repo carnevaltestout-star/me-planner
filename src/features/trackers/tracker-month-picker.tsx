@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
+import { useEscapeKey } from "@/lib/use-escape-key";
 import { isSameDay, monthGridDays } from "@/lib/trackers/tracker-dates";
 
 interface TrackerMonthPickerProps {
@@ -68,6 +69,7 @@ function MonthCard({
 // (not a specific day) selects that month.
 export default function TrackerMonthPicker({ anchor, onSelect, onClose }: TrackerMonthPickerProps) {
   const bottomReserve = useMobileBottomReserve();
+  useEscapeKey(onClose);
   const [year, setYear] = useState(anchor.getFullYear());
   const today = new Date();
   const months = Array.from({ length: 12 }, (_, i) => new Date(year, i, 1));
