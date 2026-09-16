@@ -13,6 +13,7 @@ import {
   type ThemeSettings,
 } from "@/lib/theme/theme-types";
 import { countStoredEntries, exportAppData, importAppData } from "@/lib/data-transfer";
+import { loadNotesSettings, saveNotesSettings } from "@/lib/notes/notes-settings-storage";
 import { navItems } from "@/routes/nav-items";
 
 const FAVORITES_STORAGE_KEY = "me-planner:favoriteColors";
@@ -48,10 +49,11 @@ const ICON_PACKS: { key: IconPackKey; name: string }[] = [
   { key: "snacks", name: "Snacks" },
 ];
 
-type SettingsTab = "features" | "appearance";
+type SettingsTab = "features" | "appearance" | "general";
 const TABS: { value: SettingsTab; label: string }[] = [
   { value: "features", label: "Activated features" },
   { value: "appearance", label: "Appearance" },
+  { value: "general", label: "General" },
 ];
 // How long the "Saved" notice stays up after a change — long enough to
 // register as feedback, short enough to not linger and feel stuck.
@@ -136,12 +138,24 @@ export default function SettingsPanel() {
   // slowing anything down or requiring confirmation.
   const [savedNotice, setSavedNotice] = useState(false);
   const savedNoticeTimeoutRef = useRef<number>();
+  const [notesSettings, setNotesSettings] = useState(loadNotesSettings);
 
-  function applyChange(next: ThemeSettings) {
-    setTheme(next);
+  function pulseSaved() {
     setSavedNotice(true);
     window.clearTimeout(savedNoticeTimeoutRef.current);
     savedNoticeTimeoutRef.current = window.setTimeout(() => setSavedNotice(false), SAVED_NOTICE_MS);
+  }
+
+  function applyChange(next: ThemeSettings) {
+    setTheme(next);
+    pulseSaved();
+  }
+
+  function setTrashRetentionDays(days: number) {
+    const next = { ...notesSettings, trashRetentionDays: days };
+    setNotesSettings(next);
+    saveNotesSettings(next);
+    pulseSaved();
   }
 
   const dark = resolvesToDark(theme.mode);
@@ -209,8 +223,8 @@ export default function SettingsPanel() {
     return palette.bg === p.bg && palette.accent === p.accent && palette.text === p.text;
   }
 
-  function handleExport() {
-    exportAppData();
+  async function handleExport() {
+    await exportAppData();
     setTransferStatus("Backup file downloaded.");
   }
 
@@ -281,7 +295,7 @@ export default function SettingsPanel() {
               ))}
             </div>
           </section>
-        ) : (
+        ) : activeTab === "appearance" ? (
           <>
       <section className="flex flex-col gap-2.5">
         <h2 className="m-0 text-sm font-semibold text-ink">Appearance</h2>
@@ -475,9 +489,10 @@ export default function SettingsPanel() {
       <section className="flex flex-col gap-2.5 border-t border-dashed border-border pt-4">
         <h2 className="m-0 text-sm font-semibold text-ink">Your data</h2>
         <p className="m-0 text-xs text-ink-muted">
-          Everything you enter lives only in this browser/app's local storage — it doesn't sync anywhere on its own.
-          Export a backup here, then import it after installing a new build or switching devices, to carry your
-          entries across ({countStoredEntries()} item{countStoredEntries() === 1 ? "" : "s"} stored right now).
+          Everything you enter (Calendar, Goals/To-Dos, Principles, Journal, Trackers, Vocabulary, Book Reviews,
+          Brain, and the rest) lives only on this device — it doesn't sync anywhere on its own. Export a backup
+          here, then import it after installing a new build or switching devices, to carry your entries across
+          ({countStoredEntries()} item{countStoredEntries() === 1 ? "" : "s"} stored right now).
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -506,6 +521,26 @@ export default function SettingsPanel() {
         {transferStatus && <p className="m-0 text-xs text-accent">{transferStatus}</p>}
       </section>
           </>
+        ) : (
+          <section className="flex flex-col gap-2.5">
+            <h2 className="m-0 text-sm font-semibold text-ink">General</h2>
+            <label className="flex items-center gap-2 text-sm text-ink">
+              Delete files after days:
+              <input
+                type="number"
+                min={1}
+                value={notesSettings.trashRetentionDays}
+                onChange={(e) => {
+                  const days = Math.round(Number(e.target.value));
+                  if (Number.isFinite(days) && days > 0) setTrashRetentionDays(days);
+                }}
+                className="w-24 rounded-theme border border-border bg-surface px-2.5 py-1.5 text-sm text-ink focus:outline-none"
+              />
+            </label>
+            <p className="m-0 text-xs text-ink-muted">
+              Notes moved to Trash are permanently deleted this many days after being trashed. Defaults to 90 days.
+            </p>
+          </section>
         )}
       </div>
     </div>
