@@ -7,8 +7,11 @@ import {
   openOrDownloadAttachment,
   readFileAsAttachment,
 } from "@/lib/vocabulary/vocab-files";
-import type { VocabAttachment, VocabLink, VocabTopic, VocabWord } from "@/lib/vocabulary/vocab-types";
+import type { Direction, VocabAttachment, VocabLink, VocabTopic, VocabWord } from "@/lib/vocabulary/vocab-types";
+import { useTheme } from "@/components/theme-provider/theme-context";
+import DashDivider from "@/components/dash-divider";
 import AddLinkDialog from "./add-link-dialog";
+import DirectionToggle from "./direction-toggle";
 
 // Beyond 15 lines the field stops growing and shows a scrollbar instead,
 // capped down to a 12-line viewport rather than the full 15 — leaves a
@@ -42,6 +45,8 @@ interface TopicEditViewProps {
   topic: VocabTopic;
   onBack: () => void;
   onStartTraining: () => void;
+  direction: Direction;
+  onChangeDirection: (direction: Direction) => void;
   onRenameTopic: (name: string) => void;
   onUpdateWord: (wordId: string, term: string, meaning: string) => void;
   onAddWord: () => void;
@@ -67,6 +72,8 @@ export default function TopicEditView({
   topic,
   onBack,
   onStartTraining,
+  direction,
+  onChangeDirection,
   onRenameTopic,
   onUpdateWord,
   onAddWord,
@@ -177,6 +184,7 @@ export default function TopicEditView({
             onChange={handleTopicFilesSelected}
           />
         </div>
+        <DirectionToggle value={direction} onChange={onChangeDirection} className="flex-shrink-0" />
         <button
           type="button"
           onClick={onStartTraining}
@@ -226,7 +234,7 @@ export default function TopicEditView({
           <div className="px-2.5 py-2">Meaning</div>
           <div />
         </div>
-        {topic.words.map((w) => (
+        {topic.words.map((w, i) => (
           <WordRow
             key={w.id}
             word={w}
@@ -239,6 +247,7 @@ export default function TopicEditView({
             isMeaningNew={newWordFields?.id === w.id && newWordFields.meaning}
             onTermInteract={() => clearNewField(w.id, "term")}
             onMeaningInteract={() => clearNewField(w.id, "meaning")}
+            isLast={i === topic.words.length - 1}
           />
         ))}
         <div className="p-2.5">
@@ -283,12 +292,14 @@ function WordRow({
   isMeaningNew,
   onTermInteract,
   onMeaningInteract,
+  isLast,
 }: {
   word: VocabWord;
   onUpdate: (wordId: string, term: string, meaning: string) => void;
   onUpdateLinks: (wordId: string, links: VocabLink[]) => void;
   onUpdateAttachments: (wordId: string, attachments: VocabAttachment[]) => void;
   onDelete: () => void;
+  isLast: boolean;
   // Term/meaning commit silently on blur with no other feedback that
   // anything happened — pulses the shared "Saved" chip in TopicEditView's
   // header (same convention as Journal/Settings autosave) instead of each
@@ -304,6 +315,8 @@ function WordRow({
   onTermInteract: () => void;
   onMeaningInteract: () => void;
 }) {
+  const theme = useTheme();
+  const pixelated = theme.retro || theme.kawaii;
   const [term, setTerm] = useState(word.term);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const meaningRef = useRef<HTMLDivElement>(null);
@@ -362,7 +375,8 @@ function WordRow({
   }
 
   return (
-    <div className="relative grid grid-cols-1 border-b-2 border-border last:border-b-0 sm:grid-cols-[1fr_1.6fr_34px]">
+    <>
+    <div className={`relative grid grid-cols-1 sm:grid-cols-[1fr_1.6fr_34px] ${pixelated ? "" : "border-b-2 border-border last:border-b-0"}`}>
       <div
         className={`flex items-stretch border-l-0 border-border transition-colors ${
           isTermNew ? "bg-accent-soft ring-2 ring-inset ring-accent" : ""
@@ -547,5 +561,7 @@ function WordRow({
         />
       )}
     </div>
+    {pixelated && !isLast && <DashDivider />}
+    </>
   );
 }

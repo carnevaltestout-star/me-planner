@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { openLink, openOrDownloadAttachment } from "@/lib/vocabulary/vocab-files";
 import type { Direction, TrainingSession, VocabTopic, VocabWord } from "@/lib/vocabulary/vocab-types";
+import DirectionToggle from "./direction-toggle";
 
 // Same links/files a word carries on the Topic edit page, shown alongside
 // whichever side of the card is currently displaying "Meaning" — stops
@@ -100,22 +101,7 @@ export default function TrainingView({ session, findTopic, findWord, onChangeDir
           Card {session.index + 1} of {session.wordRefs.length} — {topic.name}
         </span>
         <div className="flex items-center gap-2">
-          <div className="inline-flex overflow-hidden rounded-full border border-border">
-            <button
-              type="button"
-              onClick={() => onChangeDirection("term-to-meaning")}
-              className={`px-3 py-1 text-xs ${session.direction === "term-to-meaning" ? "bg-accent font-semibold text-accent-contrast" : "bg-surface text-ink-muted"}`}
-            >
-              Word → Meaning
-            </button>
-            <button
-              type="button"
-              onClick={() => onChangeDirection("meaning-to-term")}
-              className={`px-3 py-1 text-xs ${session.direction === "meaning-to-term" ? "bg-accent font-semibold text-accent-contrast" : "bg-surface text-ink-muted"}`}
-            >
-              Meaning → Word
-            </button>
-          </div>
+          <DirectionToggle value={session.direction} onChange={onChangeDirection} />
           <button type="button" onClick={onExit} className="rounded-theme-sm border border-border bg-surface px-3 py-1.5 text-xs text-ink hover:bg-surface-alt">
             Exit
           </button>

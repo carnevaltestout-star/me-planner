@@ -243,6 +243,17 @@ const GENERIC_DISTRACTOR_WORDS = [
   "garden", "window", "mountain", "silver", "quiet", "afternoon", "bicycle",
   "kitchen", "forest", "ocean", "letter", "candle", "market", "bridge",
   "harbor", "meadow", "thunder", "lantern", "corner", "valley",
+  "whisper", "shadow", "pillow", "journey", "harvest", "blossom", "ribbon",
+  "tunnel", "cabinet", "chimney", "factory", "hallway", "mirror", "curtain",
+  "staircase", "courtyard", "fountain", "pavement", "sidewalk", "prairie",
+  "glacier", "canyon", "plateau", "wetland", "marsh", "tundra", "savanna",
+  "jungle", "whistle", "chisel", "anchor", "compass", "kettle", "teapot",
+  "saucer", "cushion", "mattress", "wardrobe", "drawer", "shelf", "cupboard",
+  "doormat", "porch", "balcony", "terrace", "veranda", "driveway", "mailbox",
+  "lamppost", "alleyway", "crossroad", "highway", "pier", "dock", "wharf",
+  "jetty", "lighthouse", "seashell", "coastline", "horizon", "meadowlark",
+  "songbird", "sparrow", "acorn", "pinecone", "branch", "petal", "stream",
+  "pebble", "thicket",
 ];
 
 // Guarantees at least one fair quiz question for ANY non-trivial story,

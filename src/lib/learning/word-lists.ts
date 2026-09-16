@@ -1,17 +1,26 @@
 // Shared content pools for Sequence Memory's word mode and Reverse Recall's
 // number/letter/word/picture modes.
 
-// Grown from 24 to 36 entries so higher levels (up to level 34 before
+// Grown from 24 to 36, then to 106 entries so higher levels (before
 // Reverse Recall's word/picture modes need to fall back to repeats — see
 // buildRoundItems in reverse-recall-game.tsx) draw from a genuinely bigger,
-// more varied vocabulary instead of just reusing the same 24 nouns more
-// often once levels got harder.
+// more varied vocabulary instead of just reusing the same nouns more often
+// once levels got harder.
 export const MEMORY_WORDS = [
   "apple", "train", "castle", "ocean", "guitar", "mountain", "river", "candle",
   "forest", "bridge", "pencil", "window", "garden", "rocket", "island", "lantern",
   "harbor", "meadow", "compass", "thunder", "blanket", "orchard", "canyon", "feather",
   "volcano", "dolphin", "diamond", "hammer", "telescope", "umbrella", "penguin", "cactus",
   "trumpet", "snail", "kite", "violin",
+  "banana", "orange", "lemon", "cherry", "strawberry", "watermelon", "pineapple", "coconut",
+  "peach", "mango", "carrot", "corn", "potato", "mushroom", "pepper", "tomato",
+  "avocado", "pretzel", "bread", "cheese", "pizza", "burger", "taco", "sushi",
+  "cake", "cookie", "donut", "honey", "popcorn", "airplane", "helicopter", "ship",
+  "sailboat", "canoe", "bicycle", "motorcycle", "bus", "taxi", "tractor", "tent",
+  "church", "beetle", "ladybug", "spider", "octopus", "whale", "shark", "turtle",
+  "crab", "fish", "elephant", "giraffe", "lion", "tiger", "bear", "fox",
+  "owl", "eagle", "parrot", "peacock", "rainbow", "snowflake", "cloud", "star",
+  "moon", "sun", "ice", "clock", "key", "lock",
 ];
 
 // Paired index-for-index with MEMORY_WORDS above — Reverse Recall's picture
@@ -22,6 +31,15 @@ export const MEMORY_PICTURES = [
   "⚓", "🦋", "🧭", "⚡", "🧣", "🍇", "🏔️", "🪶",
   "🌋", "🐬", "💎", "🔨", "🔭", "☂️", "🐧", "🌵",
   "🎺", "🐌", "🪁", "🎻",
+  "🍌", "🍊", "🍋", "🍒", "🍓", "🍉", "🍍", "🥥",
+  "🍑", "🥭", "🥕", "🌽", "🥔", "🍄", "🫑", "🍅",
+  "🥑", "🥨", "🍞", "🧀", "🍕", "🍔", "🌮", "🍣",
+  "🎂", "🍪", "🍩", "🍯", "🍿", "✈️", "🚁", "🚢",
+  "⛵", "🛶", "🚲", "🏍️", "🚌", "🚕", "🚜", "⛺",
+  "⛪", "🪲", "🐞", "🕷️", "🐙", "🐳", "🦈", "🐢",
+  "🦀", "🐠", "🐘", "🦒", "🦁", "🐯", "🐻", "🦊",
+  "🦉", "🦅", "🦜", "🦚", "🌈", "❄️", "☁️", "⭐",
+  "🌙", "☀️", "🧊", "⏰", "🔑", "🔒",
 ];
 
 // B/C/D/F/G/H/J/K/L/M/N/P/Q/R/S/T/V/W/X/Y/Z — vowels A/E/I/O/U excluded,

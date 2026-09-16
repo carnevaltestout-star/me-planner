@@ -78,7 +78,11 @@ function SortablePrincipleCard({ id, disabled, children }: { id: string; disable
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.6 : undefined,
-        touchAction: disabled ? undefined : "none",
+        // "manipulation", not "none" — see goal-todo-card.tsx's identical
+        // fix: "none" locks out native scrolling for the whole touch
+        // session the moment it starts, before the sensor's 200ms hold
+        // delay ever gets a chance to matter.
+        touchAction: disabled ? undefined : "manipulation",
       }}
       {...(disabled ? {} : { ...attributes, ...listeners })}
     >

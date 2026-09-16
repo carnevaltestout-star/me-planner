@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useTheme } from "@/components/theme-provider/theme-context";
 import { dateKey, fmtRange, startOfWeek } from "@/lib/planner/planner-dates";
 import { loadEvents, saveEvents } from "@/lib/planner/planner-storage";
 import { loadPresets, savePresets } from "@/lib/planner/preset-storage";
@@ -26,6 +27,7 @@ function getDays(view: PlannerView, anchor: Date): Date[] {
 }
 
 export default function PlannerPage() {
+  const theme = useTheme();
   // Week view is cramped on a phone-width screen, so mobile starts on Day
   // instead — matches the app's usual md: (768px) mobile/desktop split.
   const [view, setView] = useState<PlannerView>(() => (window.innerWidth < 768 ? "day" : "week"));
@@ -77,6 +79,30 @@ export default function PlannerPage() {
 
   function goNext() {
     setAnchor((a) => new Date(a.getFullYear(), a.getMonth(), a.getDate() + (view === "day" ? 1 : 7)));
+  }
+
+  // Mobile swipe-to-navigate — only checked on touchend against the total
+  // travel, so it never fights PlannerGrid's own vertical scroll (no
+  // preventDefault during the gesture) or a plain tap-to-create-event
+  // (near-zero delta just falls through with no effect).
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const SWIPE_THRESHOLD_PX = 60;
+
+  function handleGridTouchStart(e: React.TouchEvent) {
+    const t = e.touches[0];
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+  }
+  function handleGridTouchEnd(e: React.TouchEvent) {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) > SWIPE_THRESHOLD_PX && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      if (dx > 0) goNext();
+      else goPrev();
+    }
   }
 
   function persist(next: PlannerEvent[]) {
@@ -247,38 +273,49 @@ export default function PlannerPage() {
         onToggleRoutines={() => setRoutinesOpen((o) => !o)}
       />
 
-      <div className="flex flex-shrink-0 items-center gap-2">
-        <div className="min-w-0 flex-1">
-          <PresetBar
-            presets={presets}
-            onAdd={(preset) => persistPresets([...presets, preset])}
-            onUpdate={(preset) => persistPresets(presets.map((p) => (p.id === preset.id ? preset : p)))}
-            onDelete={(id) => persistPresets(presets.filter((p) => p.id !== id))}
-            onQuickAdd={(preset) => addEventFromPreset(preset, dateKey(new Date()), currentHalfHour())}
-            onReorder={reorderPresets}
-          />
-        </div>
-        <div className="inline-flex flex-shrink-0 overflow-hidden rounded-full border border-border">
+      <PresetBar
+        presets={presets}
+        onAdd={(preset) => persistPresets([...presets, preset])}
+        onUpdate={(preset) => persistPresets(presets.map((p) => (p.id === preset.id ? preset : p)))}
+        onDelete={(id) => persistPresets(presets.filter((p) => p.id !== id))}
+        onQuickAdd={(preset) => addEventFromPreset(preset, dateKey(new Date()), currentHalfHour())}
+        onReorder={reorderPresets}
+      />
+
+      {/* Its own row, not crammed to the right of the preset cards — the
+          label sits with real breathing room from each arrow instead of
+          the arrows being pinned flush together at the row's edge. Pink
+          border under kawaii, same convention music-control.tsx's skip
+          arrows use (theme.kawaii ? border-accent : border-border). */}
+      <div className="flex flex-shrink-0 justify-center md:justify-start">
+        <div
+          className={`inline-flex items-center gap-4 rounded-full border-2 bg-surface px-2 py-1 ${
+            theme.kawaii ? "border-accent" : "border-border"
+          }`}
+        >
           <button
             type="button"
             aria-label="Previous"
             onClick={goPrev}
-            className="flex h-[24px] w-[24px] items-center justify-center border-r border-border bg-surface text-ink hover:bg-surface-alt md:h-[30px] md:w-[30px]"
+            className="flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center rounded-full text-ink hover:bg-surface-alt md:h-[30px] md:w-[30px]"
           >
             ‹
           </button>
+          <span className="min-w-[3.5rem] flex-shrink-0 text-center text-sm font-semibold text-ink">
+            {view === "day" ? anchor.toLocaleDateString(undefined, { weekday: "short" }) : rangeLabel}
+          </span>
           <button
             type="button"
             aria-label="Next"
             onClick={goNext}
-            className="flex h-[24px] w-[24px] items-center justify-center bg-surface text-ink hover:bg-surface-alt md:h-[30px] md:w-[30px]"
+            className="flex h-[26px] w-[26px] flex-shrink-0 items-center justify-center rounded-full text-ink hover:bg-surface-alt md:h-[30px] md:w-[30px]"
           >
             ›
           </button>
         </div>
       </div>
 
-      <div className="min-h-0 flex-1">
+      <div className="min-h-0 flex-1" onTouchStart={handleGridTouchStart} onTouchEnd={handleGridTouchEnd}>
         <PlannerGrid
           view={view}
           anchor={anchor}

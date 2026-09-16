@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import { SELECTABLE_PRINCIPLE_TYPES, Q5_POOL, STATIC_QUESTIONS, type JournalEntry, type PrincipleType } from "@/lib/journal/journal-types";
 import { useTheme } from "@/components/theme-provider/theme-context";
+import DashDivider from "@/components/dash-divider";
 import AutoGrowTextarea from "./auto-grow-textarea";
 
 interface JournalPromptsProps {
@@ -16,24 +17,6 @@ const textareaClass =
 const sectionDivider = "border-b border-[color-mix(in_srgb,var(--color-border)_55%,transparent)]";
 const fieldUnderline =
   "border-0 border-b-[1.5px] border-[color-mix(in_srgb,var(--color-border)_70%,transparent)] bg-transparent px-0.5 py-1.5 text-sm font-semibold text-ink focus:border-accent focus:outline-none disabled:cursor-default";
-
-// Retro/kawaii-only stand-in for the plain border divider — a dashed rule
-// in the accent color. Drawn as a repeating gradient rather than a fixed
-// run of literal "--" characters so it always spans the full row edge to
-// edge, at any card width, instead of a fixed-length string that falls
-// short (or overflows) depending on how wide the row actually is.
-function DashDivider() {
-  return (
-    <div
-      aria-hidden="true"
-      className="h-[2px] w-full"
-      style={{
-        backgroundImage:
-          "repeating-linear-gradient(to right, color-mix(in srgb, var(--color-accent) 45%, transparent) 0, color-mix(in srgb, var(--color-accent) 45%, transparent) 8px, transparent 8px, transparent 16px)",
-      }}
-    />
-  );
-}
 
 // Remounted with key={entry.dateKey} by the parent whenever the viewed date
 // changes, so each field's local (blur-to-commit) state naturally resets —

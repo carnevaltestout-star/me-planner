@@ -13,6 +13,7 @@ import {
 } from "@/lib/vocabulary/vocab-types";
 import TopicCard from "./topic-card";
 import AddTopicDialog from "./add-topic-dialog";
+import DirectionToggle from "./direction-toggle";
 import MixedTrainingDialog from "./mixed-training-dialog";
 import TopicDeleteConfirm from "./topic-delete-confirm";
 import TopicEditView from "./topic-edit-view";
@@ -75,6 +76,16 @@ export default function VocabularyPage() {
   const [addTopicOpen, setAddTopicOpen] = useState(false);
   const [mixedOpen, setMixedOpen] = useState(false);
   const [deleteTopicId, setDeleteTopicId] = useState<string | null>(null);
+  // Which direction a new session starts in — Words (shown the term, guess
+  // the meaning) or Meanings (shown the meaning, guess the term). Persisted
+  // so it stays put across visits; Mixed Training's own dialog defaults to
+  // this too but can still override it per-session.
+  const [defaultDirection, setDefaultDirection] = useState<Direction>(() => loadVocabUiState().defaultDirection);
+
+  function changeDefaultDirection(direction: Direction) {
+    setDefaultDirection(direction);
+    saveVocabUiState({ defaultDirection: direction });
+  }
 
   function persist(next: VocabState) {
     setState(next);
@@ -249,7 +260,9 @@ export default function VocabularyPage() {
               setEditingTopicId(null);
               saveVocabUiState({ editingTopicId: null });
             }}
-            onStartTraining={() => startSession([topic.id], "term-to-meaning")}
+            onStartTraining={() => startSession([topic.id], defaultDirection)}
+            direction={defaultDirection}
+            onChangeDirection={changeDefaultDirection}
             onRenameTopic={handleRenameTopic}
             onUpdateWord={handleUpdateWord}
             onAddWord={handleAddWord}
@@ -345,6 +358,10 @@ export default function VocabularyPage() {
         <button type="button" disabled title="Coming soon" className="cursor-default rounded-theme-sm border border-border bg-surface px-3.5 py-2 text-sm text-ink-muted opacity-55">
           Import
         </button>
+        <div className="ml-auto flex items-center gap-1.5">
+          <span className="text-xs text-ink-muted">Quiz me on:</span>
+          <DirectionToggle value={defaultDirection} onChange={changeDefaultDirection} />
+        </div>
       </div>
 
       {state.topics.length === 0 ? (
@@ -360,7 +377,7 @@ export default function VocabularyPage() {
                 setView("edit");
                 saveVocabUiState({ editingTopicId: t.id });
               }}
-              onStartTraining={() => startSession([t.id], "term-to-meaning")}
+              onStartTraining={() => startSession([t.id], defaultDirection)}
               onDeleteRequest={() => setDeleteTopicId(t.id)}
             />
           ))}
@@ -371,10 +388,11 @@ export default function VocabularyPage() {
       {mixedOpen && (
         <MixedTrainingDialog
           topics={state.topics}
+          defaultDirection={defaultDirection}
           onClose={() => setMixedOpen(false)}
-          onStart={(topicIds) => {
+          onStart={(topicIds, direction) => {
             setMixedOpen(false);
-            startSession(topicIds, "term-to-meaning");
+            startSession(topicIds, direction);
           }}
         />
       )}

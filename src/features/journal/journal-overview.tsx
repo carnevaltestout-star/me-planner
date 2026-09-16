@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { dateKey, shiftDay } from "@/lib/journal/journal-dates";
@@ -9,9 +10,12 @@ interface JournalOverviewProps {
   onClose: () => void;
 }
 
-function dayLabel(offset: number, date: Date) {
-  if (offset === 0) return "Today";
-  if (offset === -1) return "Yesterday";
+// Compares against the real today rather than trusting a fixed offset, since
+// the 3-day window itself can now shift to an older set — offset 0 within
+// that window isn't necessarily "today" anymore.
+function dayLabel(date: Date, today: Date) {
+  if (dateKey(date) === dateKey(today)) return "Today";
+  if (dateKey(date) === dateKey(shiftDay(today, -1))) return "Yesterday";
   return date.toLocaleDateString(undefined, { weekday: "long" });
 }
 
@@ -22,8 +26,13 @@ export default function JournalOverview({ entries, onSelect, onClose }: JournalO
   const bottomReserve = useMobileBottomReserve();
   useEscapeKey(onClose);
   const today = new Date();
+  // The 3-day window's own end date — starts on today, shifts a full
+  // window (3 days) at a time via the arrows below so "older"/"newer"
+  // moves between whole sets rather than one day at a time.
+  const [anchor, setAnchor] = useState(() => new Date());
+  const isAtPresent = dateKey(anchor) === dateKey(today);
   const days = [0, -1, -2].map((offset) => {
-    const date = shiftDay(today, offset);
+    const date = shiftDay(anchor, offset);
     const key = dateKey(date);
     return { offset, date, key, entry: entries[key] };
   });
@@ -42,27 +51,57 @@ export default function JournalOverview({ entries, onSelect, onClose }: JournalO
         aria-label="Journal overview"
         className="flex max-h-[90vh] w-full max-w-[900px] flex-col gap-3.5 overflow-hidden rounded-theme border border-border bg-canvas p-4 shadow-theme"
       >
-        <div className="flex items-center justify-between">
-          <h2 className="m-0 font-theme text-lg font-semibold text-ink">Overview — last 3 days</h2>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <h2 className="m-0 flex-shrink-0 font-theme text-lg font-semibold text-ink">Overview</h2>
+            <div className="inline-flex flex-shrink-0 items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setAnchor((a) => shiftDay(a, -3))}
+                aria-label="Older set"
+                className="flex h-[26px] w-[26px] items-center justify-center rounded-full text-ink-muted hover:bg-surface-alt"
+              >
+                ‹
+              </button>
+              {!isAtPresent && (
+                <button
+                  type="button"
+                  onClick={() => setAnchor(new Date())}
+                  className="rounded-full border border-border px-2 py-0.5 text-[0.65rem] font-semibold text-ink-muted hover:bg-surface-alt"
+                >
+                  Today
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setAnchor((a) => shiftDay(a, 3))}
+                aria-label="Newer set"
+                disabled={isAtPresent}
+                className="flex h-[26px] w-[26px] items-center justify-center rounded-full text-ink-muted hover:bg-surface-alt disabled:opacity-30 disabled:hover:bg-transparent"
+              >
+                ›
+              </button>
+            </div>
+          </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close overview"
-            className="flex h-[30px] w-[30px] items-center justify-center rounded-full text-ink-muted hover:bg-surface-alt"
+            className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full text-ink-muted hover:bg-surface-alt"
           >
             ✕
           </button>
         </div>
 
         <div className="grid grid-cols-1 gap-3 overflow-y-auto sm:grid-cols-3">
-          {days.map(({ offset, date, key, entry }) => (
+          {days.map(({ date, key, entry }) => (
             <div key={key} className="flex flex-col gap-2.5 rounded-theme border border-border bg-surface p-3 shadow-theme">
               <button
                 type="button"
                 onClick={() => onSelect(date)}
                 className="flex flex-col items-start gap-0.5 rounded-theme-sm px-1 py-0.5 text-left hover:bg-surface-alt"
               >
-                <span className="text-sm font-bold text-ink">{dayLabel(offset, date)}</span>
+                <span className="text-sm font-bold text-ink">{dayLabel(date, today)}</span>
                 <span className="text-xs text-ink-muted">
                   {date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
                 </span>

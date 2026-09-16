@@ -118,11 +118,32 @@ export type Tracker = BooleanTracker | AmountTracker | MoodTracker | PeriodTrack
 // Boolean trackers store `true` for a completed day (absent/false days just
 // aren't in the map — same "only store what's meaningfully set" pattern as
 // Journal's entries). Amount trackers store the typed string ("320",
-// "500ml", ...). Mood trackers store the selected MoodKey per day. Period
-// trackers store nothing here — their marked days are always derived from
-// the tracker's own cycle config, computed on the fly.
-export type TrackerEntryValue = true | MoodKey | string;
+// "500ml", ...). Mood trackers store every MoodKey logged that day, in
+// order — re-logging the same day appends rather than overwrites, so a
+// second check-in doesn't erase the first one out of the statistics (a
+// bare MoodKey, not yet an array, is also accepted for entries saved before
+// this changed — see moodLogForDay below). Period trackers store nothing
+// here — their marked days are always derived from the tracker's own cycle
+// config, computed on the fly.
+export type TrackerEntryValue = true | MoodKey | MoodKey[] | string;
 export type TrackerEntries = Record<string, Record<string, TrackerEntryValue>>;
+
+// Normalizes a day's raw mood entry value — which may be a legacy bare
+// MoodKey (from before same-day logs were kept separately) or the current
+// MoodKey[] shape — into the list of moods actually logged that day, oldest
+// first. Empty array if nothing was logged.
+export function moodLogForDay(value: TrackerEntryValue | undefined): MoodKey[] {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string" && MOOD_OPTIONS.some((m) => m.key === value)) return [value as MoodKey];
+  return [];
+}
+
+// The mood to actually display for a day (e.g. the Trackers grid cell, or
+// Overview's "today" indicator) — whichever was logged most recently.
+export function latestMoodForDay(value: TrackerEntryValue | undefined): MoodKey | undefined {
+  const log = moodLogForDay(value);
+  return log[log.length - 1];
+}
 
 export const DEFAULT_CYCLE_LENGTH_DAYS = 28;
 export const DEFAULT_PERIOD_LENGTH_DAYS = 5;

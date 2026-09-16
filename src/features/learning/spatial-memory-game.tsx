@@ -136,7 +136,15 @@ export default function SpatialMemoryGame({ level, onLevelChange, onRoundComplet
             type="button"
             disabled={phase !== "input"}
             onClick={() => toggleCell(i)}
-            className={`aspect-square rounded-theme-sm border shadow-theme transition-colors disabled:cursor-default ${cellClass(i)}`}
+            // touch-action: manipulation — some mobile browsers/webviews
+            // otherwise hold a tap briefly to see if it's the first half of
+            // a double-tap-to-zoom before dispatching the click at all,
+            // adding latency before the color change even starts. duration-75
+            // (not the default 150ms transition-colors falls back to) only
+            // on mobile — md: restores the original 150ms on desktop, where
+            // this was never reported as feeling slow.
+            style={{ touchAction: "manipulation" }}
+            className={`aspect-square rounded-theme-sm border shadow-theme transition-colors duration-75 disabled:cursor-default md:duration-150 ${cellClass(i)}`}
           />
         ))}
       </div>

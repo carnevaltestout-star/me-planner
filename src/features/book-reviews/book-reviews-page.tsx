@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { DndContext, closestCenter, useSensor, useSensors, MouseSensor, TouchSensor, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { loadBookReviews, saveBookReviews } from "@/lib/book-reviews/book-review-storage";
-import type { BookReview } from "@/lib/book-reviews/book-review-types";
+import type { BookReview, ReadingStatus } from "@/lib/book-reviews/book-review-types";
 import { matchesDateQuery } from "@/lib/search/date-search";
 import BookReviewCard from "./book-review-card";
 import SortableBookReviewCard from "./sortable-book-review-card";
@@ -26,6 +26,10 @@ export default function BookReviewsPage() {
     delete updated[book.id];
     persist(updated);
     setPendingDelete(null);
+  }
+
+  function handleStatusChange(id: string, status: ReadingStatus) {
+    persist({ ...reviews, [id]: { ...reviews[id], status, updatedAt: new Date().toISOString() } });
   }
 
   // Manual drag order — seeded/migrated highest-rated-first, then whatever
@@ -114,7 +118,12 @@ export default function BookReviewsPage() {
       ) : query.trim() ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {filtered.map((book) => (
-            <BookReviewCard key={book.id} book={book} onDeleteRequest={() => setPendingDelete(book)} />
+            <BookReviewCard
+              key={book.id}
+              book={book}
+              onDeleteRequest={() => setPendingDelete(book)}
+              onStatusChange={(status) => handleStatusChange(book.id, status)}
+            />
           ))}
         </div>
       ) : (
@@ -126,6 +135,7 @@ export default function BookReviewsPage() {
                   key={book.id}
                   book={book}
                   onDeleteRequest={() => setPendingDelete(book)}
+                  onStatusChange={(status) => handleStatusChange(book.id, status)}
                   suppressLink={suppressLink}
                 />
               ))}

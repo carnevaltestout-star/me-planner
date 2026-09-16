@@ -1,5 +1,5 @@
 import { loadTrackersState } from "@/lib/trackers/tracker-storage";
-import { MOOD_OPTIONS, type MoodKey, type Tracker } from "@/lib/trackers/tracker-types";
+import { MOOD_OPTIONS, moodLogForDay, type MoodKey, type Tracker } from "@/lib/trackers/tracker-types";
 import { bucketByRange, bucketDefs, dateKey, isWithinRange, rangeEnd, rangeStart } from "./stat-dates";
 import type { DistributionSlice, MultiSeriesPoint, SeriesMeta, SeriesPoint, TimeRange } from "./stat-types";
 
@@ -109,11 +109,15 @@ export function computeMoodDistribution(range: TimeRange, today: Date): Distribu
   const entries = state.entries[moodTracker.id] ?? {};
   const tally = new Map<MoodKey, number>();
   let total = 0;
+  // Counts every mood actually logged that day (moodLogForDay handles both
+  // the current MoodKey[] shape and a legacy bare MoodKey), not just one
+  // per day — a same-day re-log no longer disappears from this total.
   Object.entries(entries).forEach(([key, value]) => {
     if (!isWithinRange(new Date(`${key}T00:00:00`), range, today)) return;
-    const mood = value as MoodKey;
-    tally.set(mood, (tally.get(mood) ?? 0) + 1);
-    total += 1;
+    moodLogForDay(value).forEach((mood) => {
+      tally.set(mood, (tally.get(mood) ?? 0) + 1);
+      total += 1;
+    });
   });
   if (total === 0) return null;
   return MOOD_OPTIONS.filter((m) => tally.has(m.key)).map((m) => {

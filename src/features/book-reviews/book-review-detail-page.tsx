@@ -150,7 +150,7 @@ export default function BookReviewDetailPage() {
                 aria-label={book.coverImage ? "Replace cover image" : "Upload cover image"}
                 title={book.coverImage ? "Replace cover image" : "Upload cover image"}
                 className="group flex h-full w-full items-center justify-center overflow-hidden rounded-theme-sm border border-dashed border-accent hover:brightness-95"
-                style={{ background: book.coverImage ? undefined : "var(--color-accent-soft)" }}
+                style={{ background: book.coverImage ? undefined : "#ffffff" }}
               >
                 {book.coverImage ? (
                   <img src={book.coverImage} alt="" className="h-full w-full object-cover" />

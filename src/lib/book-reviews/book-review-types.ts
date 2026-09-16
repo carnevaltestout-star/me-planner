@@ -1,3 +1,11 @@
+export type ReadingStatus = "to-read" | "reading" | "read";
+
+export const READING_STATUS_OPTIONS: { key: ReadingStatus; label: string; color: string }[] = [
+  { key: "to-read", label: "To Read", color: "#6b7280" },
+  { key: "reading", label: "Reading", color: "#4b8fc2" },
+  { key: "read", label: "Read", color: "#5b8a72" },
+];
+
 export interface BookReview {
   id: string;
   title: string;
@@ -12,6 +20,7 @@ export interface BookReview {
   quotes: string;
   review: string;
   tropes: string;
+  status: ReadingStatus;
   createdAt: string;
   updatedAt: string;
   // Manual drag-and-drop position — seeded/migrated in rating-desc order so
@@ -35,6 +44,7 @@ export function emptyBookReview(id: string): BookReview {
     quotes: "",
     review: "",
     tropes: "",
+    status: "read",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     order: Date.now(),

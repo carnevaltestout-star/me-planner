@@ -1,8 +1,6 @@
 
 ## Workflow rule (IMPORTANT)
 - read this md file, then the requirements.md to know which step you currently are at, before continuing mention your next steps to me.
-- Only install necessary packages, check if new feature can be developed with existing package, if not, download new one.
-- Before you implement a new feature tell me what u want to install and the size of it.
 -Create a new feature branch from dev,
 after i allow you to, merge changes into global dev, then pull dev, and repeat with the next feature
 Before implementing any new feature/tab, send a GUI mockup (ASCII/wireframe description or

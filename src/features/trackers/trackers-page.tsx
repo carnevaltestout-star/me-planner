@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { daysInMonth, dateKey, isFuture, monthLabel } from "@/lib/trackers/tracker-dates";
 import { isPeriodDay } from "@/lib/trackers/period-utils";
 import { loadTrackersState, saveTrackersState, type TrackersState } from "@/lib/trackers/tracker-storage";
-import { MOOD_OPTIONS, type MoodKey, type Tracker } from "@/lib/trackers/tracker-types";
+import { MOOD_OPTIONS, latestMoodForDay, moodLogForDay, type MoodKey, type Tracker } from "@/lib/trackers/tracker-types";
 import TrackerIcon, { MoodIcon } from "./tracker-icon";
 import { DropIcon } from "./tracker-line-icons";
 import AddTrackerFlow from "./add-tracker-flow";
@@ -104,7 +104,11 @@ export default function TrackersPage() {
   }
 
   function setMood(trackerId: string, key: string, mood: MoodKey) {
-    const trackerEntries = { ...(state.entries[trackerId] ?? {}), [key]: mood };
+    // Appends to the day's log instead of overwriting it, so a second
+    // check-in on the same day doesn't erase the first out of the
+    // statistics (see moodLogForDay/latestMoodForDay in tracker-types.ts).
+    const existing = state.entries[trackerId]?.[key];
+    const trackerEntries = { ...(state.entries[trackerId] ?? {}), [key]: [...moodLogForDay(existing), mood] };
     persist({ ...state, entries: { ...state.entries, [trackerId]: trackerEntries } });
     setMoodPicker(null);
   }
@@ -274,7 +278,7 @@ export default function TrackersPage() {
                 }
 
                 if (tracker.kind === "mood") {
-                  const value = state.entries[tracker.id]?.[key] as MoodKey | undefined;
+                  const value = latestMoodForDay(state.entries[tracker.id]?.[key]);
                   const moodColor = value ? MOOD_OPTIONS.find((m) => m.key === value)?.color : undefined;
                   return (
                     <button

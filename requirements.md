@@ -93,7 +93,7 @@ starting work. Create a new branch per feature; merge into `dev` only after expl
       snob about it.*
   - Free-form Notes field underneath all 5 questions, styled like dotted journal paper.
 - Header: today's date + a calendar icon that opens a year view (12 months, scroll to another
-  year) to jump to any date's entry. A search bar (relaxed matching — "20.05" matches that
+  year) to jump to any date's etry. A search bar (relaxed matching — "20.05" matches that
   day/month across every year, "2026" matches every entry in that year, otherwise free-text
   across questions+notes) with a magnifying-glass icon at its right end; search runs on
   clicking the icon or clicking outside the search bar. A save button/icon to the right of the

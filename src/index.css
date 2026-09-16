@@ -489,3 +489,65 @@
   .gimmick-eat-bounce { animation: none; }
 }
 
+/* Notes tab (the small edge-anchored handle, not the expanded paper sheet
+   itself — that stays plain white/black paper regardless of skin). Same
+   :root[data-retro/kawaii/tryout] attribute selectors every other themed
+   override in this file uses, rather than a JS theme.retro/.kawaii/.tryout
+   ternary in the component, so it's driven purely by whichever skin is
+   actually applied to the document. */
+
+/* Retro: the same chunky hot-pink-outer / near-black-inner "arcade
+   cabinet" edge .subitem-frame's retro variant uses above, plus a bold
+   thick border instead of a hairline — reads as a physical cabinet button,
+   not a soft app tab. */
+:root[data-retro="true"] .notes-tab {
+  border-width: 1.5px;
+  border-color: #ff6fb3;
+  box-shadow: inset 0 0 0 1.5px #2b0f1f, var(--shadow-theme);
+  background: #fff3f8;
+}
+:root[data-retro="true"] .notes-tab-icon {
+  image-rendering: pixelated;
+}
+
+/* Kawaii: the same soft pastel-pink bezel as .subitem-frame's kawaii
+   variant, plus the icon gets the same white circular "sticker" badge
+   look .kawaii-icon-sticker already gives every kawaii nav icon. */
+:root[data-kawaii="true"] .notes-tab {
+  border-width: 2px;
+  border-color: #ffd3e8;
+  box-shadow: inset 0 0 0 3px #ff9dc7, var(--shadow-theme);
+  background: #fff8fc;
+}
+:root[data-kawaii="true"] .notes-tab-icon {
+  background: #fff;
+  border: 1.5px solid #ffd6ea;
+  border-radius: 999px;
+  padding: 3px;
+}
+
+/* Tryout: "extra cute" — kawaii's pastel bezel treatment plus one of
+   TryoutStickers' own floating-star emoji pinned to the icon's corner, so
+   it visibly borrows this mode's established sticker motif instead of
+   just being a slightly-different kawaii. */
+:root[data-tryout="true"] .notes-tab {
+  border-width: 2px;
+  border-color: #ff8fc0;
+  box-shadow: inset 0 0 0 3px #c9d9f5, var(--shadow-theme);
+  background: #f5f8ff;
+}
+:root[data-tryout="true"] .notes-tab-icon {
+  background: #fff;
+  border: 1.5px solid #ffd6ea;
+  border-radius: 999px;
+  padding: 3px;
+}
+:root[data-tryout="true"] .notes-tab-icon::after {
+  content: "⭐";
+  position: absolute;
+  top: -7px;
+  right: -6px;
+  font-size: 10px;
+  line-height: 1;
+}
+

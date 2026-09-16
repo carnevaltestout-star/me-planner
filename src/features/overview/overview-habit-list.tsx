@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { isFuture, keyToDate } from "@/lib/trackers/tracker-dates";
 import { loadTrackersState, saveTrackersState, type TrackersState } from "@/lib/trackers/tracker-storage";
-import type { MoodKey } from "@/lib/trackers/tracker-types";
+import { latestMoodForDay, moodLogForDay, type MoodKey } from "@/lib/trackers/tracker-types";
 import TrackerIcon, { MoodIcon } from "@/features/trackers/tracker-icon";
 import MoodPickerModal from "@/features/trackers/mood-picker-modal";
 import AmountEntryModal from "@/features/trackers/amount-entry-modal";
@@ -37,7 +37,14 @@ export default function OverviewHabitList({ selectedDateKey }: OverviewHabitList
   }
 
   function setMood(trackerId: string, mood: MoodKey) {
-    persist({ ...state, entries: { ...state.entries, [trackerId]: { ...(state.entries[trackerId] ?? {}), [selectedDateKey]: mood } } });
+    // Appends rather than overwrites — see trackers-page.tsx's setMood for
+    // the same fix and why (a same-day re-log used to erase the earlier
+    // entry out of the mood statistics).
+    const existing = state.entries[trackerId]?.[selectedDateKey];
+    persist({
+      ...state,
+      entries: { ...state.entries, [trackerId]: { ...(state.entries[trackerId] ?? {}), [selectedDateKey]: [...moodLogForDay(existing), mood] } },
+    });
     setMoodPickerTrackerId(null);
   }
 
@@ -81,8 +88,8 @@ export default function OverviewHabitList({ selectedDateKey }: OverviewHabitList
                       aria-label={`Set mood for ${tracker.name}`}
                       className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-border bg-surface"
                     >
-                      {value ? (
-                        <MoodIcon mood={value as MoodKey} className="h-5 w-5" />
+                      {latestMoodForDay(value) ? (
+                        <MoodIcon mood={latestMoodForDay(value)!} className="h-5 w-5" />
                       ) : (
                         <span aria-hidden="true" className="h-2 w-2 rounded-full bg-border" />
                       )}

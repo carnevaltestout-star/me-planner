@@ -4,7 +4,7 @@ import type { ChartType, TimeRange } from "@/lib/statistics/stat-types";
 import type { MoodKey } from "@/lib/trackers/tracker-types";
 import { MoodIcon } from "@/features/trackers/tracker-icon";
 import { TrackersIcon } from "@/components/tab-icons/tab-icons";
-import { StatCardShell, StatEmpty, resolveChartType } from "./stat-card-shell";
+import { StatCardShell, StatEmpty, rangeNoun, resolveChartType } from "./stat-card-shell";
 import { StatHistogram, StatPieChart } from "./stat-charts";
 
 interface TrackerMoodCardProps {
@@ -19,6 +19,10 @@ interface TrackerMoodCardProps {
 export default function TrackerMoodCard({ range, chartType, today }: TrackerMoodCardProps) {
   const slices = useMemo(() => computeMoodDistribution(range, today), [range, today]);
   const resolved = resolveChartType(chartType, ["pie", "histogram", "bar"]);
+  // Every mood log counts here, including same-day re-logs (see
+  // moodLogForDay in tracker-types.ts) — surfaced so the percentages below
+  // are traceable back to an actual count instead of looking unexplained.
+  const total = slices?.reduce((sum, s) => sum + s.value, 0) ?? 0;
 
   return (
     <StatCardShell icon={TrackersIcon} iconPath="/trackers" title="Mood Distribution">
@@ -26,6 +30,9 @@ export default function TrackerMoodCard({ range, chartType, today }: TrackerMood
         <StatEmpty message="Log a mood to see your distribution here." />
       ) : (
         <>
+          <p className="m-0 text-[0.68rem] text-ink-muted">
+            Based on {total} mood{total === 1 ? "" : "s"} logged {rangeNoun(range)}.
+          </p>
           <div className="h-36">{resolved === "pie" ? <StatPieChart data={slices} /> : <StatHistogram data={slices} />}</div>
           <ul className="m-0 flex flex-col gap-1.5 p-0 text-xs">
             {slices.map((s) => (

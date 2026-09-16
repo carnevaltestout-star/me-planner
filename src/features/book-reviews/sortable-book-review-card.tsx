@@ -1,11 +1,12 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { BookReview } from "@/lib/book-reviews/book-review-types";
+import type { BookReview, ReadingStatus } from "@/lib/book-reviews/book-review-types";
 import BookReviewCard from "./book-review-card";
 
 interface SortableBookReviewCardProps {
   book: BookReview;
   onDeleteRequest: () => void;
+  onStatusChange: (status: ReadingStatus) => void;
   suppressLink: boolean;
 }
 
@@ -27,7 +28,7 @@ interface SortableBookReviewCardProps {
 // double-tap/pinch zoom are suppressed), so a quick swipe scrolls
 // normally and only a press held past the delay turns into a drag, at
 // which point dnd-kit takes over via its own preventDefault calls.
-export default function SortableBookReviewCard({ book, onDeleteRequest, suppressLink }: SortableBookReviewCardProps) {
+export default function SortableBookReviewCard({ book, onDeleteRequest, onStatusChange, suppressLink }: SortableBookReviewCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: book.id });
 
   return (
@@ -42,7 +43,7 @@ export default function SortableBookReviewCard({ book, onDeleteRequest, suppress
       {...attributes}
       {...listeners}
     >
-      <BookReviewCard book={book} onDeleteRequest={onDeleteRequest} suppressLink={suppressLink} />
+      <BookReviewCard book={book} onDeleteRequest={onDeleteRequest} onStatusChange={onStatusChange} suppressLink={suppressLink} />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { loadItems } from "@/lib/goals/goal-todo-storage";
+import type { GoalTodoItem } from "@/lib/goals/goal-todo-types";
 import { isWithinRange } from "./stat-dates";
 import type { DistributionSlice, TimeRange } from "./stat-types";
 
@@ -34,8 +34,8 @@ export const UNDONE_COLOR = "#d99a3d";
 // stats — Goals/To-Dos has its own horizon/date filing system for the
 // feature's own UI, but for a cross-app dashboard "created within this
 // range" is the more legible/consistent question to answer.
-export function computeGoalsTodosStats(range: TimeRange, today: Date): GoalsTodosStats {
-  const all = Object.values(loadItems());
+export function computeGoalsTodosStats(items: Record<string, GoalTodoItem>, range: TimeRange, today: Date): GoalsTodosStats {
+  const all = Object.values(items);
   if (all.length === 0) {
     return {
       hasAnyData: false,

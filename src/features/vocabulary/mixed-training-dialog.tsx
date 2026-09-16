@@ -2,18 +2,21 @@ import { useState } from "react";
 import { useMobileBottomReserve } from "@/lib/layout/use-mobile-bottom-reserve";
 import { useEscapeKey } from "@/lib/use-escape-key";
 import { buildSessionQueue } from "@/lib/vocabulary/vocab-srs";
-import type { VocabTopic } from "@/lib/vocabulary/vocab-types";
+import type { Direction, VocabTopic } from "@/lib/vocabulary/vocab-types";
+import DirectionToggle from "./direction-toggle";
 
 interface MixedTrainingDialogProps {
   topics: VocabTopic[];
+  defaultDirection: Direction;
   onClose: () => void;
-  onStart: (topicIds: string[]) => void;
+  onStart: (topicIds: string[], direction: Direction) => void;
 }
 
-export default function MixedTrainingDialog({ topics, onClose, onStart }: MixedTrainingDialogProps) {
+export default function MixedTrainingDialog({ topics, defaultDirection, onClose, onStart }: MixedTrainingDialogProps) {
   const bottomReserve = useMobileBottomReserve();
   useEscapeKey(onClose);
   const [selected, setSelected] = useState<Set<string>>(() => new Set(topics.map((t) => t.id)));
+  const [direction, setDirection] = useState<Direction>(defaultDirection);
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -49,6 +52,10 @@ export default function MixedTrainingDialog({ topics, onClose, onStart }: MixedT
               );
             })}
           </div>
+          <div className="flex items-center gap-1.5 pt-1">
+            <span className="text-xs text-ink-muted">Quiz me on:</span>
+            <DirectionToggle value={direction} onChange={setDirection} />
+          </div>
         </div>
         <div className="flex flex-shrink-0 items-center justify-end gap-2 border-t border-border px-[1.1rem] py-3">
           <button type="button" onClick={onClose} className="rounded-theme-sm border border-border px-3.5 py-2 text-sm text-ink hover:bg-surface-alt">
@@ -57,7 +64,7 @@ export default function MixedTrainingDialog({ topics, onClose, onStart }: MixedT
           <button
             type="button"
             disabled={selected.size === 0}
-            onClick={() => onStart([...selected])}
+            onClick={() => onStart([...selected], direction)}
             className="rounded-theme-sm border border-accent bg-accent px-3.5 py-2 text-sm font-semibold text-accent-contrast hover:brightness-105 disabled:cursor-default disabled:opacity-50"
           >
             Start

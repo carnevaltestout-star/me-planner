@@ -1,4 +1,14 @@
-import { addDaysToKey, newWordSrs, todayKey, type VocabAttachment, type VocabLink, type VocabState, type VocabTopic, type VocabWord } from "./vocab-types";
+import {
+  addDaysToKey,
+  newWordSrs,
+  todayKey,
+  type Direction,
+  type VocabAttachment,
+  type VocabLink,
+  type VocabState,
+  type VocabTopic,
+  type VocabWord,
+} from "./vocab-types";
 
 // Same localStorage-as-stand-in-for-SQLite pattern as the other features.
 export const VOCAB_STORAGE_KEY = "me-planner:mock-vocabulary";
@@ -11,6 +21,10 @@ export const VOCAB_UI_STORAGE_KEY = "me-planner:vocab-ui";
 
 export interface VocabUiState {
   editingTopicId: string | null;
+  // The direction a new training session starts in by default (the topic
+  // list's own toggle sets this) — Mixed Training's dialog defaults to
+  // whatever this is too, though it can still override it per-session.
+  defaultDirection: Direction;
 }
 
 export function loadVocabUiState(): VocabUiState {
@@ -18,16 +32,24 @@ export function loadVocabUiState(): VocabUiState {
     const raw = window.localStorage.getItem(VOCAB_UI_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object") return { editingTopicId: parsed.editingTopicId ?? null };
+      if (parsed && typeof parsed === "object") {
+        return {
+          editingTopicId: parsed.editingTopicId ?? null,
+          defaultDirection: parsed.defaultDirection === "meaning-to-term" ? "meaning-to-term" : "term-to-meaning",
+        };
+      }
     }
   } catch {
     // fall through to default
   }
-  return { editingTopicId: null };
+  return { editingTopicId: null, defaultDirection: "term-to-meaning" };
 }
 
-export function saveVocabUiState(state: VocabUiState) {
-  window.localStorage.setItem(VOCAB_UI_STORAGE_KEY, JSON.stringify(state));
+// Merges into whatever's already stored rather than requiring every call
+// site to restate the full object — most callers only ever change one field
+// (editingTopicId on navigation, defaultDirection from the topic list toggle).
+export function saveVocabUiState(patch: Partial<VocabUiState>) {
+  window.localStorage.setItem(VOCAB_UI_STORAGE_KEY, JSON.stringify({ ...loadVocabUiState(), ...patch }));
 }
 
 function word(id: string, term: string, meaning: string, srsOverrides?: Partial<VocabWord["srs"]>): VocabWord {
