@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { emptyNode, randomLoosePosition, type BrainNode, type BrainState } from "@/lib/brain/brain-types";
-import { loadBrainState, loadBrainUiState, saveBrainState, saveBrainUiState } from "@/lib/brain/brain-storage";
+import { BRAIN_UI_SETTINGS_KEY, DEFAULT_BRAIN_UI_STATE, normalizeBrainUiState } from "@/lib/brain/brain-storage";
+import { listNodes, syncBrainState } from "@/lib/brain/brain-repo";
 import { deleteNodeCascade, wouldCreateCycle } from "@/lib/brain/brain-tree";
+import { useAsyncData } from "@/lib/db/use-async-data";
+import { useSetting } from "@/lib/db/use-setting";
 import BrainGraph3D, { type BrainGraphMode } from "./brain-graph-3d";
 import BrainInfoPanel from "./brain-info-panel";
 
@@ -16,14 +19,25 @@ const MODES: { value: BrainGraphMode; label: string; hint: string }[] = [
 ];
 
 export default function BrainPage() {
-  const [state, setState] = useState<BrainState>(loadBrainState);
-  const [selectedId, setSelectedId] = useState<string | null>(() => loadBrainUiState().selectedNodeId);
+  const { data: nodes, setData: setNodes } = useAsyncData(listNodes, {} as Record<string, BrainNode>);
+  const state: BrainState = { nodes };
+  // selectedId/lastTouchedId are UI-nav state (app_settings), combined into
+  // one persisted object exactly like before — just addressed as one
+  // useSetting value instead of two loadBrainUiState() fields.
+  const [uiState, setUiState] = useSetting(BRAIN_UI_SETTINGS_KEY, DEFAULT_BRAIN_UI_STATE, normalizeBrainUiState);
+  const selectedId = uiState.selectedNodeId;
   // Whichever node was most recently created or edited — the 3D view opens
   // zoomed in on this one (see brain-graph-3d.tsx's CameraFocus) instead of
   // the default overview camera. Only updates on create/edit, not on every
   // plain selection, so just browsing around doesn't keep yanking the
   // camera around.
-  const [lastTouchedId, setLastTouchedId] = useState<string | null>(() => loadBrainUiState().lastTouchedNodeId);
+  const lastTouchedId = uiState.lastTouchedNodeId;
+  function setSelectedId(id: string | null) {
+    setUiState((s) => ({ ...s, selectedNodeId: id }));
+  }
+  function setLastTouchedId(id: string | null) {
+    setUiState((s) => ({ ...s, lastTouchedNodeId: id }));
+  }
   const [mode, setMode] = useState<BrainGraphMode>("select");
   const [connectPendingId, setConnectPendingId] = useState<string | null>(null);
   const [tagQuery, setTagQuery] = useState("");
@@ -49,17 +63,23 @@ export default function BrainPage() {
     return () => mql.removeEventListener("change", update);
   }, []);
 
-  useEffect(() => saveBrainState(state), [state]);
-  useEffect(() => saveBrainUiState({ selectedNodeId: selectedId, lastTouchedNodeId: lastTouchedId }), [selectedId, lastTouchedId]);
+  function persist(nextNodes: Record<string, BrainNode>) {
+    // See the identical comment in goals-page.tsx's persist() — same
+    // fire-and-forget shape, same reason a failed write needs to be logged
+    // rather than silently dropped.
+    syncBrainState(state, { nodes: nextNodes }).catch((err) => console.error("Failed to save brain state:", err));
+    setNodes(nextNodes);
+  }
 
   function updateNode(id: string, updater: (n: BrainNode) => BrainNode) {
-    setState((s) => (s.nodes[id] ? { ...s, nodes: { ...s.nodes, [id]: updater(s.nodes[id]) } } : s));
+    if (!nodes[id]) return;
+    persist({ ...nodes, [id]: updater(nodes[id]) });
     setLastTouchedId(id);
   }
 
   function addNode() {
     const id = crypto.randomUUID();
-    setState((s) => ({ ...s, nodes: { ...s.nodes, [id]: emptyNode(id, null, randomLoosePosition()) } }));
+    persist({ ...nodes, [id]: emptyNode(id, null, randomLoosePosition()) });
     setSelectedId(id);
     setLastTouchedId(id);
     setMode("select");
@@ -70,18 +90,18 @@ export default function BrainPage() {
   // where the user tapped, instead of at a random spot.
   function addNodeAt(position: [number, number, number]) {
     const id = crypto.randomUUID();
-    setState((s) => ({ ...s, nodes: { ...s.nodes, [id]: emptyNode(id, null, position) } }));
+    persist({ ...nodes, [id]: emptyNode(id, null, position) });
     setSelectedId(id);
     setLastTouchedId(id);
     setMode("select");
   }
 
   function deleteNode(id: string) {
-    const node = state.nodes[id];
+    const node = nodes[id];
     if (!node) return;
     const label = node.title || "this node";
     if (!window.confirm(`Delete "${label}" and every node connected under it? This can't be undone.`)) return;
-    setState((s) => deleteNodeCascade(s, id));
+    persist(deleteNodeCascade(state, id).nodes);
     if (selectedId === id) setSelectedId(null);
     if (lastTouchedId === id) setLastTouchedId(null);
   }

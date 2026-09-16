@@ -1,22 +1,17 @@
 import { DEFAULT_MUSIC_SETTINGS, MUSIC_TRACKS, type MusicSettings } from "./music-types";
 
-export const MUSIC_STORAGE_KEY = "me-planner:music";
+export const MUSIC_SETTINGS_KEY = "music";
 
-export function loadMusicSettings(): MusicSettings {
-  const raw = window.localStorage.getItem(MUSIC_STORAGE_KEY);
-  if (!raw) return DEFAULT_MUSIC_SETTINGS;
-  try {
-    const parsed = JSON.parse(raw);
-    const trackIndex = Number.isInteger(parsed.trackIndex) ? parsed.trackIndex : 0;
-    return {
-      enabled: Boolean(parsed.enabled),
-      trackIndex: trackIndex >= 0 && trackIndex < MUSIC_TRACKS.length ? trackIndex : 0,
-    };
-  } catch {
-    return DEFAULT_MUSIC_SETTINGS;
-  }
+// Validates trackIndex bounds — same guard loadMusicSettings() used to
+// apply reading straight out of localStorage — since a stored row could
+// predate a track being removed from MUSIC_TRACKS.
+export function normalizeMusicSettings(raw: unknown): MusicSettings {
+  const parsed = (raw ?? {}) as Partial<MusicSettings>;
+  const trackIndex = Number.isInteger(parsed.trackIndex) ? (parsed.trackIndex as number) : 0;
+  return {
+    enabled: Boolean(parsed.enabled),
+    trackIndex: trackIndex >= 0 && trackIndex < MUSIC_TRACKS.length ? trackIndex : 0,
+  };
 }
 
-export function saveMusicSettings(settings: MusicSettings) {
-  window.localStorage.setItem(MUSIC_STORAGE_KEY, JSON.stringify(settings));
-}
+export { DEFAULT_MUSIC_SETTINGS };

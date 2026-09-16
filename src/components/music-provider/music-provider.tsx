@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { loadMusicSettings, saveMusicSettings, MUSIC_STORAGE_KEY } from "@/lib/music/music-storage";
+import { useSetting } from "@/lib/db/use-setting";
+import { DEFAULT_MUSIC_SETTINGS, MUSIC_SETTINGS_KEY, normalizeMusicSettings } from "@/lib/music/music-storage";
 import { MUSIC_TRACKS } from "@/lib/music/music-types";
 import { MusicContext, MusicActionsContext } from "./music-context";
 
@@ -7,7 +8,7 @@ import { MusicContext, MusicActionsContext } from "./music-context";
 // underlying <audio> element survives every tab switch/route change
 // instead of restarting whenever a page remounts.
 export default function MusicProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState(loadMusicSettings);
+  const [settings, setSettings] = useSetting(MUSIC_SETTINGS_KEY, DEFAULT_MUSIC_SETTINGS, normalizeMusicSettings);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   if (!audioRef.current && typeof Audio !== "undefined") {
@@ -34,11 +35,7 @@ export default function MusicProvider({ children }: { children: ReactNode }) {
     const audio = audioRef.current;
     if (!audio) return;
     function onEnded() {
-      setSettings((s) => {
-        const nextSettings = { ...s, trackIndex: (s.trackIndex + 1) % MUSIC_TRACKS.length };
-        saveMusicSettings(nextSettings);
-        return nextSettings;
-      });
+      setSettings((s) => ({ ...s, trackIndex: (s.trackIndex + 1) % MUSIC_TRACKS.length }));
     }
     audio.addEventListener("ended", onEnded);
     return () => audio.removeEventListener("ended", onEnded);
@@ -64,38 +61,17 @@ export default function MusicProvider({ children }: { children: ReactNode }) {
     else audio.pause();
   }, [settings.enabled]);
 
-  // Picks up a toggle/skip made from another tab/window of the same app.
-  useEffect(() => {
-    function onStorage(event: StorageEvent) {
-      if (event.key === MUSIC_STORAGE_KEY) setSettings(loadMusicSettings());
-    }
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-
   const toggle = useCallback(() => {
-    setSettings((s) => {
-      const next = { ...s, enabled: !s.enabled };
-      saveMusicSettings(next);
-      return next;
-    });
-  }, []);
+    setSettings((s) => ({ ...s, enabled: !s.enabled }));
+  }, [setSettings]);
 
   const next = useCallback(() => {
-    setSettings((s) => {
-      const nextSettings = { ...s, trackIndex: (s.trackIndex + 1) % MUSIC_TRACKS.length };
-      saveMusicSettings(nextSettings);
-      return nextSettings;
-    });
-  }, []);
+    setSettings((s) => ({ ...s, trackIndex: (s.trackIndex + 1) % MUSIC_TRACKS.length }));
+  }, [setSettings]);
 
   const prev = useCallback(() => {
-    setSettings((s) => {
-      const nextSettings = { ...s, trackIndex: (s.trackIndex - 1 + MUSIC_TRACKS.length) % MUSIC_TRACKS.length };
-      saveMusicSettings(nextSettings);
-      return nextSettings;
-    });
-  }, []);
+    setSettings((s) => ({ ...s, trackIndex: (s.trackIndex - 1 + MUSIC_TRACKS.length) % MUSIC_TRACKS.length }));
+  }, [setSettings]);
 
   return (
     <MusicContext.Provider value={{ enabled: settings.enabled, isPlaying, trackIndex: settings.trackIndex }}>

@@ -49,7 +49,13 @@ export default function GoalTodoCard({ item, today, onToggleDone, onToggleStep, 
       style={{
         ...(item.priority !== undefined ? { border: `2px solid ${item.color}` } : undefined),
         transform: CSS.Translate.toString(transform),
-        touchAction: "none",
+        // "manipulation", not "none" — the touch sensor's 200ms hold delay
+        // (see goals-page.tsx) is exactly the case dnd-kit recommends this
+        // for: it lets a plain swipe scroll the list normally, and only
+        // takes over once the hold has actually elapsed. "none" here was
+        // blocking that scroll from ever starting in the first place, since
+        // the browser locks in touch-action at the very start of a touch.
+        touchAction: "manipulation",
       }}
       className={`relative flex cursor-grab flex-col gap-2.5 rounded-theme bg-surface p-3 shadow-theme active:cursor-grabbing ${
         item.priority === undefined ? "border border-border" : ""

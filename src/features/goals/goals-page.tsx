@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { DndContext, MouseSensor, TouchSensor, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { dateKey, isDateWithinPeriod, periodLabel, representativeDate, shiftPeriod } from "@/lib/goals/goal-todo-dates";
-import { loadItems, saveItems } from "@/lib/goals/goal-todo-storage";
+import { listItems, syncItems } from "@/lib/goals/goal-todo-repo";
+import { useAsyncData } from "@/lib/db/use-async-data";
 import {
   effectiveDate,
   emptyItem,
@@ -90,7 +91,7 @@ function compareItems(a: GoalTodoItem, b: GoalTodoItem, mode: SortMode): number 
 
 export default function GoalsPage() {
   const today = useMemo(() => new Date(), []);
-  const [items, setItems] = useState(() => loadItems());
+  const { data: items, setData: setItems } = useAsyncData(listItems, {} as Record<string, GoalTodoItem>);
   const [activeKind, setActiveKind] = useState<ItemKind>("todo");
   const [horizon, setHorizon] = useState<TimeHorizon>("day");
   const [anchor, setAnchor] = useState(today);
@@ -115,8 +116,13 @@ export default function GoalsPage() {
   const [pendingDelete, setPendingDelete] = useState<GoalTodoItem | null>(null);
 
   function persist(next: Record<string, GoalTodoItem>) {
+    // Fire-and-forget by design (the optimistic setItems below is what
+    // makes the UI feel instant) — but an unhandled rejection here used to
+    // mean a failed write vanished with no trace beyond a swallowed promise,
+    // so the item looked saved right up until the next remount silently
+    // reloaded the old (unwritten) state from the DB.
+    syncItems(items, next).catch((err) => console.error("Failed to save goals/todos:", err));
     setItems(next);
-    saveItems(next);
   }
 
   useEffect(() => {

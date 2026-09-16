@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { loadItems, saveItems } from "@/lib/goals/goal-todo-storage";
+import { listItems, syncItems } from "@/lib/goals/goal-todo-repo";
+import { useAsyncData } from "@/lib/db/use-async-data";
 import { effectiveDate, isItemEmpty, type GoalTodoItem, type ItemKind } from "@/lib/goals/goal-todo-types";
 import GoalTodoForm from "@/features/goals/goal-todo-form";
 import { GoalTodoKindIcon } from "@/features/goals/goal-todo-icons";
@@ -22,14 +23,14 @@ function compareForDay(a: GoalTodoItem, b: GoalTodoItem): number {
 }
 
 export default function OverviewTodoList({ selectedDateKey }: OverviewTodoListProps) {
-  const [items, setItems] = useState(() => loadItems());
+  const { data: items, setData: setItems } = useAsyncData(listItems, {} as Record<string, GoalTodoItem>);
   const [kind, setKind] = useState<ItemKind>("todo");
   const [open, setOpen] = useState(true);
   const [editing, setEditing] = useState<GoalTodoItem | null>(null);
 
   function persist(next: Record<string, GoalTodoItem>) {
+    void syncItems(items, next);
     setItems(next);
-    saveItems(next);
   }
 
   const dayItems = useMemo(

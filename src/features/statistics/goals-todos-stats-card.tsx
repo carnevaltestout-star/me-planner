@@ -1,4 +1,7 @@
 import { useMemo } from "react";
+import { listItems } from "@/lib/goals/goal-todo-repo";
+import type { GoalTodoItem } from "@/lib/goals/goal-todo-types";
+import { useAsyncData } from "@/lib/db/use-async-data";
 import { computeGoalsTodosStats } from "@/lib/statistics/goals-stats";
 import type { ChartType, TimeRange } from "@/lib/statistics/stat-types";
 import { GoalsIcon } from "@/components/tab-icons/tab-icons";
@@ -12,7 +15,8 @@ interface GoalsTodosStatsCardProps {
 }
 
 export default function GoalsTodosStatsCard({ range, chartType, today }: GoalsTodosStatsCardProps) {
-  const stats = useMemo(() => computeGoalsTodosStats(range, today), [range, today]);
+  const { data: items } = useAsyncData(listItems, {} as Record<string, GoalTodoItem>);
+  const stats = useMemo(() => computeGoalsTodosStats(items, range, today), [items, range, today]);
   const resolved = resolveChartType(chartType, ["pie", "histogram", "bar"]);
   const total = stats.totalGoals + stats.totalTodos;
 
