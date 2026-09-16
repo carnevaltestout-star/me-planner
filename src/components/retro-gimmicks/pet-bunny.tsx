@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { getSafeAreaInsetBottomPx } from "@/lib/layout/safe-area";
 import { useTheme } from "@/components/theme-provider/theme-context";
 import {
   BunnyHeartEyesIcon,
@@ -40,11 +41,9 @@ export const FOOTER_HEIGHT_PX_MOBILE = 44;
 const MOOD_MIN_MS = 7000;
 const MOOD_MAX_MS = 12000;
 // While awake (never while asleep), it climbs up a little book stack and
-// reads for a while every so often — "at random every ~20s" via the same
-// randomized-window pattern the mood loop above uses, rather than a
-// metronomic fixed interval.
-const READING_INTERVAL_MIN_MS = 16000;
-const READING_INTERVAL_MAX_MS = 24000;
+// reads for a while — a fixed cadence (once every 2 minutes), not the
+// randomized-window pattern the mood loop above uses.
+const READING_INTERVAL_MS = 2 * 60 * 1000;
 const READING_DURATION_MS = 10000;
 const MOOD_DISPLAY_MIN_MS = 4000;
 const MOOD_DISPLAY_MAX_MS = 6000;
@@ -71,6 +70,7 @@ const MOODS = [
   "^-^",
   "u got this champ!",
   "You gotta earn the smugness",
+  "F*ck perfect, show up",
   "suffer productively",
   "Get up, one task, one victory",
   "Get it together, respectfully",
@@ -96,13 +96,24 @@ const MOODS = [
   "Touch some grass",
   "Be there for someone : 3",
   "bounce back and learn :3",
-  "Girl up Girl!"
+  "Girl up Girl!",
+  "Feel it, don\'t become it",
+  "Your nervous system needs a hug",
+  "name it, tame it.",
+  "Your panic needs subtitles, not a microphone",
+  "Big mood, small plan",
+  "You are not too much."
 ];
 
+// window.innerHeight includes the area an Android gesture bar/home
+// indicator sits over — without subtracting the actual inset, the sprite's
+// "home" row (and its edge margin) could land partly or entirely behind
+// that bar on a phone that has one, instead of resting just above it.
 function homePosition(iconSize: number, edgeMargin: number) {
+  const safeBottom = getSafeAreaInsetBottomPx();
   return {
     x: window.innerWidth - iconSize - edgeMargin,
-    y: window.innerHeight - iconSize - edgeMargin,
+    y: window.innerHeight - iconSize - edgeMargin - safeBottom,
   };
 }
 
@@ -184,7 +195,7 @@ export default function PetBunny() {
       const maxX = window.innerWidth - iconSize - edgeMargin;
       posRef.current = {
         x: Math.min(Math.max(posRef.current.x, edgeMargin), Math.max(edgeMargin, maxX)),
-        y: window.innerHeight - iconSize - edgeMargin,
+        y: window.innerHeight - iconSize - edgeMargin - getSafeAreaInsetBottomPx(),
       };
       applyTransform();
     }
@@ -242,8 +253,7 @@ export default function PetBunny() {
     // loop — while asleep it just skips this cycle and checks again next
     // time, rather than needing to be separately kicked off on waking up.
     function scheduleReading() {
-      const delay = READING_INTERVAL_MIN_MS + Math.random() * (READING_INTERVAL_MAX_MS - READING_INTERVAL_MIN_MS);
-      readingTimeoutRef.current = window.setTimeout(startReading, delay);
+      readingTimeoutRef.current = window.setTimeout(startReading, READING_INTERVAL_MS);
     }
 
     function startReading() {
@@ -402,8 +412,15 @@ export default function PetBunny() {
           starfield's translucency) instead of looking mismatched under
           those. */}
       <div
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface md:hidden"
-        style={{ height: FOOTER_HEIGHT_PX_MOBILE }}
+        className="pointer-events-none fixed inset-x-0 z-30 border-t border-border bg-surface md:hidden"
+        // bottom: env(...) (not bottom-0) so this strip floats entirely
+        // above an Android gesture bar/home indicator instead of sitting
+        // flush against the true screen edge, where the bar would cover
+        // part of it (and the bunny sprite resting in it) — 0 on devices
+        // without one, so this is a no-op there. BottomNav stacks directly
+        // on top of this same strip via its own bottomOffsetPx + this exact
+        // inset, so the two meet edge-to-edge either way.
+        style={{ height: FOOTER_HEIGHT_PX_MOBILE, bottom: "env(safe-area-inset-bottom)" }}
         data-theme-surface="chrome"
         aria-hidden="true"
       />
@@ -420,7 +437,11 @@ export default function PetBunny() {
     >
       {mood && (
         <span
-          className={`gimmick-mood-pop absolute right-full top-1/2 mr-3 max-w-[46vw] -translate-y-1/2 break-words rounded-2xl border-[3px] font-semibold sm:max-w-none sm:whitespace-nowrap sm:break-normal ${
+          // whitespace-nowrap + growing max-w (not break-words in a fixed
+          // 46vw box) on mobile too now — the bubble grows to fit the text
+          // on one line instead of wrapping it, same as desktop already did
+          // via the old sm: prefix.
+          className={`gimmick-mood-pop absolute right-full top-1/2 mr-3 max-w-[90vw] -translate-y-1/2 whitespace-nowrap break-normal rounded-2xl border-[3px] font-semibold ${
             isMobile ? "px-2 py-1 text-[0.62rem]" : "px-3 py-1.5 text-xs"
           }`}
           style={{ color: "var(--color-ink)", background: "var(--color-surface)", borderColor: "var(--color-accent)" }}

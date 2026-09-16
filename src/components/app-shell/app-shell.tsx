@@ -15,6 +15,7 @@ import { useTheme } from "@/components/theme-provider/theme-context";
 import SettingsDialog from "@/components/settings-dialog/settings-dialog";
 import { isTabEnabled } from "@/lib/theme/theme-types";
 import MusicControl from "@/components/music-provider/music-control";
+import NotesPanel from "@/components/notes-panel/notes-panel";
 
 function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const theme = useTheme();
@@ -105,6 +106,7 @@ export default function AppShell() {
       <KawaiiStickers />
       <TryoutStickers />
       <PetBunny />
+      <NotesPanel />
       <div className="relative z-10 flex h-full w-full">
         <aside
           className="hidden w-60 flex-shrink-0 flex-col gap-5 border-r border-border bg-sidenav p-3 md:flex"
@@ -146,8 +148,13 @@ export default function AppShell() {
         <PawDividerRail />
 
         <div className="relative flex min-w-0 flex-1 flex-col">
+          {/* pt-[calc(...)] (not plain pt-1.5) so the Android status bar's
+              height (env(safe-area-inset-top), 0 on desktop/non-notched
+              screens) adds to the original padding instead of replacing it —
+              a plain safe-area utility here would leave zero top padding on
+              every device that doesn't need the inset at all. */}
           <div
-            className="flex flex-shrink-0 items-center gap-2 border-b border-border bg-surface px-2.5 py-1.5 md:px-4 md:py-3"
+            className="flex flex-shrink-0 items-center gap-2 border-b border-border bg-surface px-2.5 pb-1.5 pt-[calc(0.375rem+env(safe-area-inset-top))] md:px-4 md:pb-3 md:pt-[calc(0.75rem+env(safe-area-inset-top))]"
             data-theme-surface="chrome"
           >
             {/* BrandMark (with its own MusicControl) only renders in the
@@ -182,7 +189,11 @@ export default function AppShell() {
               needs PetBunny's own floating-corner clearance. */}
           <main
             className={`flex-1 overflow-y-auto bg-canvas pb-[var(--mobile-bottom-pad)] ${bunnyActive ? "md:pb-16" : "md:pb-0"}`}
-            style={{ "--mobile-bottom-pad": `${BOTTOM_NAV_HEIGHT_PX + (bunnyActive ? FOOTER_HEIGHT_PX_MOBILE : 0)}px` } as React.CSSProperties}
+            style={
+              {
+                "--mobile-bottom-pad": `calc(${BOTTOM_NAV_HEIGHT_PX + (bunnyActive ? FOOTER_HEIGHT_PX_MOBILE : 0)}px + env(safe-area-inset-bottom))`,
+              } as React.CSSProperties
+            }
             data-theme-surface="main"
           >
             <Outlet />

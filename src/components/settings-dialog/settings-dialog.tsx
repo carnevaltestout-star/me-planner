@@ -55,8 +55,13 @@ export default function SettingsDialog({ onClose }: SettingsDialogProps) {
   // Same "is the bunny's footer strip showing" gate app-shell.tsx and
   // BottomNav already use — needed here too so the sheet's reserved gap
   // matches however much space is actually stacked at the bottom right now.
+  // + env(safe-area-inset-bottom), same reasoning as BottomNav's own
+  // position — without it this gap comes up short by exactly the inset on
+  // any phone with a gesture bar/home indicator, and the sheet's bottom
+  // edge ends up sitting under (rather than just above) BottomNav.
   const bunnyActive = (theme.retro || theme.kawaii || theme.tryout) && theme.gimmicks.bouncingBuddy;
-  const mobileBottomGap = BOTTOM_NAV_HEIGHT_PX + (bunnyActive ? FOOTER_HEIGHT_PX_MOBILE : 0) + 8;
+  const mobileBottomGapPx = BOTTOM_NAV_HEIGHT_PX + (bunnyActive ? FOOTER_HEIGHT_PX_MOBILE : 0) + 8;
+  const mobileBottomGap = `calc(${mobileBottomGapPx}px + env(safe-area-inset-bottom))`;
   // Starts hidden and flips true a frame after mount so the slide-up is an
   // actual transition rather than appearing already in place — mirrors the
   // same trick BottomNav's sheet doesn't need (it's always mounted, just
@@ -128,17 +133,20 @@ export default function SettingsDialog({ onClose }: SettingsDialogProps) {
       }}
     >
       {/* On mobile this sits above the bottom nav (mb-[gap]) instead of
-          covering it, and caps its own height so it reads as a sheet rather
-          than a full-screen takeover; desktop keeps the original centered
-          80% modal, unaffected since there's no bottom nav there to clear. */}
+          covering it, at a fixed height (not just a max-height) so it reads
+          as a sheet rather than a full-screen takeover and doesn't visibly
+          resize as you switch between tabs with very different amounts of
+          content (e.g. the short General tab vs. the long Appearance one);
+          desktop keeps the original centered 80% modal, unaffected since
+          there's no bottom nav there to clear. */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Settings and theme"
-        className={`mb-[var(--sheet-bottom-gap)] flex max-h-[75vh] w-full flex-col overflow-hidden rounded-t-theme border border-border bg-surface shadow-theme transition-transform ease-out md:mb-0 md:h-[80%] md:max-h-none md:w-[80%] md:rounded-theme ${
+        className={`mb-[var(--sheet-bottom-gap)] flex h-[75vh] w-full flex-col overflow-hidden rounded-t-theme border border-border bg-surface shadow-theme transition-transform ease-out md:mb-0 md:h-[80%] md:w-[80%] md:rounded-theme ${
           visible ? "translate-y-0" : exitTransformClass
         } ${dissolveClass}`}
-        style={{ "--sheet-bottom-gap": `${mobileBottomGap}px`, transitionDuration: `${OPEN_ANIM_MS}ms` } as React.CSSProperties}
+        style={{ "--sheet-bottom-gap": mobileBottomGap, transitionDuration: `${OPEN_ANIM_MS}ms` } as React.CSSProperties}
       >
         <div className="flex flex-shrink-0 items-center justify-between border-b border-border bg-surface-alt px-3 py-2">
           <span className="text-sm font-semibold text-ink">Settings &amp; theme</span>

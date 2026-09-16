@@ -32,9 +32,10 @@ interface NavGroup {
   align: "left" | "center" | "right";
 }
 
-// Plan/Reflect/Learn each stand in for several real tabs — Overview and
-// Statistics deliberately aren't in any group (desktop/tablet-only for now,
-// per explicit decision) rather than guessed into one that might not fit.
+// Plan/Reflect/Learn each stand in for several real tabs — Overview
+// deliberately isn't in any group (desktop/tablet-only for now, per
+// explicit decision) rather than guessed into one that might not fit.
+// Statistics lives under Learn.
 const GROUPS: NavGroup[] = [
   {
     key: "plan",
@@ -55,7 +56,7 @@ const GROUPS: NavGroup[] = [
     label: "Learn",
     icon: LearnGroupIcon,
     align: "right",
-    paths: ["/vocabulary", "/learning"],
+    paths: ["/vocabulary", "/learning", "/statistics"],
   },
 ];
 
@@ -123,7 +124,7 @@ export default function BottomNav({ bottomOffsetPx, onOpenSettings }: BottomNavP
           sheetOpen ? "opacity-100" : "pointer-events-none opacity-0"
         } ${displayedGroup?.align === "right" ? "ml-auto w-48" : displayedGroup?.align === "left" ? "mr-auto w-48" : "mx-auto w-48"}`}
         style={{
-          bottom: bottomOffsetPx + BOTTOM_NAV_HEIGHT_PX + SHEET_GAP_PX,
+          bottom: `calc(${bottomOffsetPx + BOTTOM_NAV_HEIGHT_PX + SHEET_GAP_PX}px + env(safe-area-inset-bottom))`,
           transitionDuration: `${SHEET_TRANSITION_MS}ms`,
         }}
         onTransitionEnd={() => {
@@ -189,7 +190,15 @@ export default function BottomNav({ bottomOffsetPx, onOpenSettings }: BottomNavP
         className={`fixed inset-x-0 z-30 flex bg-sidenav shadow-theme transition-[height] ease-out md:hidden ${
           theme.retro ? "border border-border" : "border-t border-border"
         }`}
-        style={{ bottom: bottomOffsetPx, height: barHeight, transitionDuration: `${SHEET_TRANSITION_MS}ms` }}
+        style={{
+          // + env(safe-area-inset-bottom) so the bar floats clear of
+          // Android's gesture-navigation strip instead of sitting flush
+          // against (and getting swallowed by) it — 0 on devices without
+          // one, so this is a no-op there.
+          bottom: `calc(${bottomOffsetPx}px + env(safe-area-inset-bottom))`,
+          height: barHeight,
+          transitionDuration: `${SHEET_TRANSITION_MS}ms`,
+        }}
         data-theme-surface="chrome"
       >
         {visibleGroups.map((group) => {
